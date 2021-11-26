@@ -14,7 +14,7 @@
 
 # VERSION of Project Zomboid Linux Server Manager.
 # Follows semantic versioning, SEE: http://semver.org/.
-VERSION="0.18.2"
+VERSION="0.18.4"
 
 # Color variables. Used when displaying messages in stdout.
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[0;33m'; BLUE='\033[0;36m'; NC='\033[0m'
@@ -23,7 +23,7 @@ RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[0;33m'; BLUE='\033[0;36m'; NC
 OK=$(echo -e "[ ${GREEN} OK ${NC} ]"); ER=$(echo -e "[ ${RED} ER ${NC} ]"); INFO=$(echo -e "[ ${BLUE}INFO${NC} ]")
 
 # MEMORY_AVAILABLE is the amount of memory available on the server in MB.
-MEMORY_AVAILABLE=free | awk 'NR==2 { printf("%.0f", $2/1024); }'
+MEMORY_AVAILABLE=$(free | awk 'NR==2 { printf("%.0f", $2/1024); }')
 
 # CPU_CORE_COUNT is the number of processors cores on the server.
 CPU_CORE_COUNT=$(nproc)
@@ -130,6 +130,15 @@ ZOMBOID_FILE_CONFIG_INI="${ZOMBOID_DIR_SERVER}/${SERVER_NAME}.ini"
 ZOMBOID_FILE_CONFIG_SANDBOX="${ZOMBOID_DIR_SERVER}/${SERVER_NAME}_SandboxVars.lua"
 ZOMBOID_FILE_DB="${ZOMBOID_DIR_DB}/${SERVER_NAME}.db"
 
+# print_version prints versions.
+function print_version() {
+  echo "Project Zomboid build 40.43 (Steam)"
+  echo "pzlsm version ${VERSION}"
+  echo "pzlsd version undefined"
+  echo "gorcon version ${UTIL_RCON_VERSION}"
+  echo "range version ${UTIL_RANGE_VERSION}"
+}
+
 # strclear removes all spaces, quotation marks and tabs from a string.
 function strclear() {
     local str=${1//\"/}; str=${str// /}; str=${str//$'\t'/}
@@ -233,7 +242,7 @@ function install_server() {
     local validate=""
     local beta=""
 
-    for arg in $@
+    for arg in "$@"
     do
         case ${arg} in
             validate)
@@ -292,7 +301,7 @@ function install_server() {
 # current RAM consumption.
 function stats() {
     local pid_zomboid=$(pidof "ProjectZomboid64")
-    if [ ! -n "${pid_zomboid}" ]; then
+    if [ -z "${pid_zomboid}" ]; then
         echo "${ER} server is not running"
         return 1
     fi
@@ -387,7 +396,7 @@ function stop() {
     echo "${INFO} stopping the server..."
 
     local pid_zomboid=$(pidof "ProjectZomboid64")
-    if [ ! -n "${pid_zomboid}" ]; then
+    if [ -z "${pid_zomboid}" ]; then
         echo "${ER} server already stopped"
         return 0
     fi
@@ -422,6 +431,14 @@ function stop() {
         echo "${INFO} kill screen process ${pid_zomboid}"
         kill ${pid_screen} > /dev/null 2>&1; sleep 1s
     fi
+
+    echo "${OK} server is stopped"
+
+    # After a stopping the server invokes the function of cleaning garbage that
+    # the game generates during its operation.
+    delete_old_chunks
+    delete_old_logs
+    delete_old_java_stack_traces "${CLEAR_STACK_TRACE_DAY}"
 }
 
 # restart stops the server and starts it after 10 seconds.
@@ -484,12 +501,6 @@ function shutdown_wrapper() {
             return 1
             ;;
     esac
-
-    # After a stopping the server invokes the function of cleaning garbage that
-    # the game generates during its operation.
-    delete_old_chunks
-    delete_old_logs
-    delete_old_java_stack_traces
 }
 
 # delete_zombies deletes all zpop_*_*.bin files from Zomboid/Saves directory.
@@ -511,7 +522,7 @@ function delete_zombies() {
 # default value will be taken from the variable CLEAR_MAP_DAY.
 function delete_old_chunks() {
     local days="$1"
-    if [ ! -n "${days}" ]; then
+    if [ -z "${days}" ]; then
         days=${CLEAR_MAP_DAY}
     fi
 
@@ -531,7 +542,7 @@ function delete_old_chunks() {
 # default value will be taken from the variable CLEAR_LOGS_DAY.
 function delete_old_logs() {
     local days="$1"
-    if [ ! -n "${days}" ]; then
+    if [ -z "${days}" ]; then
         days=${CLEAR_LOGS_DAY}
     fi
 
@@ -555,7 +566,7 @@ function delete_old_logs() {
 # default value will be taken from the variable CLEAR_STACK_TRACE_DAY.
 function delete_old_java_stack_traces() {
     local days="$1"
-    if [ ! -n "${days}" ]; then
+    if [ -z "${days}" ]; then
         days=${CLEAR_STACK_TRACE_DAY}
     fi
 
@@ -669,7 +680,7 @@ function map_copy() {
     fi
 
     local copy_path="${DIR_BACKUPS}/copy"
-    if [ ! -n "$3" ]; then
+    if [ -z "$3" ]; then
         copy_path=${copy_path}/${NOW}_${from}_${to}
     else
         copy_path=${copy_path}/${NOW}_$3
@@ -736,7 +747,7 @@ function map_copyto() {
     fi
 
     local copy_path="${DIR_BACKUPS}/copy"
-    if [[ ! -n "$4" ]]; then
+    if [[ -z "$4" ]]; then
         copy_path="${copy_path}/${NOW}_${from_new}"
     else
         copy_path="${copy_path}/${NOW}_$4"
@@ -864,7 +875,7 @@ function log_search() {
     fi
 }
 
-#fn_sqlite fulfills query $1 to the Project Zomboid database and displays its
+# fn_sqlite fulfills query $1 to the Project Zomboid database and displays its
 # result.
 #
 # Example: fn_sqlite 'select * from whitelist limit 1'
@@ -888,6 +899,9 @@ function fix_options() {
 # main contains a proxy for entering permissible functions.
 function main() {
     case "$1" in
+        version)
+            print_version
+            ;;
         prepare)
             install_dependencies
             ;;
@@ -954,6 +968,7 @@ function main() {
 
 if [ -z "$1" ]; then
     echo "${INFO} Permissible commands:"
+    echo "........ version"
     echo "........ prepare"
     echo "........ get_utils"
     echo "........ install {validate beta}"
@@ -979,7 +994,7 @@ if [ -z "$1" ]; then
     printf "[  >>  ] " & read CMD
 fi
 
-if [ ! -z "$CMD" ]; then
+if [ -n "$CMD" ]; then
     IFS=' ' read -ra args <<< "${CMD}"
     main "${args[@]}"
 else
