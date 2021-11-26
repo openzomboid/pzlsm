@@ -1,0 +1,11 @@
+.idea/
+.vscode/
+
+.tmp/
+testdata/
+utils/
+
+include/config/deploy/dev.sh
+include/config/deploy/prod.sh
+
+include/config/pzlsm/local.sh
