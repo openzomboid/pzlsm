@@ -14,7 +14,7 @@
 
 # VERSION of Project Zomboid Linux Server Manager.
 # Follows semantic versioning, SEE: http://semver.org/.
-VERSION="0.18.4"
+VERSION="0.18.5"
 
 # Color variables. Used when displaying messages in stdout.
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[0;33m'; BLUE='\033[0;36m'; NC='\033[0m'
@@ -41,9 +41,28 @@ NOW=$(date "+%Y%m%d_%H%M%S")
 # TIMESTAMP is current timestamp.
 TIMESTAMP=$(date "+%s")
 
+# Project directories definitions.
+BASEDIR=$(dirname "$0")
+DIR_BACKUPS="${BASEDIR}/backups"
+DIR_UTILS="${BASEDIR}/utils"
+DIR_INCLUDE="${BASEDIR}/include"
+DIR_PZLSM_CONFIG="${DIR_INCLUDE}/config/pzlsm"
+
+# Linux Server Manager files definitions.
+FILE_PZLSM_LOG="${BASEDIR}/server.log"
+FILE_PZLSM_CONFIG_DEFAULT="${DIR_PZLSM_CONFIG}/default.sh"
+FILE_PZLSM_CONFIG_LOCAL="${DIR_PZLSM_CONFIG}/local.sh"
+FILE_PZLSM_UPDATE="${BASEDIR}/server.update"
+
+# Import config files if exists.
+# shellcheck source=include/config/default.sh
+test -f "${FILE_PZLSM_CONFIG_DEFAULT}" && . "${FILE_PZLSM_CONFIG_DEFAULT}"
+# shellcheck source=include/config/local.sh
+test -f "${FILE_PZLSM_CONFIG_LOCAL}" && . "${FILE_PZLSM_CONFIG_LOCAL}"
+
 # CLEAR_MAP_DAY contains the number of days after which map chunks will
 # be deleted if no one has visited them. Set to 0 to turn off.
-CLEAR_MAP_DAY=21
+[ -z "${CLEAR_MAP_DAY}" ] && CLEAR_MAP_DAY=21
 
 # CLEAR_LOGS_DAY contains the number of days after which old game logs will
 # be deleted. Set to 0 to turn off.
@@ -57,31 +76,11 @@ CLEAR_STACK_TRACE_DAY=1000
 # will be deleted. Set to 0 to turn off.
 CLEAR_BACKUPS_DAY=1000
 
-# Project directories definitions.
-BASEDIR=$(dirname "$0")
-DIR_BACKUPS="${BASEDIR}/backups"
-DIR_UTILS="${BASEDIR}/utils"
-DIR_INCLUDE="${BASEDIR}/include"
-DIR_CONFIG="${DIR_INCLUDE}/config"
-DIR_PZLSM_CONFIG="${DIR_INCLUDE}/config/pzlsm"
-
-# Linux Server Manager files definitions.
-FILE_PZLSM_LOG="${BASEDIR}/server.log"
-FILE_PZLSM_CONFIG_DEFAULT="${DIR_PZLSM_CONFIG}/default.sh"
-FILE_PZLSM_CONFIG_LOCAL="${DIR_PZLSM_CONFIG}/local.sh"
-FILE_PZLSM_UPDATE="${BASEDIR}/server.update"
-
-# Import config file if exists.
-test -f ${FILE_PZLSM_CONFIG_DEFAULT} && . ${FILE_PZLSM_CONFIG_DEFAULT}
-test -f ${FILE_PZLSM_CONFIG_LOCAL} && . ${FILE_PZLSM_CONFIG_LOCAL}
-
 # Numeric range regular expression builder written in bash.
 # https://github.com/outdead/regex-range-builder.
 #
 # UTIL_RANGE_VERSION contains version of range builder.
-if [ -z ${UTIL_RANGE_VERSION} ]; then
-    UTIL_RANGE_VERSION="1.0.0"
-fi
+[ -z "${UTIL_RANGE_VERSION}" ] && UTIL_RANGE_VERSION="1.0.0"
 UTIL_RANGE_LINK="https://github.com/outdead/regex-range-builder/archive/v${UTIL_RANGE_VERSION}.tar.gz"
 UTIL_RANGE_DIR="${DIR_UTILS}/regex-range-builder-${UTIL_RANGE_VERSION}"
 UTIL_RANGE_FILE="${UTIL_RANGE_DIR}/range.sh"
@@ -319,25 +318,20 @@ function stats() {
     echo "${INFO} cpu ${cpu}%"
     echo "${INFO} mem ${mem1}% (${mem2} MB)"
     echo "${INFO} jvm ${jvm1}% (${jvm2} MB from ${jvm3} MB)"
-    #echo "${INFO} $(sudo jstat -gc ${pid_zomboid} | awk 'NR>1 { printf("jvm %.1f (%.2f MB from %.2f MB)\n", $8/$7*100, $8/1024, $7/1024); }')"
+    # echo "${INFO} $(jstat -gc ${pid_zomboid} | awk 'NR>1 { printf("jvm %.1f (%.2f MB from %.2f MB)\n", $8/$7*100, $8/1024, $7/1024); }')"
 }
 
 # rconcmd calls the $1 command to the game using Source RCON Protocol.
 # The port and authorization parameters takes from the Project Zomboid config.
 function rconcmd() {
     local command="$1"
-    if [ -z "${command}" ]; then
-       echo "${ER} command is not set"
-       return 1
-    fi
+    [ -z "${command}" ] && { echo "${ER} command is not set"; return 1; }
 
     local host='127.0.0.1'
     local port=$(grep "RCONPort=" ${ZOMBOID_FILE_CONFIG_INI}); port=${port//RCONPort=/}; port=${port// /}
     local password=$(grep "RCONPassword=" ${ZOMBOID_FILE_CONFIG_INI}); password=${password//RCONPassword=/}; password=${password// /}
 
-    local answer=$(${UTIL_RCON_FILE} -a ${host}:${port} -p ${password} -c "${command}")
-
-    echo "${answer}"
+    ${UTIL_RCON_FILE} -a "${host}:${port}" -p "${password}" -c "${command}"
 }
 
 # screencmd calls the $1 command to the game using screen util.
@@ -345,10 +339,7 @@ function rconcmd() {
 # to the request. Therefore, it should be used when the answer is not needed.
 function screencmd() {
     local command="$1"
-    if [ -z "${command}" ]; then
-       echo "${ER} command is not set"
-       return 1
-    fi
+    [ -z "${command}" ] && { echo "${ER} command is not set"; return 1; }
 
     screen -S ${SCREEN_ZOMBOID} -X stuff "${command}\r"
 }
@@ -886,9 +877,7 @@ function fn_sqlite() {
        return 1
     fi
 
-    local result=$(sqlite3 "${ZOMBOID_FILE_DB}" "${query}")
-
-    echo "${result}"
+    sqlite3 "${ZOMBOID_FILE_DB}" "${query}"
 }
 
 # fix_options changes game language to EN.
@@ -984,7 +973,7 @@ if [ -z "$1" ]; then
     echo "........ map_copy top bottom [name]"
     echo "........ map_copyto top bottom top_new bottom_new [name]"
     echo "........ map_regen {top} {bottom}"
-    echo "........ range {top} {bottom"
+    echo "........ range {top} {bottom}"
     echo "........ zombie_delete"
     echo "........ backup"
     echo "........ logpvp"
