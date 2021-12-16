@@ -3,6 +3,8 @@
 # NOW is the current date and time in default format Y%m%d_%H%M%S.
 NOW=$(date "+%Y%m%d_%H%M%S")
 
+SCREEN_ZOMBOID="zomboid"
+
 # UTIL_RANGE_VERSION contains version of range builder.
 UTIL_RANGE_VERSION="1.0.0"
 
@@ -10,7 +12,7 @@ UTIL_RANGE_VERSION="1.0.0"
 UTIL_RCON_VERSION="0.4.0"
 
 # SERVER_MEMORY_LIMIT contains memory Limit for JVM in MB.
-SERVER_MEMORY_LIMIT=1024
+SERVER_MEMORY_LIMIT=2500
 
 # SERVER_NAME contains name of Project Zomboid server.
 SERVER_NAME="servertest"
@@ -40,3 +42,7 @@ CLEAR_STACK_TRACE_DAY=1000
 # CLEAR_BACKUPS_DAY contains the number of days after which old backups
 # will be deleted. Set to 0 to turn off.
 CLEAR_BACKUPS_DAY=100
+
+# FIRST_RUN_ADMIN_PASSWORD contains password for user admin which be created
+# on first server run.
+FIRST_RUN_ADMIN_PASSWORD="changeme"
