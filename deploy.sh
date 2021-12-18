@@ -28,12 +28,12 @@ fi
 SERVER_IP=${SERVER_IP}
 SERVER_USER=${SERVER_USER}
 SERVER_PASSWORD=${SERVER_PASSWORD}
+SERVER_PZ_DIR=${SERVER_PZ_DIR}
 
 [[ -z "${SERVER_IP}" ]] && >&2 echo "$ER SERVER_IP is not set" && exit
 [[ -z "${SERVER_USER}" ]] && >&2 echo "$ER SERVER_USER is not set" && exit
 [[ -z "${SERVER_PASSWORD}" ]] && >&2 echo "$ER SERVER_PASSWORD is not set" && echo "${SERVER_IP}" && exit
-
-SERVER_PZ_DIR="/home/${SERVER_USER}/pz"
+[[ -z "${SERVER_PZ_DIR}" ]] && >&2 echo "$ER SERVER_PZ_DIR is not set" && exit
 
 exp "${SERVER_PASSWORD}" ssh -o 'IdentitiesOnly=yes' "${SERVER_USER}@${SERVER_IP}" "mkdir -p ${SERVER_PZ_DIR}/include/config/pzlsm"
 exp "${SERVER_PASSWORD}" scp -o 'IdentitiesOnly=yes' "${DIR_PZLSM_CONFIG}/default.sh" "${SERVER_USER}@${SERVER_IP}":"${SERVER_PZ_DIR}/include/config/pzlsm"

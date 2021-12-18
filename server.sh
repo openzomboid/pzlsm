@@ -273,7 +273,7 @@ function install_server() {
   fi
 
   # Install Project Zomboid Server.
-  ./steamcmd.sh +login "${username}" +force_install_dir "${SERVER_DIR}" +app_update ${APP_ID} "${beta}" "${validate}" +exit
+  ./steamcmd.sh +login "${username}" +force_install_dir "${SERVER_DIR}" +app_update ${APP_ID} ${beta} ${validate} +exit
 
   local manifest="${SERVER_DIR}/steamapps/appmanifest_${APP_ID}.acf"
   local updated=$(grep -oP "(?<=LastUpdated).*" "${manifest}" | grep -o '[0-9]*')
