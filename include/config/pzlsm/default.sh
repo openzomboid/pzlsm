@@ -43,6 +43,9 @@ CLEAR_STACK_TRACE_DAY=1000
 # will be deleted. Set to 0 to turn off.
 CLEAR_BACKUPS_DAY=100
 
+# BACKUP_ON_STOP contains switcher to make backup on every server stop.
+BACKUP_ON_STOP="true"
+
 # FIRST_RUN_ADMIN_PASSWORD contains password for user admin which be created
 # on first server run.
 FIRST_RUN_ADMIN_PASSWORD="changeme"

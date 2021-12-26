@@ -14,7 +14,7 @@
 
 # VERSION of Project Zomboid Linux Server Manager.
 # Follows semantic versioning, SEE: http://semver.org/.
-VERSION="0.19.1"
+VERSION="0.19.4"
 
 # Color variables. Used when displaying messages in stdout.
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[0;33m'; BLUE='\033[0;36m'; NC='\033[0m'
@@ -75,6 +75,7 @@ test -f "${FILE_PZLSM_CONFIG_LOCAL}" && . "${FILE_PZLSM_CONFIG_LOCAL}"
 [ -z "${SERVER_DIR}" ] && SERVER_DIR="${HOME}/pz/server"
 [ -z "${ZOMBOID_DIR}" ] && ZOMBOID_DIR="${SERVER_DIR}/Zomboid"
 [ -z "${FIRST_RUN_ADMIN_PASSWORD}" ] && FIRST_RUN_ADMIN_PASSWORD="changeme"
+[ -z "${BACKUP_ON_STOP}" ] && BACKUP_ON_STOP="false"
 
 ## Utils
 
@@ -438,18 +439,25 @@ function stop() {
 
   echo "${OK} server is stopped"
 
+  if [ "$1" == "now" ] || [ "${BACKUP_ON_STOP}" != "true" ]; then
+    return 0
+  fi
+
   # After a stopping the server invokes the function of cleaning garbage that
   # the game generates during its operation.
   delete_old_chunks
   delete_old_logs
   delete_old_java_stack_traces "${CLEAR_STACK_TRACE_DAY}"
+
+  # Backups
+  backup
 }
 
 # restart stops the server and starts it after 10 seconds.
 function restart() {
   echo "${INFO} restarting the server..."
 
-  stop
+  stop "$1"
   sleep 10s
   start
 }
@@ -494,11 +502,11 @@ function shutdown_wrapper() {
   case "$1" in
     stop)
       ticker "Stopping the server in" "$2"
-      stop
+      stop "$2"
       ;;
     restart)
       ticker "Restarting the server in" "$2"
-      restart
+      restart "$2"
       ;;
     *)
       echoerr "wrong shutdown command: $1"
