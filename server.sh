@@ -14,7 +14,7 @@
 
 # VERSION of Project Zomboid Linux Server Manager.
 # Follows semantic versioning, SEE: http://semver.org/.
-VERSION="0.19.4"
+VERSION="0.19.5"
 
 # Color variables. Used when displaying messages in stdout.
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[0;33m'; BLUE='\033[0;36m'; NC='\033[0m'
@@ -893,6 +893,15 @@ function fix_options() {
   sed -i -r "s/language=.*/language=EN/g" "${ZOMBOID_DIR}/options.ini"
 }
 
+# public creates public symlinks.
+function public() {
+  mkdir -p public
+  mkdir -p public/saves
+
+  ln -sf ../backups public/backups
+  ln -sf ../content/Zomboid/Logs public/logs
+}
+
 # main contains a proxy for entering permissible functions.
 function main() {
   case "$1" in
@@ -963,6 +972,9 @@ function main() {
     fix)
       fix_options
       ;;
+    public)
+      public
+      ;;
   esac
 }
 
@@ -992,6 +1004,7 @@ if [ -z "$1" ]; then
   echo "........ log {search} [type]"
   echo "........ sql {query}"
   echo "........ fix"
+  echo "........ public"
   printf "[  >>  ] " & read CMD
 fi
 
