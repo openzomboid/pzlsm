@@ -894,6 +894,7 @@ function fix_options() {
 }
 
 # public creates public symlinks.
+# TODO: Use VARS to paths.
 function public() {
   mkdir -p public
   mkdir -p public/saves
