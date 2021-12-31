@@ -14,7 +14,7 @@
 
 # VERSION of Project Zomboid Linux Server Manager.
 # Follows semantic versioning, SEE: http://semver.org/.
-VERSION="0.19.5"
+VERSION="0.19.6"
 
 # Color variables. Used when displaying messages in stdout.
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[0;33m'; BLUE='\033[0;36m'; NC='\033[0m'
@@ -827,6 +827,8 @@ function range() {
 # After successful copying, check for old backups and delete them.
 # TODO: Move removing old backups into a separate function.
 function backup() {
+  local btype="$1"
+
   local backup_path="${DIR_BACKUPS}/server"
 
   mkdir -p ${backup_path} #> /dev/null 2>&1
@@ -835,7 +837,27 @@ function backup() {
     return 1
   fi
 
+  local backup_players_path="${DIR_BACKUPS}/server/players"
+
+  mkdir -p ${backup_players_path} #> /dev/null 2>&1
+  if [ ! $? -eq 0 ]; then
+    echoerr "can not create directory ${backup_players_path} to backup"
+    return 1
+  fi
+
   if [ -n "${ZOMBOID_DIR}" ]; then
+    if [ "${btype}" == "players" ]; then
+      echo "${INFO} backup zomboid players..."
+
+      local name="players_${NOW}.db"
+      cp "${ZOMBOID_DIR_MAP}/players.db" "${backup_players_path}/${name}"
+      if [ $? -eq 0 ]; then
+        echo "${OK} backup ${name} created successful"
+      fi
+
+      return 0
+    fi
+
     echo "${INFO} backup zomboid files..."
 
     local name="zomboid_${NOW}.tar.gz"
@@ -892,6 +914,8 @@ function fn_sqlite() {
 function fix_options() {
   sed -i -r "s/language=.*/language=EN/g" "${ZOMBOID_DIR}/options.ini"
 }
+
+# TODO: temp block
 
 # public creates public symlinks.
 # TODO: Use VARS to paths.
@@ -959,7 +983,7 @@ function main() {
       delete_zombies
       ;;
     backup)
-      backup
+      backup "$2"
       ;;
     log)
       log_search "$2" "$3"
@@ -1000,7 +1024,7 @@ if [ -z "$1" ]; then
   echo "........ map_regen {top} {bottom}"
   echo "........ range {top} {bottom}"
   echo "........ zombie_delete"
-  echo "........ backup"
+  echo "........ backup [type]"
   echo "........ logpvp"
   echo "........ log {search} [type]"
   echo "........ sql {query}"
