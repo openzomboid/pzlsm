@@ -14,7 +14,7 @@
 
 # VERSION of Project Zomboid Linux Server Manager.
 # Follows semantic versioning, SEE: http://semver.org/.
-VERSION="0.19.6"
+VERSION="0.19.7"
 
 # Color variables. Used when displaying messages in stdout.
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[0;33m'; BLUE='\033[0;36m'; NC='\033[0m'
@@ -310,12 +310,7 @@ function install_server() {
 # stats displays information on the peak processor consumption and
 # current RAM consumption.
 function stats() {
-  local pid_zomboid
-  if [ "$(pgrep -af ProjectZomboid64 | wc -l)" == "1" ]; then
-    pid_zomboid=$(pidof ProjectZomboid64)
-  else
-    pid_zomboid=$(pgrep -af ProjectZomboid64 | grep "servername ${SERVER_NAME}" | grep -o -e "^[0-9]*")
-  fi
+  local pid_zomboid=$(pgrep -af ProjectZomboid64 | grep "servername ${SERVER_NAME}" | grep -o -e "^[0-9]*")
   if [ -z "${pid_zomboid}" ]; then
     echoerr "server is not running"
     return 1
