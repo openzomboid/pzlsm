@@ -14,7 +14,7 @@
 
 # VERSION of Project Zomboid Linux Server Manager.
 # Follows semantic versioning, SEE: http://semver.org/.
-VERSION="0.19.7"
+VERSION="0.19.8"
 
 # Color variables. Used when displaying messages in stdout.
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[0;33m'; BLUE='\033[0;36m'; NC='\033[0m'
@@ -885,9 +885,9 @@ function log_search() {
 
   local filename="$2"
   if [ -n "${filename}" ]; then
-    grep --include=*_"${filename}".txt -rIah "$1" "${ZOMBOID_DIR_LOGS}" | sort -b -k1.7,1.8 -k1.4,1.6 -k1.1,1.2
+    grep --include=*_"${filename}".txt -rIah "$1" "${ZOMBOID_DIR_LOGS}" | sort -b -k1.8,1.9 -k1.5,1.6 -k1.2,1.3
   else
-    grep --exclude=*_chat.txt -rIah "$1" "${ZOMBOID_DIR_LOGS}" | sort -b -k1.7,1.8 -k1.4,1.6 -k1.1,1.2
+    grep --exclude=*_chat.txt -rIah "$1" "${ZOMBOID_DIR_LOGS}" | sort -b -k1.8,1.9 -k1.5,1.6 -k1.2,1.3
   fi
 }
 
