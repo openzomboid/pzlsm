@@ -424,7 +424,7 @@ function stop() {
   fi
 
   # If after a regular shutdown server remains running, we must forcibly stop it.
-  sleep 10s
+  sleep 20s
 
   pid_screen=$(ps aux | grep -v grep | grep -i "screen -U -mdS ${SCREEN_ZOMBOID} " | awk '{print $2}')
   if [ -n "${pid_screen}" ]; then
