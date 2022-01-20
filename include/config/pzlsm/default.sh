@@ -49,3 +49,11 @@ BACKUP_ON_STOP="true"
 # FIRST_RUN_ADMIN_PASSWORD contains password for user admin which be created
 # on first server run.
 FIRST_RUN_ADMIN_PASSWORD="changeme"
+
+# GITHUB_CONFIG_REPO contains link to github repo with pz config files.
+# Leave it blank if you don't plan to use this.
+GITHUB_CONFIG_REPO=""
+
+# GITHUB_ACCESS_TOKEN contains access token for download server configs from GitHub.
+# Leave it blank if you don't plan to use this.
+GITHUB_ACCESS_TOKEN=""

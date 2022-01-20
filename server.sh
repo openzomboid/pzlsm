@@ -14,7 +14,7 @@
 
 # VERSION of Project Zomboid Linux Server Manager.
 # Follows semantic versioning, SEE: http://semver.org/.
-VERSION="0.19.8"
+VERSION="0.19.9"
 
 # Color variables. Used when displaying messages in stdout.
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[0;33m'; BLUE='\033[0;36m'; NC='\033[0m'
@@ -101,6 +101,8 @@ ZOMBOID_DIR_MAP="${ZOMBOID_DIR_SAVES}/Multiplayer/${SERVER_NAME}"
 
 ZOMBOID_FILE_CONFIG_INI="${ZOMBOID_DIR_SERVER}/${SERVER_NAME}.ini"
 ZOMBOID_FILE_CONFIG_SANDBOX="${ZOMBOID_DIR_SERVER}/${SERVER_NAME}_SandboxVars.lua"
+ZOMBOID_FILE_CONFIG_SPAWNPOINTS="${ZOMBOID_DIR_SERVER}/${SERVER_NAME}_spawnpoints.lua"
+ZOMBOID_FILE_CONFIG_SPAWNREGIONS="${ZOMBOID_DIR_SERVER}/${SERVER_NAME}_spawnregions.lua"
 ZOMBOID_FILE_DB="${ZOMBOID_DIR_DB}/${SERVER_NAME}.db"
 
 # echoerr prints error message to stderr and FILE_PZLSM_LOG file.
@@ -307,13 +309,50 @@ function install_server() {
   # is_updated
 }
 
+# sync_config downloads config from github repo.
+function sync_config() {
+  if [ -z "${GITHUB_ACCESS_TOKEN}" ] || [ -z "${GITHUB_CONFIG_REPO}" ]; then
+    echoerr "github repo or token is not set"; return 1
+  fi
+
+  local cfg_ini=""
+  cfg_ini=$(curl -H "Authorization: token ${GITHUB_ACCESS_TOKEN}" -s -L "${GITHUB_CONFIG_REPO}/${SERVER_NAME}/${SERVER_NAME}.ini")
+  if [ "$(echo "${cfg_ini}" | wc -l)" -lt "100" ]; then
+    echoerr "downloaded invalid ${SERVER_NAME}.ini";  return 1
+  fi;
+
+  local cfg_sand=""
+  cfg_sand=$(curl -H "Authorization: token ${GITHUB_ACCESS_TOKEN}" -s -L "${GITHUB_CONFIG_REPO}/${SERVER_NAME}/${SERVER_NAME}_SandboxVars.lua")
+  if [ "$(echo "${cfg_sand}" | wc -l)" -lt "100" ]; then
+    echoerr "downloaded invalid ${SERVER_NAME}_SandboxVars.lua";  return 1
+  fi;
+
+  local cfg_points=""
+  cfg_points=$(curl -H "Authorization: token ${GITHUB_ACCESS_TOKEN}" -s -L "${GITHUB_CONFIG_REPO}/${SERVER_NAME}/${SERVER_NAME}_spawnpoints.lua")
+  if [ "$(echo "${cfg_points}" | wc -l)" -lt "7" ]; then
+    echoerr "downloaded invalid ${SERVER_NAME}_spawnpoints.lua";  return 1
+  fi;
+
+  local cfg_regions=""
+  cfg_regions=$(curl -H "Authorization: token ${GITHUB_ACCESS_TOKEN}" -s -L "${GITHUB_CONFIG_REPO}/${SERVER_NAME}/${SERVER_NAME}_spawnregions.lua")
+  if [ "$(echo "${cfg_regions}" | wc -l)" -lt "10" ]; then
+    echoerr "downloaded invalid ${SERVER_NAME}_spawnregions.lua";  return 1
+  fi;
+
+  echo "${cfg_ini}" > "${ZOMBOID_FILE_CONFIG_INI}"
+  echo "${cfg_sand}" > "${ZOMBOID_FILE_CONFIG_SANDBOX}"
+  echo "${cfg_points}" > "${ZOMBOID_FILE_CONFIG_SPAWNPOINTS}"
+  echo "${cfg_regions}" > "${ZOMBOID_FILE_CONFIG_SPAWNREGIONS}"
+
+  echo "${OK} config downloaded"
+}
+
 # stats displays information on the peak processor consumption and
 # current RAM consumption.
 function stats() {
   local pid_zomboid=$(pgrep -af ProjectZomboid64 | grep "servername ${SERVER_NAME}" | grep -o -e "^[0-9]*")
   if [ -z "${pid_zomboid}" ]; then
-    echoerr "server is not running"
-    return 1
+    echoerr "server is not running"; return 1
   fi
 
   local cpu=$(strclear "$(ps S -p "${pid_zomboid}" -o pcpu=)")
@@ -406,8 +445,7 @@ function stop() {
 
   local pid_screen=$(ps aux | grep -v grep | grep -i "screen -U -mdS ${SCREEN_ZOMBOID} " | awk '{print $2}')
   if [ -z "${pid_screen}" ]; then
-    echoerr "server already stopped"
-    return 0
+    echoerr "server already stopped"; return 0
   fi
 
   # kickusers is used for fix a game bug.
@@ -941,6 +979,9 @@ function main() {
     install)
       install_server "$2" "$3"
       ;;
+    sync)
+      sync_config
+      ;;
     info)
       stats
       ;;
@@ -1005,6 +1046,7 @@ if [ -z "$1" ]; then
   echo "........ prepare"
   echo "........ get_utils"
   echo "........ install {validate beta}"
+  echo "........ sync"
   echo "........ info"
   echo "........ start [first]"
   echo "........ stop [now]"
