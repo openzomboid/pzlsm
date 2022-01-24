@@ -14,7 +14,7 @@
 
 # VERSION of Project Zomboid Linux Server Manager.
 # Follows semantic versioning, SEE: http://semver.org/.
-VERSION="0.19.9"
+VERSION="0.19.10"
 
 # Color variables. Used when displaying messages in stdout.
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[0;33m'; BLUE='\033[0;36m'; NC='\033[0m'
@@ -355,7 +355,12 @@ function stats() {
     echoerr "server is not running"; return 1
   fi
 
-  local cpu=$(strclear "$(ps S -p "${pid_zomboid}" -o pcpu=)")
+  #local cpu1=$(top -bn2 | grep '%Cpu' | tail -1 | grep -P '(....|...) id,' | awk '{print 100-$8 "%"}')
+  #local cpu1=$(cat /proc/stat | grep cpu | tail -1 | awk '{print ($5*100)/($2+$3+$4+$5+$6+$7+$8+$9+$10)}' | awk '{printf ("%.2f", 100-$1)}')
+  #local cpu2=$(ps aux | grep "ProjectZomboid64 -servername ${SERVER_NAME}" | awk '{print $4"\t"$11}' | sort | uniq -c | grep ProjectZomboid64 | grep -o -E "[0-9]+\.[0-9]+")
+  local cpu2=$(strclear "$(ps S -p "${pid_zomboid}" -o pcpu=)")
+  #local cpus=$((100*CPU_CORE_COUNT))
+
   local mem1=$(ps S -p "${pid_zomboid}" -o pmem=)
   local mem2=$(ps -ylp "${pid_zomboid}" | awk '{x += $8} END {print "" x/1024;}')
 
@@ -367,10 +372,14 @@ function stats() {
 
   local mem_used_percent=$((100*"${MEMORY_USED}"/"${MEMORY_AVAILABLE}"))
 
-  echo "${INFO} cpu ${cpu}%"
-  echo "${INFO} mem ${mem_used_percent}% (${MEMORY_USED} MB from ${MEMORY_AVAILABLE})"
-  echo "${INFO} srv ${mem1}% (${mem2} MB)"
-  echo "${INFO} jvm ${jvm1}% (${jvm2} MB from ${jvm3} MB)"
+  local uptime=$(ps -p "${pid_zomboid}" -o etime | grep -v "ELAPSED" | xargs)
+
+  #echo "${INFO} cpu host: ${cpu1}%"
+  echo "${INFO} cpu srv:  ${cpu2}%"
+  echo "${INFO} mem host: ${mem_used_percent}% (${MEMORY_USED} MB from ${MEMORY_AVAILABLE})"
+  echo "${INFO} mem srv:  ${mem1}% (${mem2} MB)"
+  echo "${INFO} mem jvm:  ${jvm1}% (${jvm2} MB from ${jvm3} MB)"
+  echo "${INFO} uptime:   ${uptime}"
 }
 
 # screencmd calls the $1 command to the game using screen util.
