@@ -14,7 +14,7 @@
 
 # VERSION of Project Zomboid Linux Server Manager.
 # Follows semantic versioning, SEE: http://semver.org/.
-VERSION="0.19.10"
+VERSION="0.19.11"
 
 # Color variables. Used when displaying messages in stdout.
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[0;33m'; BLUE='\033[0;36m'; NC='\033[0m'
@@ -68,6 +68,7 @@ test -f "${FILE_PZLSM_CONFIG_LOCAL}" && . "${FILE_PZLSM_CONFIG_LOCAL}"
 [ -z "${CLEAR_LOGS_DAY}" ] && CLEAR_LOGS_DAY=1000
 [ -z "${CLEAR_STACK_TRACE_DAY}" ] && CLEAR_STACK_TRACE_DAY=1000
 [ -z "${CLEAR_BACKUPS_DAY}" ] && CLEAR_BACKUPS_DAY=1000
+[ -z "${CLEAR_TIME_MACHINE_DAY}" ] && CLEAR_TIME_MACHINE_DAY=5
 [ -z "${UTIL_RANGE_VERSION}" ] && UTIL_RANGE_VERSION="1.0.0"
 [ -z "${UTIL_RCON_VERSION}" ] && UTIL_RCON_VERSION="0.4.0"
 [ -z "${SERVER_MEMORY_LIMIT}" ] && SERVER_MEMORY_LIMIT=2048
@@ -837,8 +838,7 @@ function map_copyto() {
 # > (425[1-9]|426[0-9]|4270),(5869|587[0-9]|588[0-4])
 function range() {
   if [ ! -f ${UTIL_RANGE_FILE} ]; then
-     echoerr "util range.sh is not found"
-     return 1
+     echoerr "util range.sh is not found"; return 1
   fi
 
   local from="$1"
@@ -851,8 +851,7 @@ function range() {
   local bot_y=$(echo "${rectangle[3]}" |bc)
 
   if [ "${top_x}" -ge "${bot_x}" ] || [ "${top_y}" -ge "${bot_y}" ]; then
-     echoerr "invalid points"
-     return 1
+     echoerr "invalid points"; return 1
   fi
 
   # local s1=$(${UTIL_RANGE_FILE} 12568 13343)
@@ -867,54 +866,53 @@ function range() {
 # backup copies server files to backup/server directory.
 # TODO: Refactor backup function.
 # After successful copying, check for old backups and delete them.
-# TODO: Move removing old backups into a separate function.
 function backup() {
+  NOW=$(date "+%Y%m%d_%H%M%S")
+
   local btype="$1"
-
   local backup_path="${DIR_BACKUPS}/server"
-
-  mkdir -p ${backup_path} #> /dev/null 2>&1
-  if [ ! $? -eq 0 ]; then
-    echoerr "can not create directory ${backup_path} to backup"
-    return 1
-  fi
-
   local backup_players_path="${DIR_BACKUPS}/server/players"
 
-  mkdir -p ${backup_players_path} #> /dev/null 2>&1
+  mkdir -p "${backup_path}" #> /dev/null 2>&1
   if [ ! $? -eq 0 ]; then
-    echoerr "can not create directory ${backup_players_path} to backup"
-    return 1
+    echoerr "can not create directory ${backup_path} to backup"; return 1
   fi
 
-  if [ -n "${ZOMBOID_DIR}" ]; then
-    if [ "${btype}" == "players" ]; then
-      echo "${INFO} backup zomboid players..."
+  mkdir -p "${backup_players_path}" #> /dev/null 2>&1
+  if [ ! $? -eq 0 ]; then
+    echoerr "can not create directory ${backup_players_path} to backup"; return 1
+  fi
 
-      local name="players_${NOW}.db"
-      cp "${ZOMBOID_DIR_MAP}/players.db" "${backup_players_path}/${name}"
-      if [ $? -eq 0 ]; then
-        echo "${OK} backup ${name} created successful"
-      fi
+  if [ "${btype}" == "players" ]; then
+    echo "${INFO} backup zomboid players..."
 
-      return 0
-    fi
-
-    echo "${INFO} backup zomboid files..."
-
-    local name="zomboid_${NOW}.tar.gz"
-    tar -czf "${backup_path}/${name}" -P --warning=no-file-changed ${ZOMBOID_DIR}
+    local name="players_${NOW}.db"
+    cp "${ZOMBOID_DIR_MAP}/players.db" "${backup_players_path}/${name}"
     if [ $? -eq 0 ]; then
       echo "${OK} backup ${name} created successful"
 
-      # Delete old backups.
-      if [ ! "${CLEAR_BACKUPS_DAY}" -eq "0" ]; then
-        find "${DIR_BACKUPS}/server" -name "*" -mtime +${CLEAR_BACKUPS_DAY} -delete
+      # Delete old time machine backups.
+      if [ ! "${CLEAR_TIME_MACHINE_DAY}" -eq "0" ]; then
+        find "${backup_players_path}" -name "*" -mtime +${CLEAR_TIME_MACHINE_DAY} -delete
       fi
-    else
-      echoerr "backup not created"
-      return 1
     fi
+
+    return 0
+  fi
+
+  echo "${INFO} backup zomboid files..."
+
+  local name="zomboid_${NOW}.tar.gz"
+  tar -czf "${backup_path}/${name}" -P --warning=no-file-changed "${ZOMBOID_DIR}"
+  if [ ! $? -eq 0 ]; then
+    echoerr "backup not created"; return 1
+  fi
+
+  echo "${OK} backup ${name} created successful"
+
+  # Delete old backups.
+  if [ ! "${CLEAR_BACKUPS_DAY}" -eq "0" ]; then
+    find "${DIR_BACKUPS}/server" -name "*" -mtime +${CLEAR_BACKUPS_DAY} -delete
   fi
 }
 
@@ -926,8 +924,7 @@ function backup() {
 # Example: log_search outdead user
 function log_search() {
   if [ -z "$1" ]; then
-     echoerr "search param is not set"
-     return 1
+     echoerr "search param is not set"; return 1
   fi
 
   local filename="$2"
@@ -946,8 +943,7 @@ function log_search() {
 function fn_sqlite() {
   local query="$1"
   if [ -z "${query}" ]; then
-     echoerr "query param is not set"
-     return 1
+     echoerr "query param is not set"; return 1
   fi
 
   sqlite3 "${ZOMBOID_FILE_DB}" "${query}"

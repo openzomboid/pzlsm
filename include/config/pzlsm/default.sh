@@ -43,6 +43,10 @@ CLEAR_STACK_TRACE_DAY=1000
 # will be deleted. Set to 0 to turn off.
 CLEAR_BACKUPS_DAY=100
 
+# CLEAR_TIME_MACHINE_DAY contains the number of days after which old
+# time machine backups will be deleted. Set to 0 to turn off.
+CLEAR_TIME_MACHINE_DAY=5
+
 # BACKUP_ON_STOP contains switcher to make backup on every server stop.
 BACKUP_ON_STOP="true"
 
