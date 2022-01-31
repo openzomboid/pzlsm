@@ -14,7 +14,7 @@
 
 # VERSION of Project Zomboid Linux Server Manager.
 # Follows semantic versioning, SEE: http://semver.org/.
-VERSION="0.19.11"
+VERSION="0.19.12"
 
 # Color variables. Used when displaying messages in stdout.
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[0;33m'; BLUE='\033[0;36m'; NC='\033[0m'
@@ -623,6 +623,38 @@ function delete_old_java_stack_traces() {
   find ${SERVER_DIR} -name "hs_err_pid*.log" -mtime +${days} -delete
 }
 
+# delete_old_backups deletes files zomboid_*_*.tar.gz older than $1 days from
+# backups/server directory.
+# If you do not pass the number of days $1, or pass the value 0 then the
+# default value will be taken from the variable CLEAR_BACKUPS_DAY.
+function delete_old_backups() {
+  local days="$1"
+  [ -z "${days}" ] && days=${CLEAR_BACKUPS_DAY}
+
+  # Do nothing if turned off in the settings.
+  [ "${days}" -eq "0" ] && return 0
+
+  local count=$(find "${DIR_BACKUPS}/server" -name "zomboid_*_*.tar.gz" -mtime +${days} | wc -l)
+  echo "${INFO} remove backups older than ${days} days... ${count} backups"
+  find "${DIR_BACKUPS}/server" -name "zomboid_*_*.tar.gz" -mtime +${days} -delete
+}
+
+# delete_old_players deletes files players_*_*.db older than $1 days from
+# backups/server/payers directory.
+# If you do not pass the number of days $1, or pass the value 0 then the
+# default value will be taken from the variable CLEAR_TIME_MACHINE_DAY.
+function delete_old_players() {
+  local days="$1"
+  [ -z "${days}" ] && days=${CLEAR_TIME_MACHINE_DAY}
+
+  # Do nothing if turned off in the settings.
+  [ "${days}" -eq "0" ] && return 0
+
+  local count=$(find "${DIR_BACKUPS}/server/players" -name "players_*_*.db" -mtime +${days} | wc -l)
+  echo "${INFO} remove players backups older than ${days} days... ${count} backups"
+  find "${DIR_BACKUPS}/server/players" -name "players_*_*.db" -mtime +${days} -delete
+}
+
 # get_rectangle takes the coordinates of the upper right and lower left points
 # and builds a rectangular area of chunks from them.
 function get_rectangle() {
@@ -890,11 +922,7 @@ function backup() {
     cp "${ZOMBOID_DIR_MAP}/players.db" "${backup_players_path}/${name}"
     if [ $? -eq 0 ]; then
       echo "${OK} backup ${name} created successful"
-
-      # Delete old time machine backups.
-      if [ ! "${CLEAR_TIME_MACHINE_DAY}" -eq "0" ]; then
-        find "${backup_players_path}" -name "*" -mtime +${CLEAR_TIME_MACHINE_DAY} -delete
-      fi
+      delete_old_players "${CLEAR_TIME_MACHINE_DAY}"
     fi
 
     return 0
@@ -909,11 +937,7 @@ function backup() {
   fi
 
   echo "${OK} backup ${name} created successful"
-
-  # Delete old backups.
-  if [ ! "${CLEAR_BACKUPS_DAY}" -eq "0" ]; then
-    find "${DIR_BACKUPS}/server" -name "*" -mtime +${CLEAR_BACKUPS_DAY} -delete
-  fi
+  delete_old_backups "${CLEAR_BACKUPS_DAY}"
 }
 
 # log_search looks for string $1 in log files. Chat logs excluded from search.
