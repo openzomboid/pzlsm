@@ -14,7 +14,7 @@
 
 # VERSION of Project Zomboid Linux Server Manager.
 # Follows semantic versioning, SEE: http://semver.org/.
-VERSION="0.19.13"
+VERSION="0.19.14"
 
 # Color variables. Used when displaying messages in stdout.
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[0;33m'; BLUE='\033[0;36m'; NC='\033[0m'
@@ -435,16 +435,14 @@ function start() {
 
   local pid_screen=$(ps aux | grep -v grep | grep -i "screen -U -mdS ${SCREEN_ZOMBOID} " | awk '{print $2}')
   if [ -n "${pid_screen}" ]; then
-    echo "${INFO} server already started"
-    return 0
+    echo "${INFO} server already started"; return 0
   fi
 
   screen -wipe > /dev/null 2>&1; sleep 1s
   env LANG=ru_RU.utf8 screen -U -mdS "${SCREEN_ZOMBOID}" "${SERVER_DIR}/start-server.sh" -servername "${SERVER_NAME}"
 
   if [ ! $? -eq 0  ]; then
-    echoerr "server is not started"
-    return 1
+    echoerr "server is not started"; return 1
   fi
 
   if [ "$1" == "first" ] && [ -n "${FIRST_RUN_ADMIN_PASSWORD}" ]; then
@@ -982,6 +980,31 @@ function fix_options() {
   sed -i -r "s/language=.*/language=EN/g" "${ZOMBOID_DIR}/options.ini"
 }
 
+# restore_players replaces players.db database from backup.
+function restore_players() {
+  local filename="$1"
+  if [ -z "${filename}" ]; then
+     echoerr "filename param is not set"; return 1
+  fi
+
+  local path="${DIR_BACKUPS}/server/players/${filename}"
+  if [ ! -f "${path}" ]; then
+    echoerr "players backup ${filename} does not exist"; return 1
+  fi
+
+  local pid_screen=$(ps aux | grep -v grep | grep -i "screen -U -mdS ${SCREEN_ZOMBOID} " | awk '{print $2}')
+  if [ -n "${pid_screen}" ]; then
+    echoerr "cannot be executed on a running server"; return 1
+  fi
+
+  cp "${path}" "${ZOMBOID_DIR_MAP}/players.db" > /dev/null 2>&1
+  if [ ! $? -eq 0 ]; then
+    echoerr "players backup ${filename} was not restored"; return 1
+  fi
+
+  echo "${OK} players backup ${filename} restored successful"
+}
+
 # TODO: temp block
 
 # public creates public symlinks.
@@ -1067,6 +1090,9 @@ function main() {
     fix)
       fix_options
       ;;
+    restore_players)
+      restore_players "$2"
+      ;;
     public)
       public
       ;;
@@ -1090,7 +1116,7 @@ if [ -z "$1" ]; then
   echo "........ screen 'command'"
   echo "........ log_clear [int]"
   echo "........ map_clear [int]"
-  echo "........ map_copy top bottom [name]"
+  echo "........ map_copy {top} {bottom} [name]"
   echo "........ map_copyto top bottom top_new bottom_new [name]"
   echo "........ map_regen {top} {bottom}"
   echo "........ range {top} {bottom}"
@@ -1100,6 +1126,7 @@ if [ -z "$1" ]; then
   echo "........ log {search} [type]"
   echo "........ sql {query}"
   echo "........ fix"
+  echo "........ restore_players {filename}"
   echo "........ public"
   printf "[  >>  ] " & read CMD
 fi
