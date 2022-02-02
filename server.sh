@@ -241,6 +241,8 @@ function install_dependencies() {
   apt-get install -y jq
 
   apt-get install -y net-tools
+
+  apt-get install -y nmap
 }
 
 # install_server installs Project Zomboid dedicated server.
