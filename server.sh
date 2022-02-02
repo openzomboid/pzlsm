@@ -14,7 +14,7 @@
 
 # VERSION of Project Zomboid Linux Server Manager.
 # Follows semantic versioning, SEE: http://semver.org/.
-VERSION="0.19.12"
+VERSION="0.19.13"
 
 # Color variables. Used when displaying messages in stdout.
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[0;33m'; BLUE='\033[0;36m'; NC='\033[0m'
@@ -239,6 +239,8 @@ function install_dependencies() {
 
   # Install jq for json config parsing.
   apt-get install -y jq
+
+  apt-get install -y net-tools
 }
 
 # install_server installs Project Zomboid dedicated server.
