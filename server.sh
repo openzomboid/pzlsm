@@ -14,7 +14,7 @@
 
 # VERSION of Project Zomboid Linux Server Manager.
 # Follows semantic versioning, SEE: http://semver.org/.
-VERSION="0.19.14"
+VERSION="0.19.15"
 
 # Color variables. Used when displaying messages in stdout.
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[0;33m'; BLUE='\033[0;36m'; NC='\033[0m'
@@ -948,20 +948,34 @@ function backup() {
 #
 # Example: log_search outdead
 # Example: log_search outdead user
+# Example: log_search outdead user connected
 function log_search() {
   if [ -z "$1" ]; then
      echoerr "search param is not set"; return 1
   fi
 
   local filename="$2"
-  if [ -n "${filename}" ]; then
-    grep --include=*_"${filename}".txt -rIah -E "$1" "${ZOMBOID_DIR_LOGS}" | sort -b -k1.8,1.9 -k1.5,1.6 -k1.2,1.3
-  else
+  if [ -z "${filename}" ]; then
     #grep --exclude=*_chat.txt -rIah -E "$1" "${ZOMBOID_DIR_LOGS}" | sort -b -k1.8,1.9 -k1.5,1.6 -k1.2,1.3
     grep --exclude=*_chat.txt --exclude=*_DebugLog-server.txt -rIah -E "$1" "${ZOMBOID_DIR_LOGS}" | sort -b -k1.8,1.9 -k1.5,1.6 -k1.2,1.3
 
     #cd "${ZOMBOID_DIR_LOGS}"
     #grep --exclude=*_chat.txt --exclude=*_DebugLog-server.txt -Iahs -E "$1" *
+
+    return 0
+  fi
+
+  local action="$3"
+  if [ -z "${action}" ]; then
+    grep --include=*_"${filename}".txt -rIah -E "$1" "${ZOMBOID_DIR_LOGS}" | sort -b -k1.8,1.9 -k1.5,1.6 -k1.2,1.3
+    return 0
+  fi
+
+  local limit="$4"
+  if [ -n "${limit}" ]; then
+    grep --include=*_"${filename}".txt -rIah -E "$1\"? ${action}" "${ZOMBOID_DIR_LOGS}" | sort -b -k1.8,1.9 -k1.5,1.6 -k1.2,1.3 | tail -n "${limit}"
+  else
+    grep --include=*_"${filename}".txt -rIah -E "$1\"? ${action}" "${ZOMBOID_DIR_LOGS}" | sort -b -k1.8,1.9 -k1.5,1.6 -k1.2,1.3
   fi
 }
 
@@ -1082,7 +1096,7 @@ function main() {
       backup "$2"
       ;;
     log)
-      log_search "$2" "$3"
+      log_search "$2" "$3" "$4" "$5"
       ;;
     sql)
       fn_sqlite "$2"
@@ -1126,7 +1140,7 @@ if [ -z "$1" ]; then
   echo "........ zombie_delete"
   echo "........ backup [type]"
   echo "........ logpvp"
-  echo "........ log {search} [type]"
+  echo "........ log {search} [type] [action] [limit]"
   echo "........ sql {query}"
   echo "........ fix"
   echo "........ restore_players {filename}"
