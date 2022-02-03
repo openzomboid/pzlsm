@@ -959,6 +959,9 @@ function log_search() {
   else
     #grep --exclude=*_chat.txt -rIah -E "$1" "${ZOMBOID_DIR_LOGS}" | sort -b -k1.8,1.9 -k1.5,1.6 -k1.2,1.3
     grep --exclude=*_chat.txt --exclude=*_DebugLog-server.txt -rIah -E "$1" "${ZOMBOID_DIR_LOGS}" | sort -b -k1.8,1.9 -k1.5,1.6 -k1.2,1.3
+
+    #cd "${ZOMBOID_DIR_LOGS}"
+    #grep --exclude=*_chat.txt --exclude=*_DebugLog-server.txt -Iahs -E "$1" *
   fi
 }
 
