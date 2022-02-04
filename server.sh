@@ -14,7 +14,7 @@
 
 # VERSION of Project Zomboid Linux Server Manager.
 # Follows semantic versioning, SEE: http://semver.org/.
-VERSION="0.19.15"
+VERSION="0.19.16"
 
 # Color variables. Used when displaying messages in stdout.
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[0;33m'; BLUE='\033[0;36m'; NC='\033[0m'
@@ -959,15 +959,13 @@ function log_search() {
     #grep --exclude=*_chat.txt -rIah -E "$1" "${ZOMBOID_DIR_LOGS}" | sort -b -k1.8,1.9 -k1.5,1.6 -k1.2,1.3
     grep --exclude=*_chat.txt --exclude=*_DebugLog-server.txt -rIah -E "$1" "${ZOMBOID_DIR_LOGS}" | sort -b -k1.8,1.9 -k1.5,1.6 -k1.2,1.3
 
-    #cd "${ZOMBOID_DIR_LOGS}"
-    #grep --exclude=*_chat.txt --exclude=*_DebugLog-server.txt -Iahs -E "$1" *
-
     return 0
   fi
 
   local action="$3"
   if [ -z "${action}" ]; then
     grep --include=*_"${filename}".txt -rIah -E "$1" "${ZOMBOID_DIR_LOGS}" | sort -b -k1.8,1.9 -k1.5,1.6 -k1.2,1.3
+
     return 0
   fi
 
@@ -976,6 +974,40 @@ function log_search() {
     grep --include=*_"${filename}".txt -rIah -E "$1\"? ${action}" "${ZOMBOID_DIR_LOGS}" | sort -b -k1.8,1.9 -k1.5,1.6 -k1.2,1.3 | tail -n "${limit}"
   else
     grep --include=*_"${filename}".txt -rIah -E "$1\"? ${action}" "${ZOMBOID_DIR_LOGS}" | sort -b -k1.8,1.9 -k1.5,1.6 -k1.2,1.3
+  fi
+}
+
+# clog_search looks for string $1 in current log files. Chat logs excluded from search.
+# Using the optional parameter $2, you can specify the name of the log file to
+# search.
+#
+# Example: log_search outdead
+# Example: log_search outdead user
+# Example: log_search outdead user connected
+function clog_search() {
+  if [ -z "$1" ]; then
+     echoerr "search param is not set"; return 1
+  fi
+
+  local filename="$2"
+  if [ -z "${filename}" ]; then
+    find "${ZOMBOID_DIR_LOGS}" -maxdepth 1 -type f -not -iname "*_DebugLog-server.txt" -not -iname "*_chat.txt" -exec grep "$1" {} \; | sort
+
+    return 0
+  fi
+
+  local action="$3"
+  if [ -z "${action}" ]; then
+    find "${ZOMBOID_DIR_LOGS}" -maxdepth 1 -type f -iname "*_${filename}.txt" -exec grep "$1" {} \; | sort
+
+    return 0
+  fi
+
+  local limit="$4"
+  if [ -n "${limit}" ]; then
+    find "${ZOMBOID_DIR_LOGS}" -maxdepth 1 -type f -iname "*_${filename}.txt" -exec grep -E "$1\"? ${action}" {} \; | tail -n "${limit}" | sort
+  else
+    find "${ZOMBOID_DIR_LOGS}" -maxdepth 1 -type f -iname "*_${filename}.txt" -exec grep -E "$1\"? ${action}" {} \; | sort
   fi
 }
 
@@ -1098,6 +1130,9 @@ function main() {
     log)
       log_search "$2" "$3" "$4" "$5"
       ;;
+    clog)
+      clog_search "$2" "$3" "$4" "$5"
+      ;;
     sql)
       fn_sqlite "$2"
       ;;
@@ -1141,6 +1176,7 @@ if [ -z "$1" ]; then
   echo "........ backup [type]"
   echo "........ logpvp"
   echo "........ log {search} [type] [action] [limit]"
+  echo "........ clog {search} [type] [action] [limit]"
   echo "........ sql {query}"
   echo "........ fix"
   echo "........ restore_players {filename}"
