@@ -6,7 +6,7 @@ NOW=$(date "+%Y%m%d_%H%M%S")
 SCREEN_ZOMBOID="zomboid"
 
 # UTIL_RANGE_VERSION contains version of range builder.
-UTIL_RANGE_VERSION="1.0.0"
+UTIL_RANGE_VERSION="1.0.1"
 
 # UTIL_RCON_VERSION contains version of rcon client.
 UTIL_RCON_VERSION="0.4.0"

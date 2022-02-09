@@ -14,7 +14,7 @@
 
 # VERSION of Project Zomboid Linux Server Manager.
 # Follows semantic versioning, SEE: http://semver.org/.
-VERSION="0.19.16"
+VERSION="0.19.17"
 
 # Color variables. Used when displaying messages in stdout.
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[0;33m'; BLUE='\033[0;36m'; NC='\033[0m'
@@ -676,7 +676,7 @@ function get_rectangle() {
 
   # Upper right corner.
   IFS='x' read -ra point_top <<< "${from}"
-  local top_x="${point_top[0]}";
+  local top_x="${point_top[0]}"
   local top_y="${point_top[1]}"
   if ! [[ ${top_x} =~ $regexp ]] || ! [[ ${top_y} =~ $regexp ]]; then
      echoerr "upper right corner is invalid"
@@ -871,7 +871,7 @@ function map_copyto() {
 # Example range 4251x5869 4270x5884
 # > (425[1-9]|426[0-9]|4270),(5869|587[0-9]|588[0-4])
 function range() {
-  if [ ! -f ${UTIL_RANGE_FILE} ]; then
+  if [ ! -f "${UTIL_RANGE_FILE}" ]; then
      echoerr "util range.sh is not found"; return 1
   fi
 
@@ -888,11 +888,8 @@ function range() {
      echoerr "invalid points"; return 1
   fi
 
-  # local s1=$(${UTIL_RANGE_FILE} 12568 13343)
-  # local s2=$(${UTIL_RANGE_FILE} 12568 13343)
-
-  local range_x=$(${UTIL_RANGE_FILE} ${top_x} ${bot_x})
-  local range_y=$(${UTIL_RANGE_FILE} ${top_y} ${bot_y})
+  local range_x=$(${UTIL_RANGE_FILE} "${top_x}" "${bot_x}")
+  local range_y=$(${UTIL_RANGE_FILE} "${top_y}" "${bot_y}")
 
   echo "${range_x},${range_y}"
 }
