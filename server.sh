@@ -1134,7 +1134,12 @@ function main() {
       fn_sqlite "$2"
       ;;
     range)
-      range "$2" "$3"
+      local bottom="$3"
+      if [ "${bottom}" == "-" ]; then
+        bottom=$4
+      fi
+
+      range "$2" "${bottom}"
       ;;
     fix)
       fix_options
