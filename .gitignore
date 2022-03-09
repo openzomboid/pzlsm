@@ -7,6 +7,7 @@ utils/
 
 include/config/deploy/dev.sh
 include/config/deploy/prod1.sh
+include/config/deploy/prod2.sh
 include/config/deploy/prod3.sh
 
 include/config/pzlsm/local.sh

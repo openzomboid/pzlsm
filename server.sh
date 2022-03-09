@@ -264,8 +264,8 @@ function install_server() {
         validate="validate";;
       iwbums)
         beta="-beta iwillbackupmysave -betapassword iaccepttheconsequences";;
-      41mptest)
-        beta="-beta b41multiplayer";;
+      unstable)
+        beta="-beta unstable";;
     esac
   done
 
