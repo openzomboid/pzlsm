@@ -14,7 +14,7 @@
 
 # VERSION of Project Zomboid Linux Server Manager.
 # Follows semantic versioning, SEE: http://semver.org/.
-VERSION="0.19.17"
+VERSION="0.19.19"
 
 # Color variables. Used when displaying messages in stdout.
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[0;33m'; BLUE='\033[0;36m'; NC='\033[0m'
@@ -246,6 +246,39 @@ function install_dependencies() {
   apt-get install -y nmap
 }
 
+# fix_options changes game language to EN.
+function fix_options() {
+  sed -i -r "s/language=.*/language=EN/g" "${ZOMBOID_DIR}/options.ini"
+}
+
+# fix_args sets the home directory for the game, utf8 encoding, server name,
+# game language, changes GC option.
+# TODO: Add option for collecting GC logs.
+# "-Xlog:gc*,gc+heap=debug,age*=debug:file=path/to/gc.out:time,uptime,level,tags:filesize=0:filecount=0"
+function fix_args() {
+  local arg_home=$(grep "Duser.home" "${SERVER_DIR}/ProjectZomboid64.json")
+  if [ "${arg_home}" ]; then
+    return
+  fi
+
+  # Set memory limit for JVM.
+  sed -i -r "s/Xmx8g/Xmx${SERVER_MEMORY_LIMIT}m/g" "${SERVER_DIR}/ProjectZomboid64.json"
+
+  # Change GC type.
+  sed -i -r "s/UseZGC/UseG1GC/g" "${SERVER_DIR}/ProjectZomboid64.json"
+
+  local set_home='"-Duser.home=.\/"'
+  local set_encoding='"-Dfile.encoding=UTF-8"'
+  local set_servername="\"-Dservername=${SERVER_NAME}\""
+  local set_serverlang="\"-Duser.language=${SERVER_LANG}\""
+
+  local indent="\r\n\t\t"
+  local _search='"-Dzomboid.steam=1",'
+  local _replace="${_search}${indent}${set_home},${indent}${set_encoding},${indent}${set_servername},${indent}${set_serverlang},"
+
+  sed -i -r "s/${_search}/${_replace}/g" "${SERVER_DIR}/ProjectZomboid64.json"
+}
+
 # install_server installs Project Zomboid dedicated server.
 # As arguments, you can pass validate and beta parameters in any order.
 # If validate, the integrity and relevance of the current files will be checked.
@@ -290,27 +323,8 @@ function install_server() {
   # Return to the script directory.
   cd ${BASEDIR}
 
-  # TODO: Put in a function and make it customizable depending on the received arguments.
-  # Set the home directory for the game, utf8 encoding and server name.
-  local arg_home=$(grep "Duser.home" "${SERVER_DIR}/ProjectZomboid64.json")
-  if [ ! "${arg_home}" ]; then
-    # Set memory limit for JVM.
-    sed -i -r "s/Xmx8g/Xmx${SERVER_MEMORY_LIMIT}m/g" "${SERVER_DIR}/ProjectZomboid64.json"
-
-    sed -i -r "s/-XX:+UseZGC/-XX:+UseG1GC/g" "${SERVER_DIR}/ProjectZomboid64.json"
-
-    local indent="\r\n\t\t"
-
-    local set_home='"-Duser.home=.\/"'
-    local set_encoding='"-Dfile.encoding=UTF-8"'
-    local set_servername="\"-Dservername=${SERVER_NAME}\""
-    local set_serverlang="\"-Duser.language=${SERVER_LANG}\""
-
-    local _search='"-Dzomboid.steam=1",'
-    local _replace="${_search}${indent}${set_home},${indent}${set_encoding},${indent}${set_servername},${indent}${set_serverlang},"
-
-    sed -i -r "s/${_search}/${_replace}/g" "${SERVER_DIR}/ProjectZomboid64.json"
-  fi
+  fix_options
+  fix_args
 
   # Check that the server has been installed and save the time of the last update.
   # TODO: implement me.
@@ -1024,11 +1038,6 @@ function fn_sqlite() {
   sqlite3 "${ZOMBOID_FILE_DB}" "${query}"
 }
 
-# fix_options changes game language to EN.
-function fix_options() {
-  sed -i -r "s/language=.*/language=EN/g" "${ZOMBOID_DIR}/options.ini"
-}
-
 # restore_players replaces players.db database from backup.
 function restore_players() {
   local filename="$1"
@@ -1146,6 +1155,7 @@ function main() {
       ;;
     fix)
       fix_options
+      fix_args
       ;;
     restore_players)
       restore_players "$2"
