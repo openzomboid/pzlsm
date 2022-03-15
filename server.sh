@@ -31,8 +31,9 @@ MEMORY_USED=$(free | awk 'NR==2 { printf("%.0f", $3/1024); }')
 # CPU_CORE_COUNT is the number of processors cores on the server.
 CPU_CORE_COUNT=$(nproc)
 
-# Project Zomboid Dedicated Server App ID in Steam.
-APP_ID=380870
+# Project Zomboid App ID and Dedicated Server App ID in Steam.
+APP_ID=108600
+APP_DEDICATED_ID=380870
 
 # SCREEN_ZOMBOID contains the name of the screen to launch Project Zomboid.
 SCREEN_ZOMBOID="zomboid"
@@ -107,6 +108,9 @@ ZOMBOID_FILE_CONFIG_SPAWNPOINTS="${ZOMBOID_DIR_SERVER}/${SERVER_NAME}_spawnpoint
 ZOMBOID_FILE_CONFIG_SPAWNREGIONS="${ZOMBOID_DIR_SERVER}/${SERVER_NAME}_spawnregions.lua"
 ZOMBOID_FILE_DB="${ZOMBOID_DIR_DB}/${SERVER_NAME}.db"
 
+ZOMBOID_MANIFEST="${SERVER_DIR}/steamapps/appmanifest_${APP_DEDICATED_ID}.acf"
+ZOMBOID_MODS_MANIFEST="${SERVER_DIR}/steamapps/workshop/appworkshop_${APP_ID}.acf"
+
 # echoerr prints error message to stderr and FILE_PZLSM_LOG file.
 function echoerr() {
   #>&2 echo "${ER} $1"
@@ -120,6 +124,7 @@ function print_variables() {
   echo "${INFO} MEMORY_USED:                 ${MEMORY_USED}"
   echo "${INFO} CPU_CORE_COUNT:              ${CPU_CORE_COUNT}"
   echo "${INFO} APP_ID:                      ${APP_ID}"
+  echo "${INFO} APP_DEDICATED_ID:            ${APP_DEDICATED_ID}"
   echo "${INFO} SCREEN_ZOMBOID:              ${SCREEN_ZOMBOID}"
   echo "${INFO} NOW:                         ${NOW}"
   echo "${INFO} TIMESTAMP:                   ${TIMESTAMP}"
@@ -163,31 +168,17 @@ function strclear() {
 # compare it with the saved one, return a response about the need to
 # restart if the time does not match and update the time in the repository
 #
-# TODO: Consider about better implementation via Steam.
+# TODO: Implement me.
 function is_updated() {
-  local manifest="${SERVER_DIR}/steamapps/appmanifest_${APP_ID}.acf"
-  if [ ! -f "${manifest}" ]; then
-    echo "false"
+  if [ ! -f "${ZOMBOID_MANIFEST}" ]; then
     echoerr "server manifest file not found"
     return 1
   fi
 
   # Get updated timestamp from manifest file.
-  local updated=$(grep -oP "(?<=LastUpdated).*" "${manifest}" | grep -o '[0-9]*')
+  local updated=$(grep -oP "(?<=LastUpdated).*" "${ZOMBOID_MANIFEST}" | grep -o '[0-9]*')
 
-  # Get stored updated timestamp and compare with updated from manifest.
-  local storage="${FILE_PZLSM_UPDATE}"
-  if [ -f "${storage}" ]; then
-    local updated_stored=$(cat "${storage}")
-    if [ "${updated_stored}" ] && [ "${updated_stored}" == "${updated}" ]; then
-      echo "false"
-      return 0
-    fi
-  fi
-
-  # Save updated timestamp to local storage.
-  echo "${updated}" > "${storage}"
-  echo "true"
+  echo "false"
 }
 
 # install_range_builder downloads the regex-range-builder script and puts it
@@ -258,7 +249,7 @@ function fix_options() {
 function fix_args() {
   local arg_home=$(grep "Duser.home" "${SERVER_DIR}/ProjectZomboid64.json")
   if [ "${arg_home}" ]; then
-    return
+    return 0
   fi
 
   # Set memory limit for JVM.
@@ -315,20 +306,13 @@ function install_server() {
   fi
 
   # Install Project Zomboid Server.
-  ./steamcmd.sh +login "${username}" +force_install_dir "${SERVER_DIR}" +app_update ${APP_ID} ${beta} ${validate} +exit
-
-  local manifest="${SERVER_DIR}/steamapps/appmanifest_${APP_ID}.acf"
-  local updated=$(grep -oP "(?<=LastUpdated).*" "${manifest}" | grep -o '[0-9]*')
+  ./steamcmd.sh +login "${username}" +force_install_dir "${SERVER_DIR}" +app_update ${APP_DEDICATED_ID} ${beta} ${validate} +exit
 
   # Return to the script directory.
   cd ${BASEDIR}
 
   fix_options
   fix_args
-
-  # Check that the server has been installed and save the time of the last update.
-  # TODO: implement me.
-  # is_updated
 }
 
 # sync_config downloads config from github repo.
@@ -481,7 +465,6 @@ function stop() {
   # When `quit` game command is executed, there is no log record the fact
   # that the players was exit the game. If you make a forced kick from the
   # server, then the log entry appears correctly.
-  # TODO: This is not entirely true. Kick of the players occurs, but the log entry does not always appear.
   kickusers
 
   sleep 1s
@@ -501,6 +484,10 @@ function stop() {
 
   echo "${OK} server is stopped"
 
+  if [ "$1" == "fix" ] || [ "$2" == "fix" ]; then
+    delete_mods_manifest
+  fi
+
   if [ "$1" == "now" ] || [ "${BACKUP_ON_STOP}" != "true" ]; then
     return 0
   fi
@@ -519,7 +506,7 @@ function stop() {
 function restart() {
   echo "${INFO} restarting the server..."
 
-  stop "$1"
+  stop "$1" "$2"
   sleep 10s
   start
 }
@@ -564,17 +551,28 @@ function shutdown_wrapper() {
   case "$1" in
     stop)
       ticker "Stopping the server in" "$2"
-      stop "$2"
+      stop "$2" "$3"
       ;;
     restart)
       ticker "Restarting the server in" "$2"
-      restart "$2"
+      restart "$2" "$3"
       ;;
     *)
       echoerr "wrong shutdown command: $1"
       return 1
       ;;
   esac
+}
+
+# delete_mods_manifest deletes appworkshop_108600.acf file. It need to
+# update mods correctly.
+function delete_mods_manifest() {
+  if [ ! -f "${ZOMBOID_MODS_MANIFEST}" ]; then
+    return 0
+  fi
+
+  echo "${INFO} remove appworkshop_${APP_ID}.acf"
+  rm "${ZOMBOID_MODS_MANIFEST}"
 }
 
 # delete_zombies deletes all zpop_*_*.bin files from Zomboid/Saves directory.
@@ -1104,10 +1102,10 @@ function main() {
       start "$2"
       ;;
     stop)
-      shutdown_wrapper "stop" "$2"
+      shutdown_wrapper "stop" "$2" "$3"
       ;;
     restart)
-      shutdown_wrapper "restart" "$2"
+      shutdown_wrapper "restart" "$2" "$3"
       ;;
     rcon)
       rconcmd "$2"
@@ -1132,6 +1130,9 @@ function main() {
       ;;
     delete_zombies)
       delete_zombies
+      ;;
+    delete_manifest)
+      delete_mods_manifest
       ;;
     backup)
       backup "$2"
@@ -1176,8 +1177,8 @@ if [ -z "$1" ]; then
   echo "........ sync"
   echo "........ info"
   echo "........ start [first]"
-  echo "........ stop [now]"
-  echo "........ restart [now]"
+  echo "........ stop [now] [fix]"
+  echo "........ restart [now] [fix]"
   echo "........ kickusers"
   echo "........ rcon 'command'"
   echo "........ screen 'command'"
@@ -1188,6 +1189,7 @@ if [ -z "$1" ]; then
   echo "........ map_regen {top} {bottom}"
   echo "........ range {top} {bottom}"
   echo "........ zombie_delete"
+  echo "........ delete_manifest"
   echo "........ backup [type]"
   echo "........ logpvp"
   echo "........ log {search} [type] [action] [limit]"
