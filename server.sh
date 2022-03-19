@@ -562,9 +562,7 @@ function shutdown_wrapper() {
 # delete_mods_manifest deletes appworkshop_108600.acf file. It need to
 # update mods correctly.
 function delete_mods_manifest() {
-  if [ ! -f "${ZOMBOID_MODS_MANIFEST}" ]; then
-    return 0
-  fi
+  [ ! -f "${ZOMBOID_MODS_MANIFEST}" ] && return 0
 
   echo "${INFO} remove appworkshop_${APP_ID}.acf"
   rm "${ZOMBOID_MODS_MANIFEST}"
