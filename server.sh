@@ -48,6 +48,7 @@ TIMESTAMP=$(date "+%s")
 # Linux Server Manager directories definitions.
 BASEDIR=$(dirname "$(readlink -f "$BASH_SOURCE")")
 DIR_BACKUPS="${BASEDIR}/backups"
+DIR_PUBLIC="${BASEDIR}/public"
 DIR_UTILS="${BASEDIR}/utils"
 DIR_INCLUDE="${BASEDIR}/include"
 DIR_PZLSM_CONFIG="${DIR_INCLUDE}/config/pzlsm"
@@ -1054,16 +1055,13 @@ function restore_players() {
   echo "${OK} players backup ${filename} restored successful"
 }
 
-# TODO: temp block
-
 # public creates public symlinks.
-# TODO: Use VARS to paths.
 function public() {
-  mkdir -p public
-  mkdir -p public/saves
+  mkdir -p "${DIR_PUBLIC}"
+  mkdir -p "${DIR_PUBLIC}/saves"
 
-  ln -sf ../backups public/backups
-  ln -sf ../content/Zomboid/Logs public/logs
+  ln -sf "${DIR_BACKUPS}" "${DIR_PUBLIC}/backups"
+  ln -sf "${ZOMBOID_DIR_LOGS}}" "${DIR_PUBLIC}/logs"
 }
 
 # main contains a proxy for entering permissible functions.
