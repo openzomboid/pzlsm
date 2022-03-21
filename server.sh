@@ -16,6 +16,8 @@
 # Follows semantic versioning, SEE: http://semver.org/.
 VERSION="0.19.19"
 
+BASEDIR=$(dirname "$(readlink -f "$BASH_SOURCE")")
+
 # Color variables. Used when displaying messages in stdout.
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[0;33m'; BLUE='\033[0;36m'; NC='\033[0m'
 
@@ -46,7 +48,6 @@ NOW=$(date "+%Y%m%d_%H%M%S")
 TIMESTAMP=$(date "+%s")
 
 # Linux Server Manager directories definitions.
-BASEDIR=$(dirname "$(readlink -f "$BASH_SOURCE")")
 DIR_BACKUPS="${BASEDIR}/backups"
 DIR_PUBLIC="${BASEDIR}/public"
 DIR_UTILS="${BASEDIR}/utils"
