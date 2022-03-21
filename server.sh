@@ -403,28 +403,40 @@ function rconcmd() {
   [ -z "${command}" ] && { echoerr "command is not set"; return 1; }
 
   local host='127.0.0.1'
-  local port=$(grep "RCONPort=" "${ZOMBOID_FILE_CONFIG_INI}"); port=${port//RCONPort=/}; port=${port// /}
-  local password=$(grep "RCONPassword=" "${ZOMBOID_FILE_CONFIG_INI}"); password=${password//RCONPassword=/}; password=${password// /}
+  local port=""
+  local password=""
+
+  port=$(grep "RCONPort=" "${ZOMBOID_FILE_CONFIG_INI}"); port=${port//RCONPort=/}; port=${port// /}
+  password=$(grep "RCONPassword=" "${ZOMBOID_FILE_CONFIG_INI}"); password=${password//RCONPassword=/}; password=${password// /}
 
   ${UTIL_RCON_FILE} -a "${host}:${port}" -p "${password}" -c "${command}"
 }
 
 # kickusers kicks all players from the server.
 function kickusers() {
-  local players=$(rconcmd "players" | grep ^"-")
+  local players=""
+  players=$(rconcmd "players")
+  if [ $? -ne 0 ]; then
+    echoerr "kickusers: cannot get users"
+    return 1;
+  fi
 
+  local i=0
+
+  players=$(echo "${players}" | grep ^"-")
   if [ "${players}" ]; then
     IFS=$'\n'
     declare -a a
-    a=(${players})
+    a=("${players}")
     for line in "${a[@]}"
     do
+      ((i=i+1))
       local username="${line:1}"
       screencmd "kickuser \"${username}\""
     done
   fi
 
-  # TODO: Add success or fail message.
+  echo "${OK} kicked ${i} users"
 }
 
 # start starts the server in a screen window.
@@ -432,7 +444,8 @@ function kickusers() {
 function start() {
   echo "${OK} starting the server..."
 
-  local pid_screen=$(ps aux | grep -v grep | grep -i "screen -U -mdS ${SCREEN_ZOMBOID} " | awk '{print $2}')
+  local pid_screen
+  pid_screen=$(ps aux | grep -v grep | grep -i "screen -U -mdS ${SCREEN_ZOMBOID} " | awk '{print $2}')
   if [ -n "${pid_screen}" ]; then
     echo "${INFO} server already started"; return 0
   fi
@@ -454,7 +467,8 @@ function start() {
 function stop() {
   echo "${INFO} stopping the server..."
 
-  local pid_screen=$(ps aux | grep -v grep | grep -i "screen -U -mdS ${SCREEN_ZOMBOID} " | awk '{print $2}')
+  local pid_screen
+  pid_screen=$(ps aux | grep -v grep | grep -i "screen -U -mdS ${SCREEN_ZOMBOID} " | awk '{print $2}')
   if [ -z "${pid_screen}" ]; then
     echoerr "server already stopped"; return 0
   fi
@@ -513,7 +527,8 @@ function restart() {
 # impending server shutdown. After 5 minutes, it calls the stop or restart
 # function.
 function shutdown_wrapper() {
-  local pid_screen=$(ps aux | grep -v grep | grep -i "screen -U -mdS ${SCREEN_ZOMBOID} " | awk '{print $2}')
+  local pid_screen
+  pid_screen=$(ps aux | grep -v grep | grep -i "screen -U -mdS ${SCREEN_ZOMBOID} " | awk '{print $2}')
   if [ -z "${pid_screen}" ]; then
     echoerr "server already stopped"
     return 0
@@ -542,7 +557,7 @@ function shutdown_wrapper() {
     while [ ${t} -gt 0 ]; do
       screencmd "servermsg \"${msg} ${t} seconds\""
       sleep 1s
-      let t=t-1
+      ((t=t-1))
     done
   }
 
@@ -578,7 +593,8 @@ function delete_mods_manifest() {
 # But it can help the game restart the threads responsible for the zombies,
 # if they freeze.
 function delete_zombies() {
-  local count=$(find "${ZOMBOID_DIR_MAP}" -name "zpop_*_*.bin" | wc -l)
+  local count
+  count=$(find "${ZOMBOID_DIR_MAP}" -name "zpop_*_*.bin" | wc -l)
   echo "${INFO} remove zpop_*_*.bin files... ${count} files"
   rm -rf "${ZOMBOID_DIR_MAP}/zpop_*_*.bin"
 }
@@ -594,7 +610,8 @@ function delete_old_chunks() {
   # Do nothing if turned off in the settings.
   [ "${days}" -eq "0" ] && return 0
 
-  local count=$(find "${ZOMBOID_DIR_MAP}" -name "map_*_*.bin" -mtime +${days} | wc -l)
+  local count
+  count=$(find "${ZOMBOID_DIR_MAP}" -name "map_*_*.bin" -mtime +${days} | wc -l)
   echo "${INFO} remove chunks older than ${days} days... ${count} chunks"
   find "${ZOMBOID_DIR_MAP}" -name "map_*_*.bin" -mtime +${days} -delete
 }
@@ -1099,6 +1116,9 @@ function main() {
       ;;
     restart)
       shutdown_wrapper "restart" "$2" "$3"
+      ;;
+    kickusers)
+      kickusers
       ;;
     rcon)
       rconcmd "$2"
