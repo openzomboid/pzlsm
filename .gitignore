@@ -11,5 +11,6 @@ include/config/deploy/prod2.sh
 include/config/deploy/prod3.sh
 
 include/config/pzlsm/local.sh
+.env
 
 server.log

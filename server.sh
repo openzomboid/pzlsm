@@ -14,7 +14,7 @@
 
 # VERSION of Project Zomboid Linux Server Manager.
 # Follows semantic versioning, SEE: http://semver.org/.
-VERSION="0.19.20"
+VERSION="0.19.21"
 
 BASEDIR=$(dirname "$(readlink -f "$BASH_SOURCE")")
 
@@ -58,6 +58,7 @@ DIR_PZLSM_CONFIG="${DIR_INCLUDE}/config/pzlsm"
 FILE_PZLSM_LOG="${BASEDIR}/server.log"
 FILE_PZLSM_CONFIG_DEFAULT="${DIR_PZLSM_CONFIG}/default.sh"
 FILE_PZLSM_CONFIG_LOCAL="${DIR_PZLSM_CONFIG}/local.sh"
+FILE_PZLSM_CONFIG_ENV="${BASEDIR}/.env"
 FILE_PZLSM_UPDATE="${BASEDIR}/server.update"
 
 # Import config files if exists.
@@ -65,6 +66,8 @@ FILE_PZLSM_UPDATE="${BASEDIR}/server.update"
 test -f "${FILE_PZLSM_CONFIG_DEFAULT}" && . "${FILE_PZLSM_CONFIG_DEFAULT}"
 # shellcheck source=include/config/local.sh
 test -f "${FILE_PZLSM_CONFIG_LOCAL}" && . "${FILE_PZLSM_CONFIG_LOCAL}"
+# shellcheck source=.env
+test -f "${FILE_PZLSM_CONFIG_ENV}" && . "${FILE_PZLSM_CONFIG_ENV}"
 
 ## Check config variables and set default values if not defined.
 [ -z "${CLEAR_MAP_DAY}" ] && CLEAR_MAP_DAY=21
