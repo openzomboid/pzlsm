@@ -137,10 +137,12 @@ function print_variables() {
   echo "${INFO} NOW:                         ${NOW}"
   echo "${INFO} TIMESTAMP:                   ${TIMESTAMP}"
   echo "${INFO} BASEDIR:                     ${BASEDIR}"
+
   echo "${INFO} DIR_BACKUPS:                 ${DIR_BACKUPS}"
   echo "${INFO} DIR_UTILS:                   ${DIR_UTILS}"
   echo "${INFO} DIR_INCLUDE:                 ${DIR_INCLUDE}"
   echo "${INFO} DIR_PZLSM_CONFIG:            ${DIR_PZLSM_CONFIG}"
+
   echo "${INFO} FILE_PZLSM_LOG:              ${FILE_PZLSM_LOG}"
   echo "${INFO} FILE_PZLSM_CONFIG_DEFAULT:   ${FILE_PZLSM_CONFIG_DEFAULT}"
   echo "${INFO} FILE_PZLSM_CONFIG_LOCAL:     ${FILE_PZLSM_CONFIG_LOCAL}"
