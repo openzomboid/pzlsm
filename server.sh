@@ -14,7 +14,7 @@
 
 # VERSION of Project Zomboid Linux Server Manager.
 # Follows semantic versioning, SEE: http://semver.org/.
-VERSION="0.19.21"
+VERSION="0.19.22"
 
 BASEDIR=$(dirname "$(readlink -f "$BASH_SOURCE")")
 
@@ -421,20 +421,18 @@ function rconcmd() {
 function kickusers() {
   local players=""
   players=$(rconcmd "players")
-  if [ $? -ne 0 ]; then
-    echoerr "kickusers: cannot get users"
-    return 1;
-  fi
+  [ $? -ne 0 ] && { echoerr "kickusers: cannot get users"; return 1; }
 
   local i=0
 
   players=$(echo "${players}" | grep ^"-")
   if [ "${players}" ]; then
     IFS=$'\n'
+
     declare -a a
     a=("${players}")
-    for line in "${a[@]}"
-    do
+
+    for line in "${a[@]}"; do
       ((i=i+1))
       local username="${line:1}"
       screencmd "kickuser \"${username}\""
