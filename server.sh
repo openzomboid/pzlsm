@@ -14,7 +14,7 @@
 
 # VERSION of Project Zomboid Linux Server Manager.
 # Follows semantic versioning, SEE: http://semver.org/.
-VERSION="0.19.22"
+VERSION="0.19.23"
 
 BASEDIR=$(dirname "$(readlink -f "$BASH_SOURCE")")
 
@@ -246,11 +246,31 @@ function install_dependencies() {
   apt-get install -y net-tools
 
   apt-get install -y nmap
+
+  echo "${OK} dependencies installed"
+}
+
+# create_directories creates dirs for pzlsm script.
+function create_directories() {
+  mkdir -p "${DIR_BACKUPS}"
+
+  mkdir -p "${DIR_PUBLIC}"
+  mkdir -p "${DIR_PUBLIC}/saves"
+
+  rm -f "${DIR_PUBLIC}/backups"
+  rm -f "${DIR_PUBLIC}/logs"
+
+  ln -s "${DIR_BACKUPS}" "${DIR_PUBLIC}/backups"
+  ln -s "${ZOMBOID_DIR_LOGS}" "${DIR_PUBLIC}/logs"
+
+  echo "${OK} directories created"
 }
 
 # fix_options changes game language to EN.
 function fix_options() {
   sed -i -r "s/language=.*/language=EN/g" "${ZOMBOID_DIR}/options.ini"
+
+  echo "${OK} options fixed"
 }
 
 # fix_args sets the home directory for the game, utf8 encoding, server name,
@@ -278,6 +298,8 @@ function fix_args() {
   local _replace="${_search}${indent}${set_home},${indent}${set_encoding},${indent}${set_servername},${indent}${set_serverlang},"
 
   sed -i -r "s/${_search}/${_replace}/g" "${SERVER_DIR}/ProjectZomboid64.json"
+
+  echo "${OK} args fixed"
 }
 
 # install_server installs Project Zomboid dedicated server.
@@ -320,6 +342,8 @@ function install_server() {
 
   fix_options
   fix_args
+
+  echo "${OK} server installed"
 }
 
 # sync_config downloads config from github repo.
@@ -1077,15 +1101,6 @@ function restore_players() {
   echo "${OK} players backup ${filename} restored successful"
 }
 
-# public creates public symlinks.
-function public() {
-  mkdir -p "${DIR_PUBLIC}"
-  mkdir -p "${DIR_PUBLIC}/saves"
-
-  ln -sf "${DIR_BACKUPS}" "${DIR_PUBLIC}/backups"
-  ln -sf "${ZOMBOID_DIR_LOGS}}" "${DIR_PUBLIC}/logs"
-}
-
 # main contains a proxy for entering permissible functions.
 function main() {
   case "$1" in
@@ -1097,6 +1112,10 @@ function main() {
       ;;
     prepare)
       install_dependencies
+      create_directories
+      ;;
+    create_directories)
+      create_directories
       ;;
     get_utils)
       install_range_builder
@@ -1187,6 +1206,7 @@ if [ -z "$1" ]; then
   echo "${INFO} Permissible commands:"
   echo "........ version"
   echo "........ variables"
+  echo "........ create_directories"
   echo "........ prepare"
   echo "........ get_utils"
   echo "........ install {validate beta}"
@@ -1213,7 +1233,6 @@ if [ -z "$1" ]; then
   echo "........ sql {query}"
   echo "........ fix"
   echo "........ restore_players {filename}"
-  echo "........ public"
   printf "[  >>  ] " & read CMD
 fi
 
