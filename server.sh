@@ -14,7 +14,7 @@
 
 # VERSION of Project Zomboid Linux Server Manager.
 # Follows semantic versioning, SEE: http://semver.org/.
-VERSION="0.19.23"
+VERSION="0.19.24"
 
 BASEDIR=$(dirname "$(readlink -f "$BASH_SOURCE")")
 
@@ -388,7 +388,7 @@ function sync_config() {
 # current RAM consumption.
 function stats() {
   local pid_zomboid=""
-  pid_zomboid=$(pgrep -af ProjectZomboid64 | grep "servername ${SERVER_NAME}" | grep -o -e "^[0-9]*")
+  pid_zomboid=$(get_server_pid)
   if [ -z "${pid_zomboid}" ]; then
     echoerr "server is not running"; return 1
   fi
@@ -466,15 +466,28 @@ function kickusers() {
   echo "${OK} kicked ${i} users"
 }
 
+# get_screen_pid prints server's pid.
+function get_screen_pid() {
+  ps aux | grep -v grep | grep -i "screen -U -mdS ${SCREEN_ZOMBOID} " | awk '{print $2}'
+}
+
+# get_server_pid prints server's pid.
+function get_server_pid() {
+  pgrep -af ProjectZomboid64 | grep "servername ${SERVER_NAME}" | grep -o -e "^[0-9]*"
+}
+
+# is_server_running print true if server is running, or false if is not.
+function is_server_running() {
+  [ -n "$(get_screen_pid)" ] && echo "true" || echo "false"
+}
+
 # start starts the server in a screen window.
 # An error message will be displayed if server has been started earlier.
 function start() {
   echo "${OK} starting the server..."
 
-  local pid_screen
-  pid_screen=$(ps aux | grep -v grep | grep -i "screen -U -mdS ${SCREEN_ZOMBOID} " | awk '{print $2}')
-  if [ -n "${pid_screen}" ]; then
-    echo "${INFO} server already started"; return 0
+  if [ "$(is_server_running)" == "true" ]; then
+    echo "${INFO} server already started $(is_server_running)"; return 0
   fi
 
   screen -wipe > /dev/null 2>&1; sleep 1s
@@ -494,9 +507,7 @@ function start() {
 function stop() {
   echo "${INFO} stopping the server..."
 
-  local pid_screen
-  pid_screen=$(ps aux | grep -v grep | grep -i "screen -U -mdS ${SCREEN_ZOMBOID} " | awk '{print $2}')
-  if [ -z "${pid_screen}" ]; then
+  if [ "$(is_server_running)" == "false" ]; then
     echoerr "server already stopped"; return 0
   fi
 
@@ -515,7 +526,8 @@ function stop() {
   # If after a regular shutdown server remains running, we must forcibly stop it.
   sleep 20s
 
-  pid_screen=$(ps aux | grep -v grep | grep -i "screen -U -mdS ${SCREEN_ZOMBOID} " | awk '{print $2}')
+  local pid_screen
+  pid_screen=$(get_screen_pid)
   if [ -n "${pid_screen}" ]; then
     echo "${INFO} kill screen process ${pid_screen}"
     kill "${pid_screen}" > /dev/null 2>&1; sleep 1s
@@ -554,9 +566,7 @@ function restart() {
 # impending server shutdown. After 5 minutes, it calls the stop or restart
 # function.
 function shutdown_wrapper() {
-  local pid_screen
-  pid_screen=$(ps aux | grep -v grep | grep -i "screen -U -mdS ${SCREEN_ZOMBOID} " | awk '{print $2}')
-  if [ -z "${pid_screen}" ]; then
+  if [ "$(is_server_running)" == "false" ]; then
     echoerr "server already stopped"
     return 0
   fi
@@ -1010,14 +1020,12 @@ function log_search() {
   if [ -z "${filename}" ]; then
     #grep --exclude=*_chat.txt -rIah -E "$1" "${ZOMBOID_DIR_LOGS}" | sort -b -k1.8,1.9 -k1.5,1.6 -k1.2,1.3
     grep --exclude=*_chat.txt --exclude=*_DebugLog-server.txt -rIah -E "$1" "${ZOMBOID_DIR_LOGS}" | sort -b -k1.8,1.9 -k1.5,1.6 -k1.2,1.3
-
     return 0
   fi
 
   local action="$3"
   if [ -z "${action}" ]; then
     grep --include=*_"${filename}".txt -rIah -E "$1" "${ZOMBOID_DIR_LOGS}" | sort -b -k1.8,1.9 -k1.5,1.6 -k1.2,1.3
-
     return 0
   fi
 
@@ -1044,14 +1052,12 @@ function clog_search() {
   local filename="$2"
   if [ -z "${filename}" ]; then
     find "${ZOMBOID_DIR_LOGS}" -maxdepth 1 -type f -not -iname "*_DebugLog-server.txt" -not -iname "*_chat.txt" -exec grep "$1" {} \; | sort
-
     return 0
   fi
 
   local action="$3"
   if [ -z "${action}" ]; then
     find "${ZOMBOID_DIR_LOGS}" -maxdepth 1 -type f -iname "*_${filename}.txt" -exec grep "$1" {} \; | sort
-
     return 0
   fi
 
@@ -1088,8 +1094,7 @@ function restore_players() {
     echoerr "players backup ${filename} does not exist"; return 1
   fi
 
-  local pid_screen=$(ps aux | grep -v grep | grep -i "screen -U -mdS ${SCREEN_ZOMBOID} " | awk '{print $2}')
-  if [ -n "${pid_screen}" ]; then
+  if [ "$(is_server_running)" == "true" ]; then
     echoerr "cannot be executed on a running server"; return 1
   fi
 
