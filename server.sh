@@ -14,7 +14,7 @@
 
 # VERSION of Project Zomboid Linux Server Manager.
 # Follows semantic versioning, SEE: http://semver.org/.
-VERSION="0.19.24"
+VERSION="0.19.25"
 
 BASEDIR=$(dirname "$(readlink -f "$BASH_SOURCE")")
 
@@ -431,6 +431,9 @@ function rconcmd() {
   local command="$1"
   [ -z "${command}" ] && { echoerr "command is not set"; return 1; }
 
+  local timeout="$2"
+  [ -z "${timeout}" ] && timeout=3s
+
   local host='127.0.0.1'
   local port=""
   local password=""
@@ -438,7 +441,7 @@ function rconcmd() {
   port=$(grep "RCONPort=" "${ZOMBOID_FILE_CONFIG_INI}"); port=${port//RCONPort=/}; port=${port// /}
   password=$(grep "RCONPassword=" "${ZOMBOID_FILE_CONFIG_INI}"); password=${password//RCONPassword=/}; password=${password// /}
 
-  ${UTIL_RCON_FILE} -a "${host}:${port}" -p "${password}" -c "${command}"
+  ${UTIL_RCON_FILE} -a "${host}:${port}" -p "${password}" -T "${timeout}" "${command}"
 }
 
 # kickusers kicks all players from the server.
@@ -560,6 +563,21 @@ function restart() {
   stop "$1" "$2"
   sleep 10s
   start
+}
+
+# restart_if_stuck restarts server if it stuck.
+function restart_if_stuck() {
+  local pid_zomboid=""
+  pid_zomboid=$(get_server_pid)
+  if [ -z "${pid_zomboid}" ]; then
+    echo "server is not running"; return 0
+  fi
+
+  local result
+  result=$(rconcmd players 5s 2>&1 >/dev/null | grep ': i/o timeout')
+  if [ -n "${result}" ]; then
+    restart now
+  fi
 }
 
 # shutdown_wrapper triggers informational messages for players to alert them of
@@ -1144,6 +1162,9 @@ function main() {
     restart)
       shutdown_wrapper "restart" "$2" "$3"
       ;;
+    restart_if_stuck)
+      restart_if_stuck
+      ;;
     kickusers)
       kickusers
       ;;
@@ -1220,6 +1241,7 @@ if [ -z "$1" ]; then
   echo "........ start [first]"
   echo "........ stop [now] [fix]"
   echo "........ restart [now] [fix]"
+  echo "........ restart_if_stuck"
   echo "........ kickusers"
   echo "........ rcon 'command'"
   echo "........ screen 'command'"
