@@ -14,7 +14,7 @@
 
 # VERSION of Project Zomboid Linux Server Manager.
 # Follows semantic versioning, SEE: http://semver.org/.
-VERSION="0.19.25"
+VERSION="0.19.26"
 
 BASEDIR=$(dirname "$(readlink -f "$BASH_SOURCE")")
 
@@ -262,6 +262,26 @@ function create_directories() {
 
   ln -s "${DIR_BACKUPS}" "${DIR_PUBLIC}/backups"
   ln -s "${ZOMBOID_DIR_LOGS}" "${DIR_PUBLIC}/logs"
+
+  ln -s "${ZOMBOID_DIR_MAP}/WorldDictionary.bin" "${DIR_PUBLIC}/saves/WorldDictionary.bin"
+  ln -s "${ZOMBOID_DIR_MAP}/WorldDictionaryLog.lua" "${DIR_PUBLIC}/saves/WorldDictionaryLog.lua"
+  ln -s "${ZOMBOID_DIR_MAP}/WorldDictionaryReadable.lua" "${DIR_PUBLIC}/saves/WorldDictionaryReadable.lua"
+  ln -s "${ZOMBOID_DIR_MAP}/erosion.ini" "${DIR_PUBLIC}/saves/erosion.ini"
+  ln -s "${ZOMBOID_DIR_MAP}/global_mod_data.bin" "${DIR_PUBLIC}/saves/global_mod_data.bin"
+  ln -s "${ZOMBOID_DIR_MAP}/gos_campfire.bin" "${DIR_PUBLIC}/saves/gos_campfire.bin"
+  ln -s "${ZOMBOID_DIR_MAP}/gos_farming.bin" "${DIR_PUBLIC}/saves/gos_farming.bin"
+  ln -s "${ZOMBOID_DIR_MAP}/gos_metaldrum.bin" "${DIR_PUBLIC}/saves/gos_metaldrum.bin"
+  ln -s "${ZOMBOID_DIR_MAP}/gos_rainbarrel.bin" "${DIR_PUBLIC}/saves/gos_rainbarrel.bin"
+  ln -s "${ZOMBOID_DIR_MAP}/gos_trap.bin" "${DIR_PUBLIC}/saves/gos_trap.bin"
+  ln -s "${ZOMBOID_DIR_MAP}/map_meta.bin" "${DIR_PUBLIC}/saves/map_meta.bin"
+  ln -s "${ZOMBOID_DIR_MAP}/map_t.bin" "${DIR_PUBLIC}/saves/map_t.bin"
+  ln -s "${ZOMBOID_DIR_MAP}/map_zone.bin" "${DIR_PUBLIC}/saves/map_zone.bin"
+  ln -s "${ZOMBOID_DIR_MAP}/players.db" "${DIR_PUBLIC}/saves/players.db"
+  ln -s "${ZOMBOID_DIR_MAP}/reanimated.bin" "${DIR_PUBLIC}/saves/reanimated.bin"
+  ln -s "${ZOMBOID_DIR_MAP}/recorded_media.bin" "${DIR_PUBLIC}/saves/recorded_media.bin"
+  ln -s "${ZOMBOID_DIR_MAP}/vehicles.db" "${DIR_PUBLIC}/saves/vehicles.db"
+  ln -s "${ZOMBOID_DIR_MAP}/z_outfits.bin" "${DIR_PUBLIC}/saves/z_outfits.bin"
+  ln -s "${ZOMBOID_DIR_MAP}/zpop_virtual.bin" "${DIR_PUBLIC}/saves/zpop_virtual.bin"
 
   echo "${OK} directories created"
 }
@@ -1221,9 +1241,6 @@ function main() {
       ;;
     restore_players)
       restore_players "$2"
-      ;;
-    public)
-      public
       ;;
   esac
 }
