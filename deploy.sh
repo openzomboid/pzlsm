@@ -17,7 +17,6 @@ if [ -n "$1" ]; then
     SERVER_TYPE="$1"
 
     DIR_INCLUDE="${BASEDIR}/include"
-    DIR_PZLSM_CONFIG="${DIR_INCLUDE}/config/pzlsm"
 
     FILE_DEPLOY_CONFIG="${DIR_INCLUDE}/config/deploy/${SERVER_TYPE}.sh"
 
@@ -35,6 +34,5 @@ SERVER_PZ_DIR=${SERVER_PZ_DIR}
 [[ -z "${SERVER_PASSWORD}" ]] && >&2 echo "$ER SERVER_PASSWORD is not set" && echo "${SERVER_IP}" && exit
 [[ -z "${SERVER_PZ_DIR}" ]] && >&2 echo "$ER SERVER_PZ_DIR is not set" && exit
 
-exp "${SERVER_PASSWORD}" ssh -o 'IdentitiesOnly=yes' "${SERVER_USER}@${SERVER_IP}" "mkdir -p ${SERVER_PZ_DIR}/include/config/pzlsm"
-exp "${SERVER_PASSWORD}" scp -o 'IdentitiesOnly=yes' "${DIR_PZLSM_CONFIG}/default.sh" "${SERVER_USER}@${SERVER_IP}":"${SERVER_PZ_DIR}/include/config/pzlsm"
+#exp "${SERVER_PASSWORD}" ssh -o 'IdentitiesOnly=yes' "${SERVER_USER}@${SERVER_IP}" "mkdir -p ${SERVER_PZ_DIR}/config"
 exp "${SERVER_PASSWORD}" scp -o 'IdentitiesOnly=yes' server.sh "${SERVER_USER}@${SERVER_IP}":"${SERVER_PZ_DIR}/"
