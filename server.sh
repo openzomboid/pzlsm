@@ -12,7 +12,7 @@
 
 # VERSION of Project Zomboid Linux Server Manager.
 # Follows semantic versioning, SEE: http://semver.org/.
-VERSION="0.20.1"
+VERSION="0.20.2"
 
 BASEDIR=$(dirname "$(readlink -f "$BASH_SOURCE")")
 
@@ -166,43 +166,6 @@ function strclear() {
   echo "${str}"
 }
 
-# is_updated checks the time of the last server update via steamcmd,
-# compare it with the saved one, return a response about the need to
-# restart if the time does not match and update the time in the repository
-#
-# TODO: Implement me.
-function is_updated() {
-  if [ ! -f "${ZOMBOID_MANIFEST}" ]; then
-    echoerr "server manifest file not found"
-    return 1
-  fi
-
-  # Get updated timestamp from manifest file.
-  local updated=""
-  updated=$(grep -oP "(?<=LastUpdated).*" "${ZOMBOID_MANIFEST}" | grep -o '[0-9]*')
-
-  echo "false"
-}
-
-# install_range_builder downloads the regex-range-builder script and puts it
-# in the utils directory.
-function install_range_builder() {
-  test -d "${UTIL_RANGE_DIR}" && echo "${UTIL_RANGE_DIR}" && return
-
-  wget -P "${DIR_UTILS}" "${UTIL_RANGE_LINK}"
-  tar -zxvf "${DIR_UTILS}/v${UTIL_RANGE_VERSION}.tar.gz" -C "${DIR_UTILS}"
-  rm "${DIR_UTILS}/v${UTIL_RANGE_VERSION}.tar.gz"
-}
-
-# install_rcon downloads the rcon client and puts it in the utils directory.
-function install_rcon() {
-  test -d "${UTIL_RCON_DIR}" && echo "${UTIL_RCON_DIR}" && return
-
-  wget -P "${DIR_UTILS}" "${UTIL_RCON_LINK}"
-  tar -zxvf "${DIR_UTILS}/rcon-${UTIL_RCON_VERSION}-amd64_linux.tar.gz" -C "${DIR_UTILS}"
-  rm "${DIR_UTILS}/rcon-${UTIL_RCON_VERSION}-amd64_linux.tar.gz"
-}
-
 # install_dependencies Installs the necessary dependencies to the server.
 # You must have sudo privileges to call function install_dependencies.
 # This is the only function in this script that needs root privileges.
@@ -296,40 +259,41 @@ function create_directories() {
   echo "${OK} directories created"
 }
 
-# fix_options changes game language to EN.
-function fix_options() {
-  sed -i -r "s/language=.*/language=EN/g" "${ZOMBOID_DIR}/options.ini"
+# install_range_builder downloads the regex-range-builder script and puts it
+# in the utils directory.
+function install_range_builder() {
+  test -d "${UTIL_RANGE_DIR}" && echo "${UTIL_RANGE_DIR}" && return
 
-  echo "${OK} options fixed"
+  wget -P "${DIR_UTILS}" "${UTIL_RANGE_LINK}"
+  tar -zxvf "${DIR_UTILS}/v${UTIL_RANGE_VERSION}.tar.gz" -C "${DIR_UTILS}"
+  rm "${DIR_UTILS}/v${UTIL_RANGE_VERSION}.tar.gz"
 }
 
-# fix_args sets the home directory for the game, utf8 encoding, server name,
-# game language, changes GC option.
-# TODO: Add option for collecting GC logs.
-# "-Xlog:gc*,gc+heap=debug,age*=debug:file=path/to/gc.out:time,uptime,level,tags:filesize=0:filecount=0"
-function fix_args() {
-  local arg_home=""
-  arg_home=$(grep "Duser.home" "${SERVER_DIR}/ProjectZomboid64.json")
-  [ "${arg_home}" ] && return 0
+# install_rcon downloads the rcon client and puts it in the utils directory.
+function install_rcon() {
+  test -d "${UTIL_RCON_DIR}" && echo "${UTIL_RCON_DIR}" && return
 
-  # Set memory limit for JVM.
-  sed -i -r "s/Xmx8g/Xmx${SERVER_MEMORY_LIMIT}m/g" "${SERVER_DIR}/ProjectZomboid64.json"
+  wget -P "${DIR_UTILS}" "${UTIL_RCON_LINK}"
+  tar -zxvf "${DIR_UTILS}/rcon-${UTIL_RCON_VERSION}-amd64_linux.tar.gz" -C "${DIR_UTILS}"
+  rm "${DIR_UTILS}/rcon-${UTIL_RCON_VERSION}-amd64_linux.tar.gz"
+}
 
-  # Change GC type.
-  sed -i -r "s/UseZGC/UseG1GC/g" "${SERVER_DIR}/ProjectZomboid64.json"
+# is_updated checks the time of the last server update via steamcmd,
+# compare it with the saved one, return a response about the need to
+# restart if the time does not match and update the time in the repository
+#
+# TODO: Implement me.
+function is_updated() {
+  if [ ! -f "${ZOMBOID_MANIFEST}" ]; then
+    echoerr "server manifest file not found"
+    return 1
+  fi
 
-  local set_home='"-Duser.home=.\/"'
-  local set_encoding='"-Dfile.encoding=UTF-8"'
-  local set_servername="\"-Dservername=${SERVER_NAME}\""
-  local set_serverlang="\"-Duser.language=${SERVER_LANG}\""
+  # Get updated timestamp from manifest file.
+  local updated=""
+  updated=$(grep -oP "(?<=LastUpdated).*" "${ZOMBOID_MANIFEST}" | grep -o '[0-9]*')
 
-  local indent="\r\n\t\t"
-  local _search='"-Dzomboid.steam=1",'
-  local _replace="${_search}${indent}${set_home},${indent}${set_encoding},${indent}${set_servername},${indent}${set_serverlang},"
-
-  sed -i -r "s/${_search}/${_replace}/g" "${SERVER_DIR}/ProjectZomboid64.json"
-
-  echo "${OK} args fixed"
+  echo "false"
 }
 
 # install_server installs Project Zomboid dedicated server.
@@ -374,6 +338,41 @@ function install_server() {
   fix_args
 
   echo "${OK} server installed"
+}
+
+# fix_options changes game language to EN.
+function fix_options() {
+  sed -i -r "s/language=.*/language=EN/g" "${ZOMBOID_DIR}/options.ini"
+
+  echo "${OK} options fixed"
+}
+
+# fix_args sets the home directory for the game, utf8 encoding, server name,
+# game language, changes GC option.
+function fix_args() {
+  local arg_home=""
+  arg_home=$(grep "Duser.home" "${SERVER_DIR}/ProjectZomboid64.json")
+  [ "${arg_home}" ] && return 0
+
+  # Set memory limit for JVM.
+  sed -i -r "s/Xmx8g/Xmx${SERVER_MEMORY_LIMIT}m/g" "${SERVER_DIR}/ProjectZomboid64.json"
+
+  # Change GC type.
+  sed -i -r "s/UseZGC/UseG1GC/g" "${SERVER_DIR}/ProjectZomboid64.json"
+
+  local set_home='"-Duser.home=.\/"'
+  local set_encoding='"-Dfile.encoding=UTF-8"'
+  local set_servername="\"-Dservername=${SERVER_NAME}\""
+  local set_serverlang="\"-Duser.language=${SERVER_LANG}\""
+  local set_gclog="\"-Xlog:gc*,gc+heap=debug,age*=debug:file=${DIR_LOGS}/gc/gc.out:time,uptime,level,tags:filesize=0:filecount=0\""
+
+  local indent="\r\n\t\t"
+  local _search='"-Dzomboid.steam=1",'
+  local _replace="${_search}${indent}${set_home},${indent}${set_encoding},${indent}${set_servername},${indent}${set_serverlang},${indent}${set_gclog},"
+
+  sed -i -r "s|${_search}|${_replace}|g" "${SERVER_DIR}/ProjectZomboid64.json"
+
+  echo "${OK} args fixed"
 }
 
 # sync_config downloads config from github repo.
