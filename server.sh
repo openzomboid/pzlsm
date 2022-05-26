@@ -12,7 +12,7 @@
 
 # VERSION of Project Zomboid Linux Server Manager.
 # Follows semantic versioning, SEE: http://semver.org/.
-VERSION="0.20.2"
+VERSION="0.20.3"
 
 BASEDIR=$(dirname "$(readlink -f "$BASH_SOURCE")")
 
@@ -1005,10 +1005,10 @@ function range() {
   local to="$2"
   local rectangle=($(get_rectangle "${from}" "${to}"))
 
-  local top_x; top_x=$(echo "${rectangle[0]}/10" |bc)
-  local top_y; top_y=$(echo "${rectangle[1]}/10" |bc)
-  local bot_x; bot_x=$(echo "${rectangle[2]}/10" |bc)
-  local bot_y; bot_y=$(echo "${rectangle[3]}/10" |bc)
+  local top_x; top_x=$(echo "${rectangle[0]}" |bc)
+  local top_y; top_y=$(echo "${rectangle[1]}" |bc)
+  local bot_x; bot_x=$(echo "${rectangle[2]}" |bc)
+  local bot_y; bot_y=$(echo "${rectangle[3]}" |bc)
 
   if [ "${top_x}" -ge "${bot_x}" ] || [ "${top_y}" -ge "${bot_y}" ]; then
      echoerr "invalid points"; return 1
