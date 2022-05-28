@@ -154,6 +154,7 @@ function print_variables() {
 }
 
 # print_version prints versions.
+# TODO: Check installation.
 function print_version() {
   echo "${INFO} pzlsm version ${VERSION}"
   echo "${INFO} gorcon version ${UTIL_RCON_VERSION}"
