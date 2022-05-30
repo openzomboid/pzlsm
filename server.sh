@@ -285,6 +285,7 @@ function install_rcon() {
 #
 # TODO: Implement me.
 # Check Project Zomboid update date in Steam.
+# Check Project Zomboid mods update date in Steam.
 function is_updated() {
   if [ ! -f "${ZOMBOID_MANIFEST}" ]; then
     echoerr "server manifest file not found"
