@@ -12,7 +12,7 @@
 
 # VERSION of Project Zomboid Linux Server Manager.
 # Follows semantic versioning, SEE: http://semver.org/.
-VERSION="0.20.3"
+VERSION="0.20.4"
 
 BASEDIR=$(dirname "$(readlink -f "$BASH_SOURCE")")
 
@@ -1101,13 +1101,13 @@ function clog_search() {
 
   local filename="$2"
   if [ -z "${filename}" ]; then
-    find "${ZOMBOID_DIR_LOGS}" -maxdepth 1 -type f -not -iname "*_DebugLog-server.txt" -not -iname "*_chat.txt" -exec grep "$1" {} \; | sort
+    find "${ZOMBOID_DIR_LOGS}" -maxdepth 1 -type f -not -iname "*_DebugLog-server.txt" -not -iname "*_chat.txt" -exec grep -E "$1" {} \; | sort
     return 0
   fi
 
   local action="$3"
   if [ -z "${action}" ]; then
-    find "${ZOMBOID_DIR_LOGS}" -maxdepth 1 -type f -iname "*_${filename}.txt" -exec grep "$1" {} \; | sort
+    find "${ZOMBOID_DIR_LOGS}" -maxdepth 1 -type f -iname "*_${filename}.txt" -exec grep -E "$1" {} \; | sort
     return 0
   fi
 
