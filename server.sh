@@ -12,7 +12,7 @@
 
 # VERSION of Project Zomboid Linux Server Manager.
 # Follows semantic versioning, SEE: http://semver.org/.
-VERSION="0.20.4"
+VERSION="0.20.5"
 
 BASEDIR=$(dirname "$(readlink -f "$BASH_SOURCE")")
 
@@ -1035,7 +1035,7 @@ function backup() {
     echo "${INFO} backup zomboid players..."
 
     local name="players_${NOW}.db"
-    if ! cp "${ZOMBOID_DIR_MAP}/players.db" "${DIR_BACKUPS_PLAYERS}/${name}"; then
+    if cp "${ZOMBOID_DIR_MAP}/players.db" "${DIR_BACKUPS_PLAYERS}/${name}"; then
       echo "${OK} backup ${name} created successful"
       delete_old_players "${CLEAR_TIME_MACHINE_DAY}"
     fi
