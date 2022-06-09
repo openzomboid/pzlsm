@@ -12,7 +12,7 @@
 
 # VERSION of Project Zomboid Linux Server Manager.
 # Follows semantic versioning, SEE: http://semver.org/.
-VERSION="0.20.5"
+VERSION="0.20.6"
 
 BASEDIR=$(dirname "$(readlink -f "$BASH_SOURCE")")
 
@@ -707,9 +707,11 @@ function delete_old_chunks() {
   [ "${days}" -eq "0" ] && return 0
 
   local count
+  (( days-- ))
   count=$(find "${ZOMBOID_DIR_MAP}" -name "map_*_*.bin" -mtime +${days} | wc -l)
-  echo "${INFO} remove chunks older than ${days} days... ${count} chunks"
   find "${ZOMBOID_DIR_MAP}" -name "map_*_*.bin" -mtime +${days} -delete
+  (( days++ ))
+  echo "${INFO} remove chunks older than ${days} days... ${count} chunks"
 }
 
 # delete_old_logs deletes log files that are older than $1 days from
@@ -725,9 +727,11 @@ function delete_old_logs() {
 
   # Remove old logs folders.
   local count
+  (( days-- ))
   count=$(find "${ZOMBOID_DIR_LOGS}" -name "*.txt" -mtime +${days} | wc -l)
-  echo "${INFO} remove logs files older than ${days} days... ${count} files"
   find "${ZOMBOID_DIR_LOGS}" -name "*.txt" -mtime +${days} -delete
+  (( days++ ))
+  echo "${INFO} remove logs files older than ${days} days... ${count} files"
 
   # Remove empty logs folders.
   find "${ZOMBOID_DIR_LOGS}" -empty -type d -delete
@@ -746,9 +750,11 @@ function delete_old_java_stack_traces() {
 
   # Remove java stack traces.
   local count
+  (( days-- ))
   count=$(find "${SERVER_DIR}" -name "hs_err_pid*.log" -mtime +${days} | wc -l)
-  echo "${INFO} remove hs_err_pid*.log files older than ${days} days... ${count} files"
   find "${SERVER_DIR}" -name "hs_err_pid*.log" -mtime +${days} -delete
+  (( days++ ))
+  echo "${INFO} remove hs_err_pid*.log files older than ${days} days... ${count} files"
 }
 
 # delete_old_backups deletes files zomboid_*_*.tar.gz older than $1 days from
@@ -763,9 +769,11 @@ function delete_old_backups() {
   [ "${days}" -eq "0" ] && return 0
 
   local count
+  (( days-- ))
   count=$(find "${DIR_BACKUPS_ZOMBOID}" -name "zomboid_*_*.tar.gz" -mtime +${days} | wc -l)
-  echo "${INFO} remove backups older than ${days} days... ${count} backups"
   find "${DIR_BACKUPS_ZOMBOID}" -name "zomboid_*_*.tar.gz" -mtime +${days} -delete
+  (( days++ ))
+  echo "${INFO} remove backups older than ${days} days... ${count} backups"
 }
 
 # delete_old_players deletes files players_*_*.db older than $1 days from
@@ -780,9 +788,11 @@ function delete_old_players() {
   [ "${days}" -eq "0" ] && return 0
 
   local count
+  (( days-- ))
   count=$(find "${DIR_BACKUPS_PLAYERS}" -name "players_*_*.db" -mtime +${days} | wc -l)
-  echo "${INFO} remove players backups older than ${days} days... ${count} backups"
   find "${DIR_BACKUPS_PLAYERS}" -name "players_*_*.db" -mtime +${days} -delete
+  (( days++ ))
+  echo "${INFO} remove players backups older than ${days} days... ${count} backups"
 }
 
 # get_rectangle takes the coordinates of the upper right and lower left points
