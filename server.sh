@@ -12,7 +12,11 @@
 
 # VERSION of Project Zomboid Linux Server Manager.
 # Follows semantic versioning, SEE: http://semver.org/.
-VERSION="0.20.6"
+VERSION="0.21.0"
+
+# Project Zomboid App ID and Dedicated Server App ID in Steam.
+APP_ID=108600
+APP_DEDICATED_ID=380870
 
 BASEDIR=$(dirname "$(readlink -f "$BASH_SOURCE")")
 
@@ -38,6 +42,12 @@ NOW=$(date "+%Y%m%d_%H%M%S")
 # TIMESTAMP is current timestamp.
 TIMESTAMP=$(date "+%s")
 
+ENV_FILE="${BASEDIR}/.env"
+
+# Import env file if exists.
+# shellcheck source=.env
+test -f "${ENV_FILE}" && . "${ENV_FILE}"
+
 # Linux Server Manager directories definitions.
 DIR_BACKUPS="${BASEDIR}/backups"
 DIR_UTILS="${BASEDIR}/utils"
@@ -49,21 +59,15 @@ DIR_BACKUPS_DOWN="${DIR_BACKUPS}/down"
 DIR_BACKUPS_ZOMBOID="${DIR_BACKUPS}/zomboid"
 DIR_BACKUPS_COPY="${DIR_BACKUPS}/copy"
 DIR_BACKUPS_PLAYERS="${DIR_BACKUPS}/players"
+DIR_BACKUPS_TIME_MACHINE="${DIR_BACKUPS}/timemachine"
 
 # Linux Server Manager files definitions.
 FILE_PZLSM_LOG="${DIR_LOGS}/pzlsm.log"
 FILE_PZLSM_CONFIG="${DIR_CONFIG}/pzlsm.cfg"
-FILE_PZLSM_CONFIG_ENV="${BASEDIR}/.env"
 
-# Project Zomboid App ID and Dedicated Server App ID in Steam.
-APP_ID=108600
-APP_DEDICATED_ID=380870
-
-# Import config files if exists.
+# Import config file if exists.
 # shellcheck source=config/pzlsm.cfg
 test -f "${FILE_PZLSM_CONFIG}" && . "${FILE_PZLSM_CONFIG}"
-# shellcheck source=.env
-test -f "${FILE_PZLSM_CONFIG_ENV}" && . "${FILE_PZLSM_CONFIG_ENV}"
 
 ## Check config variables and set default values if not defined.
 [ -z "${CLEAR_MAP_DAY}" ] && CLEAR_MAP_DAY=21
@@ -219,6 +223,7 @@ function create_directories() {
   mkdir -p "${DIR_BACKUPS_ZOMBOID}"
   mkdir -p "${DIR_BACKUPS_COPY}"
   mkdir -p "${DIR_BACKUPS_PLAYERS}"
+  mkdir -p "${DIR_BACKUPS_TIME_MACHINE}"
 
   # Logs
   mkdir -p "${DIR_LOGS}/gc"
@@ -585,7 +590,7 @@ function stop() {
   delete_old_java_stack_traces "${CLEAR_STACK_TRACE_DAY}"
 
   # Backups
-  backup
+  backup "world"
 }
 
 # restart stops the server and starts it after 10 seconds.
@@ -757,44 +762,6 @@ function delete_old_java_stack_traces() {
   echo "${INFO} remove hs_err_pid*.log files older than ${days} days... ${count} files"
 }
 
-# delete_old_backups deletes files zomboid_*_*.tar.gz older than $1 days from
-# backups/zomboid directory.
-# If you do not pass the number of days $1, or pass the value 0 then the
-# default value will be taken from the variable CLEAR_BACKUPS_DAY.
-function delete_old_backups() {
-  local days="$1"
-  [ -z "${days}" ] && days=${CLEAR_BACKUPS_DAY}
-
-  # Do nothing if turned off in the settings.
-  [ "${days}" -eq "0" ] && return 0
-
-  local count
-  (( days-- ))
-  count=$(find "${DIR_BACKUPS_ZOMBOID}" -name "zomboid_*_*.tar.gz" -mtime +${days} | wc -l)
-  find "${DIR_BACKUPS_ZOMBOID}" -name "zomboid_*_*.tar.gz" -mtime +${days} -delete
-  (( days++ ))
-  echo "${INFO} remove backups older than ${days} days... ${count} backups"
-}
-
-# delete_old_players deletes files players_*_*.db older than $1 days from
-# backups/players directory.
-# If you do not pass the number of days $1, or pass the value 0 then the
-# default value will be taken from the variable CLEAR_TIME_MACHINE_DAY.
-function delete_old_players() {
-  local days="$1"
-  [ -z "${days}" ] && days=${CLEAR_TIME_MACHINE_DAY}
-
-  # Do nothing if turned off in the settings.
-  [ "${days}" -eq "0" ] && return 0
-
-  local count
-  (( days-- ))
-  count=$(find "${DIR_BACKUPS_PLAYERS}" -name "players_*_*.db" -mtime +${days} | wc -l)
-  find "${DIR_BACKUPS_PLAYERS}" -name "players_*_*.db" -mtime +${days} -delete
-  (( days++ ))
-  echo "${INFO} remove players backups older than ${days} days... ${count} backups"
-}
-
 # get_rectangle takes the coordinates of the upper right and lower left points
 # and builds a rectangular area of chunks from them.
 function get_rectangle() {
@@ -932,7 +899,6 @@ function map_copy() {
 #
 # Example: map_copyto 9240x4800 9299x4859 11530x8200
 # Example: map_copyto 9240x4800 9299x4859 11530x8200 maze
-# TODO: Join with map_copy.
 function map_copyto() {
   local from="$1"
   local to="$2"
@@ -944,7 +910,7 @@ function map_copyto() {
   local bot_x; bot_x=$(echo "${rectangle[2]}/10" |bc)
   local bot_y; bot_y=$(echo "${rectangle[3]}/10" |bc)
 
-  if [[ "${top_x}" -ge "${bot_x}" ]] || [[ "${top_y}" -ge "${bot_y}" ]]; then
+  if [ "${top_x}" -ge "${bot_x}" ] || [ "${top_y}" -ge "${bot_y}" ]; then
      echoerr "invalid points"
      return 1
   fi
@@ -1034,34 +1000,184 @@ function range() {
 }
 
 # backup copies server files to backup directory.
-# TODO: Refactor backup function.
 # After successful copying, check for old backups and delete them.
 function backup() {
   NOW=$(date "+%Y%m%d_%H%M%S")
-
   local type="$1"
 
-  if [ "${type}" == "players" ]; then
-    echo "${INFO} backup zomboid players..."
-
-    local name="players_${NOW}.db"
-    if cp "${ZOMBOID_DIR_MAP}/players.db" "${DIR_BACKUPS_PLAYERS}/${name}"; then
-      echo "${OK} backup ${name} created successful"
-      delete_old_players "${CLEAR_TIME_MACHINE_DAY}"
-    fi
-
-    return 0
+  if [ "${type}" == "fast" ]; then
+    time_machine_save "$NOW" && return 0 || return 1
   fi
 
-  echo "${INFO} backup zomboid files..."
+  if [ "${type}" == "players" ]; then
+    players_save "$NOW" && return 0 || return 1
+  fi
 
-  local name="zomboid_${NOW}.tar.gz"
-  if ! tar -czf "${DIR_BACKUPS_ZOMBOID}/${name}" -P --warning=no-file-changed "${ZOMBOID_DIR}"; then
-    echoerr "backup not created"; return 1
+  if [ "${type}" == "world" ]; then
+    zomboid_save "$NOW" && return 0 || return 1
+  fi
+
+  echoerr "unknown backup \"${type}\" command"
+}
+
+# time_machine_save saves database files to backup folder.
+function time_machine_save() {
+  [ -z "$1" ] && NOW=$(date "+%Y%m%d_%H%M%S") || NOW="$1"
+
+  echoerr_del() {
+    rm -rf "$1";
+    echoerr "fast world save on ${NOW} failed";
+  }
+
+  # delete_old_time_machines deletes files servername_date_time.tar.gz older
+  # than $1 days from backups/timemachine directory.
+  # If you do not pass the number of days $1, or pass the value 0 then the
+  # default value will be taken from the variable CLEAR_TIME_MACHINE_DAY.
+  delete_old_time_machines() {
+    local days="$1"
+    [ -z "${days}" ] && days=${CLEAR_TIME_MACHINE_DAY}
+
+    # Do nothing if turned off in the settings.
+    [ "${days}" -eq "0" ] && return 0
+
+    local count
+    (( days-- ))
+    count=$(find "${DIR_BACKUPS_TIME_MACHINE}" -name "${SERVER_NAME}_*_*.tar.gz" -mtime +${days} | wc -l)
+    find "${DIR_BACKUPS_TIME_MACHINE}" -name "${SERVER_NAME}_*_*.tar.gz" -mtime +${days} -delete
+    (( days++ ))
+    echo "${INFO} remove time machine backups older than ${days} days... ${count} backups"
+  }
+
+  echo "${INFO} fast world saving on ${NOW}..."
+
+  local machine_name="${SERVER_NAME}_${NOW}"
+  local machine_path="${DIR_BACKUPS_TIME_MACHINE}/${machine_name}"
+
+  if ! mkdir -p "${machine_path}"; then
+    echoerr "fast world save on ${NOW} failed"; return 1
+  fi
+
+  echo "${INFO} backup players.db..."
+  if ! cp "${ZOMBOID_DIR_MAP}/players.db" "${machine_path}/players.db"; then
+    echoerr_del "${machine_path}"; return 1
+  fi
+
+  echo "${INFO} backup vehicles.db..."
+  if ! cp "${ZOMBOID_DIR_MAP}/vehicles.db" "${machine_path}/vehicles.db"; then
+    echoerr_del "${machine_path}"; return 1
+  fi
+
+  echo "${INFO} backup WorldDictionary.bin..."
+  if ! cp "${ZOMBOID_DIR_MAP}/WorldDictionary.bin" "${machine_path}/WorldDictionary.bin"; then
+    echoerr_del "${machine_path}"; return 1
+  fi
+
+  echo "${INFO} backup map_meta.bin..."
+  if ! cp "${ZOMBOID_DIR_MAP}/map_meta.bin" "${machine_path}/map_meta.bin"; then
+    echoerr_del "${machine_path}"; return 1
+  fi
+
+  echo "${INFO} backup map_t.bin..."
+  if ! cp "${ZOMBOID_DIR_MAP}/map_t.bin" "${machine_path}/map_t.bin"; then
+    echoerr_del "${machine_path}"; return 1
+  fi
+
+  echo "${INFO} backup map_zone.bin..."
+  if ! cp "${ZOMBOID_DIR_MAP}/map_zone.bin" "${machine_path}/map_zone.bin"; then
+    echoerr_del "${machine_path}"; return 1
+  fi
+
+  echo "${INFO} backup ${SERVER_NAME}.db..."
+  if ! cp "${ZOMBOID_FILE_DB}" "${machine_path}/${SERVER_NAME}.db"; then
+    echoerr_del "${machine_path}"; return 1
+  fi
+
+  if ! tar -czf "${machine_path}.tar.gz" -C "${DIR_BACKUPS_TIME_MACHINE}" "${machine_name}"; then
+    echoerr_del "${machine_path}"; return 1
+  fi
+
+  rm -rf "${machine_path}"
+
+  echo "${OK} fast world save on ${NOW} completed"
+  delete_old_time_machines "${CLEAR_TIME_MACHINE_DAY}"
+}
+
+# players_save saves players database file to backup folder.
+function players_save() {
+  [ -z "$1" ] && NOW=$(date "+%Y%m%d_%H%M%S") || NOW="$1"
+
+  echoerr_del() {
+    rm -rf "$1";
+    echoerr "players database save on ${NOW} failed";
+  }
+
+  # delete_old_players deletes files players_*_*.db older than $1 days from
+  # backups/players directory.
+  # If you do not pass the number of days $1, or pass the value 0 then the
+  # default value will be taken from the variable CLEAR_TIME_MACHINE_DAY.
+  delete_old_players() {
+    local days="$1"
+    [ -z "${days}" ] && days=${CLEAR_TIME_MACHINE_DAY}
+
+    # Do nothing if turned off in the settings.
+    [ "${days}" -eq "0" ] && return 0
+
+    local count
+    (( days-- ))
+    count=$(find "${DIR_BACKUPS_PLAYERS}" -name "players_*_*.db" -mtime +${days} | wc -l)
+    find "${DIR_BACKUPS_PLAYERS}" -name "players_*_*.db" -mtime +${days} -delete
+    (( days++ ))
+    echo "${INFO} remove players backups older than ${days} days... ${count} backups"
+  }
+
+  echo "${INFO} backup players.db..."
+
+  local name="players_${NOW}.db"
+  if ! cp "${ZOMBOID_DIR_MAP}/players.db" "${DIR_BACKUPS_PLAYERS}/${name}"; then
+    echoerr_del "${DIR_BACKUPS_PLAYERS}/${name}"; return 1
   fi
 
   echo "${OK} backup ${name} created successful"
-  delete_old_backups "${CLEAR_BACKUPS_DAY}"
+  delete_old_players "${CLEAR_TIME_MACHINE_DAY}"
+}
+
+# zomboid_save saves Zomboid folder file to backup folder.
+function zomboid_save() {
+  [ -z "$1" ] && NOW=$(date "+%Y%m%d_%H%M%S") || NOW="$1"
+
+  echoerr_del() {
+    rm -rf "$1";
+    echoerr "world save on ${NOW} failed";
+  }
+
+  # delete_old_zomboid deletes files ${SERVER_NAME}_*_*.tar.gz older than
+  # $1 days from backups/zomboid directory.
+  # If you do not pass the number of days $1, or pass the value 0 then the
+  # default value will be taken from the variable CLEAR_BACKUPS_DAY.
+  delete_old_zomboid() {
+    local days="$1"
+    [ -z "${days}" ] && days=${CLEAR_BACKUPS_DAY}
+
+    # Do nothing if turned off in the settings.
+    [ "${days}" -eq "0" ] && return 0
+
+    local count
+    (( days-- ))
+    count=$(find "${DIR_BACKUPS_ZOMBOID}" -name "${SERVER_NAME}_*_*.tar.gz" -mtime +${days} | wc -l)
+    find "${DIR_BACKUPS_ZOMBOID}" -name "${SERVER_NAME}_*_*.tar.gz" -mtime +${days} -delete
+    (( days++ ))
+    echo "${INFO} remove world backups older than ${days} days... ${count} backups"
+  }
+
+  echo "${INFO} world save on ${NOW}..."
+
+  local name="${SERVER_NAME}_${NOW}.tar.gz"
+  if ! tar -czf "${DIR_BACKUPS_ZOMBOID}/${name}" --warning=no-file-changed -C "${ZOMBOID_DIR}" .; then
+    echoerr_del "${DIR_BACKUPS_ZOMBOID}/${name}"; return 1
+  fi
+
+  echo "${OK} world save on ${NOW} completed"
+  delete_old_zomboid "${CLEAR_BACKUPS_DAY}"
 }
 
 # log_search looks for string $1 in log files. Chat logs excluded from search.
