@@ -12,7 +12,7 @@
 
 # VERSION of Project Zomboid Linux Server Manager.
 # Follows semantic versioning, SEE: http://semver.org/.
-VERSION="0.21.0"
+VERSION="0.22.0"
 
 # Project Zomboid App ID and Dedicated Server App ID in Steam.
 APP_ID=108600
@@ -51,6 +51,7 @@ test -f "${ENV_FILE}" && . "${ENV_FILE}"
 # Linux Server Manager directories definitions.
 DIR_BACKUPS="${BASEDIR}/backups"
 DIR_UTILS="${BASEDIR}/utils"
+DIR_PLUGINS="${BASEDIR}/utils/plugins"
 DIR_LOGS="${BASEDIR}/logs"
 DIR_CONFIG="${BASEDIR}/config"
 DIR_PUBLIC="${BASEDIR}/public"
@@ -120,6 +121,8 @@ ZOMBOID_FILE_DB="${ZOMBOID_DIR_DB}/${SERVER_NAME}.db"
 
 ZOMBOID_MANIFEST="${SERVER_DIR}/steamapps/appmanifest_${APP_DEDICATED_ID}.acf"
 ZOMBOID_MODS_MANIFEST="${SERVER_DIR}/steamapps/workshop/appworkshop_${APP_ID}.acf"
+
+fn_exists() { declare -F "$1" > /dev/null; }
 
 # echoerr prints error message to stderr and FILE_PZLSM_LOG file.
 function echoerr() {
@@ -217,6 +220,7 @@ function create_directories() {
   mkdir -p "${DIR_CONFIG}"
   mkdir -p "${DIR_PUBLIC}"
   mkdir -p "${DIR_UTILS}"
+  mkdir -p "${DIR_PLUGINS}"
 
   # Backups.
   mkdir -p "${DIR_BACKUPS_DOWN}"
@@ -635,7 +639,7 @@ function shutdown_wrapper() {
     return 0
   fi
 
-  function ticker() {
+  ticker() {
     local msg=$1
 
     if [ "$2" != "now" ]; then
@@ -806,7 +810,15 @@ function get_rectangle() {
 # Example: map_regen 10626x10600 10679x10661
 function map_regen() {
   local from="$1"
+  if [ -z "${from}" ]; then
+     echoerr "upper right corner is not set"; return 1
+  fi
+
   local to="$2"
+  if [ -z "${to}" ]; then
+     echoerr "lower left corner is not set"; return 1
+  fi
+
   local rectangle=($(get_rectangle "${from}" "${to}"))
 
   # Delete last digit to convert to chunk name.
@@ -846,7 +858,15 @@ function map_regen() {
 # Example: map_copy 11586x8230 11639x8321 bar
 function map_copy() {
   local from="$1"
+  if [ -z "${from}" ]; then
+     echoerr "upper right corner is not set"; return 1
+  fi
+
   local to="$2"
+  if [ -z "${to}" ]; then
+     echoerr "lower left corner is not set"; return 1
+  fi
+
   local rectangle=($(get_rectangle "${from}" "${to}"))
 
   # Delete last digit to convert to chunk name.
@@ -901,7 +921,15 @@ function map_copy() {
 # Example: map_copyto 9240x4800 9299x4859 11530x8200 maze
 function map_copyto() {
   local from="$1"
+  if [ -z "${from}" ]; then
+     echoerr "upper right corner is not set"; return 1
+  fi
+
   local to="$2"
+  if [ -z "${to}" ]; then
+     echoerr "lower left corner is not set"; return 1
+  fi
+
   local rectangle=($(get_rectangle "${from}" "${to}"))
 
   # Delete last digit to convert to chunk name.
@@ -981,7 +1009,15 @@ function range() {
   fi
 
   local from="$1"
+  if [ -z "${from}" ]; then
+     echoerr "upper right corner is not set"; return 1
+  fi
+
   local to="$2"
+  if [ -z "${to}" ]; then
+     echoerr "lower left corner is not set"; return 1
+  fi
+
   local rectangle=($(get_rectangle "${from}" "${to}"))
 
   local top_x; top_x=$(echo "${rectangle[0]}" |bc)
@@ -1382,6 +1418,7 @@ function main() {
   esac
 }
 
+# TODO: Deprecated. Replace for help argument.
 if [ -z "$1" ]; then
   echo "${INFO} Permissible commands:"
   echo "........ version"
@@ -1423,3 +1460,22 @@ if [ -n "$CMD" ]; then
 else
   main "$@"
 fi
+
+for f in "${DIR_PLUGINS}"/*.sh ; do
+    test -f "${f}" && {
+      if grep -E '^[[:space:]]*([[:alnum:]_]+[[:space:]]*\(\)|function[[:space:]]+[[:alnum:]_]+)' "${f}" | grep -w main > /dev/null; then
+        echoerr "broken plugin $(basename "${f}")"; exit 1
+      fi
+
+      if grep -E '^[[:space:]]*([[:alnum:]_]+[[:space:]]*\(\)|function[[:space:]]+[[:alnum:]_]+)' "${f}" | grep -w load > /dev/null; then
+        . "${f}";
+
+        if [ -n "$CMD" ]; then
+          IFS=' ' read -ra args <<< "${CMD}"
+          load "${args[@]}"
+        else
+          load "$@"
+        fi
+      fi
+    }
+done
