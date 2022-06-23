@@ -1474,9 +1474,9 @@ if [ -z "$1" ]; then
   echo "........ --variables"
   echo "........ --version"
   echo "........ --help"
-  echo "........ dependencies"
-  echo "........ directories"
-  echo "........ utils"
+  echo "........ dependencies" # TODO: Join with install
+  echo "........ directories" # TODO: Join with install
+  echo "........ utils" # TODO: Join with install
   echo "........ prepare"
   echo "........ install [validate] [beta]" # TODO: Change args to options
   echo "........ fix"
