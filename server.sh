@@ -178,7 +178,7 @@ function print_variables() {
 }
 
 # print_version prints versions.
-# TODO: Check installation.
+# TODO: Check installations.
 function print_version() {
   echo "${INFO} pzlsm version ${VERSION}"
   echo "${INFO} gorcon version ${UTIL_RCON_VERSION}"
@@ -536,8 +536,8 @@ function stop() {
 
   # After a stopping the server invokes the function of cleaning garbage that
   # the game generates during its operation.
-  delete_old_chunks
-  delete_old_logs
+  delete_old_chunks "${CLEAR_MAP_DAY}"
+  delete_old_logs "${CLEAR_LOGS_DAY}"
   delete_old_java_stack_traces "${CLEAR_STACK_TRACE_DAY}"
 
   # Backups
@@ -693,6 +693,49 @@ function delete_mods_manifest() {
   rm "${ZOMBOID_MODS_MANIFEST}"
 }
 
+# delete_old_java_stack_traces deletes hs_err_pid*.log files that are older
+# than $1 days from server root directory.
+# If you do not pass the number of days $1, or pass the value 0 then the
+# default value will be taken from the variable CLEAR_STACK_TRACE_DAY.
+function delete_old_java_stack_traces() {
+  local days="$1"
+  [ -z "${days}" ] && days=${CLEAR_STACK_TRACE_DAY}
+
+  # Do nothing if turned off in the settings.
+  [ "${days}" -eq "0" ] && return
+
+  # Remove java stack traces.
+  local count
+  (( days-- ))
+  count=$(find "${SERVER_DIR}" -name "hs_err_pid*.log" -mtime +${days} | wc -l)
+  find "${SERVER_DIR}" -name "hs_err_pid*.log" -mtime +${days} -delete
+  (( days++ ))
+  echo "${INFO} remove hs_err_pid*.log files older than ${days} days... ${count} files"
+}
+
+# delete_old_logs deletes log files that are older than $1 days from
+# Zomboid/Logs directory.
+# If you do not pass the number of days $1, or pass the value 0 then the
+# default value will be taken from the variable CLEAR_LOGS_DAY.
+function delete_old_logs() {
+  local days="$1"
+  [ -z "${days}" ] && days=${CLEAR_LOGS_DAY}
+
+  # Do nothing if turned off in the settings.
+  [ "${days}" -eq "0" ] && return 0
+
+  # Remove old logs folders.
+  local count
+  (( days-- ))
+  count=$(find "${ZOMBOID_DIR_LOGS}" -name "*.txt" -mtime +${days} | wc -l)
+  find "${ZOMBOID_DIR_LOGS}" -name "*.txt" -mtime +${days} -delete
+  (( days++ ))
+  echo "${INFO} remove logs files older than ${days} days... ${count} files"
+
+  # Remove empty logs folders.
+  find "${ZOMBOID_DIR_LOGS}" -empty -type d -delete
+}
+
 # delete_zombies deletes all zpop_*_*.bin files from Zomboid/Saves directory.
 # These files are responsible for placing zombies on the world.
 # It is recommended to use with a turned off server. When used on a running
@@ -723,49 +766,6 @@ function delete_old_chunks() {
   find "${ZOMBOID_DIR_MAP}" -name "map_*_*.bin" -mtime +${days} -delete
   (( days++ ))
   echo "${INFO} remove chunks older than ${days} days... ${count} chunks"
-}
-
-# delete_old_logs deletes log files that are older than $1 days from
-# Zomboid/Logs directory.
-# If you do not pass the number of days $1, or pass the value 0 then the
-# default value will be taken from the variable CLEAR_LOGS_DAY.
-function delete_old_logs() {
-  local days="$1"
-  [ -z "${days}" ] && days=${CLEAR_LOGS_DAY}
-
-  # Do nothing if turned off in the settings.
-  [ "${days}" -eq "0" ] && return 0
-
-  # Remove old logs folders.
-  local count
-  (( days-- ))
-  count=$(find "${ZOMBOID_DIR_LOGS}" -name "*.txt" -mtime +${days} | wc -l)
-  find "${ZOMBOID_DIR_LOGS}" -name "*.txt" -mtime +${days} -delete
-  (( days++ ))
-  echo "${INFO} remove logs files older than ${days} days... ${count} files"
-
-  # Remove empty logs folders.
-  find "${ZOMBOID_DIR_LOGS}" -empty -type d -delete
-}
-
-# delete_old_java_stack_traces deletes hs_err_pid*.log files that are older
-# than $1 days from server root directory.
-# If you do not pass the number of days $1, or pass the value 0 then the
-# default value will be taken from the variable CLEAR_STACK_TRACE_DAY.
-function delete_old_java_stack_traces() {
-  local days="$1"
-  [ -z "${days}" ] && days=${CLEAR_STACK_TRACE_DAY}
-
-  # Do nothing if turned off in the settings.
-  [ "${days}" -eq "0" ] && return
-
-  # Remove java stack traces.
-  local count
-  (( days-- ))
-  count=$(find "${SERVER_DIR}" -name "hs_err_pid*.log" -mtime +${days} | wc -l)
-  find "${SERVER_DIR}" -name "hs_err_pid*.log" -mtime +${days} -delete
-  (( days++ ))
-  echo "${INFO} remove hs_err_pid*.log files older than ${days} days... ${count} files"
 }
 
 # get_rectangle takes the coordinates of the upper right and lower left points
@@ -853,7 +853,7 @@ function map_regen() {
 # map_copy takes the coordinates of the upper right and lower left points
 # and builds a rectangular area of chunks from them and copies them to
 # backups/copy directory. With an additional argument, you can specify a name
-# for the catalog of copied chunks. If you specify a name, then it will be
+# for the catalog of copied chunks. If you don't specify a name, then it will
 # generated based on the coordinates.
 #
 # Example: map_copy 11586x8230 11639x8321
@@ -917,7 +917,7 @@ function map_copy() {
 # and builds a rectangular area of chunks from them and copies them to
 # backups/copy directory and rename to new coordinates. With an additional
 # argument, you can specify a name for the catalog of copied chunks. If you
-# specify a name, then it will be generated based on the coordinates.
+# don't specify a name, then it will generated based on the coordinates.
 #
 # Example: map_copyto 9240x4800 9299x4859 11530x8200
 # Example: map_copyto 9240x4800 9299x4859 11530x8200 maze
@@ -1283,8 +1283,7 @@ function clog_search() {
   fi
 }
 
-# fn_sqlite fulfills query $1 to the Project Zomboid database and displays its
-# result.
+# fn_sqlite executes query 1 to the Project Zomboid database and displays result.
 #
 # Example: fn_sqlite 'select * from whitelist limit 1'
 function fn_sqlite() {
@@ -1344,22 +1343,53 @@ function print_help() {
   echo "  utils                   downloads vendor utils from repositories and puts them"
   echo "                          to the utils directory."
   echo "  prepare                 calls dependencies, directories and utils functions."
-  echo "  install [arguments...]  installs Project Zomboid dedicated server."
+  echo "  install [args...]       installs Project Zomboid dedicated server."
   echo "  fix                     changes game language to EN and sets Project Zomboid args."
   echo "  sync                    downloads Project Zomboid config files from github repo."
   echo "  info                    displays information on the peak processor consumption,"
   echo "                          current RAM consumption and other game stats."
-  echo "  start [arguments...]    starts the server in a screen window. An error message will"
+  echo "  start [args...]         starts the server in a screen window. An error message will"
   echo "                          be displayed if server has been started earlier"
-  echo "  stop [arguments...]     stops the server. Triggers informational messages for players"
+  echo "  stop [args...]          stops the server. Triggers informational messages for players"
   echo "                          to alert them of impending server shutdown."
-  echo "  restart [arguments...]  restarts the server. Triggers informational messages for players"
+  echo "  restart [args...]       restarts the server. Triggers informational messages for players"
   echo "                          to alert them of impending server shutdown."
   echo "  restart_if_stuck        restarts server if it stuck an backups last logs."
-  echo "  screen [arguments...]   calls the 1 argument as a command on the game using screen util."
-  echo "  rcon [arguments...]     calls the 1 argument as a command on the game using rcon util."
+  echo "  screen [args...]        calls the 1 argument as a command on the game using screen util."
+  echo "  rcon [args...]          calls the 1 argument as a command on the game using rcon util."
   echo "  kickusers               kicks all players from the server."
-  echo ""
+  echo "  delete_manifest         deletes appworkshop_108600.acf file. It need to"
+  echo "                          update mods correctly."
+  echo "  delete_zombies          deletes all zpop_*_*.bin files from Zomboid/Saves directory."
+  echo "                          These files are responsible for placing zombies on the world."
+  echo "                          It is recommended to use with a turned off server. When used on"
+  echo "                          a running server, it can create more problems than it solves."
+  echo "  map_regen [args...]     takes the coordinates of the upper right and lower left points"
+  echo "                          and builds a rectangular area of chunks from them and deletes them."
+  echo "  map_copy [args...]      takes the coordinates of the upper right and lower left points"
+  echo "                          and builds a rectangular area of chunks from them and copies them to"
+  echo "                          backups/copy directory. With an additional argument, you can specify"
+  echo "                          a name for the catalog of copied chunks. If you don't specify a name,"
+  echo "                          then it will generated based on the coordinates"
+  echo "  map_copyto [args...]    takes the coordinates of the upper right and lower left points"
+  echo "                          and builds a rectangular area of chunks from them and copies them"
+  echo "                          to backups/copy directory and rename to new coordinates. With an"
+  echo "                          additional argument, you can specify a name for the catalog of copied"
+  echo "                          chunks. If you don't specify a name, then it will generated based on"
+  echo "                          the coordinates."
+  echo "  range [args...]         takes the coordinates of the upper right and lower left points"
+  echo "                          and builds a rectangular area of chunks from them for generating regexp"
+  echo "                          rule for searching the log."
+  echo "  backup [args...]        copies server files to backup directory. After successful copying, check"
+  echo "                          for old backups and delete them."
+  echo "  log [args...]           looks for string 1 in log files. Chat logs excluded from search."
+  echo "                          Using the optional parameter 2, you can specify the name of the log"
+  echo "                          file to search."
+  echo "  log [args...]           looks for string 1 in in current log files. Chat logs excluded from search."
+  echo "                          Using the optional parameter 2, you can specify the name of the log"
+  echo "                          file to search."
+  echo "  sql [args...]           executes query 1 to the Project Zomboid database and displays result"
+  echo "  restore_players [args...]  replaces players.db database from backup."
   echo ""
   echo "COPYRIGHT:"
   echo "  Copyright (c) ${YEAR} ${AUTHOR}"
@@ -1403,20 +1433,23 @@ function main() {
       rconcmd "$2";;
     kickusers)
       kickusers;;
-    log_clear)
-      delete_old_logs "$2";;
-    map_clear)
-      delete_old_chunks "$2";;
+    delete_manifest)
+      delete_mods_manifest;;
+    delete_zombies)
+      delete_zombies;;
+    map_regen)
+      map_regen "$2" "$3";;
     map_copy)
       map_copy "$2" "$3" "$4";;
     map_copyto)
       map_copyto "$2" "$3" "$4" "$5";;
-    map_regen)
-      map_regen "$2" "$3";;
-    delete_zombies)
-      delete_zombies;;
-    delete_manifest)
-      delete_mods_manifest;;
+    range)
+      local bottom="$3"
+      if [ "${bottom}" == "-" ]; then
+        bottom=$4
+      fi
+
+      range "$2" "${bottom}";;
     backup)
       backup "$2";;
     log)
@@ -1425,13 +1458,6 @@ function main() {
       clog_search "$2" "$3" "$4" "$5";;
     sql)
       fn_sqlite "$2";;
-    range)
-      local bottom="$3"
-      if [ "${bottom}" == "-" ]; then
-        bottom=$4
-      fi
-
-      range "$2" "${bottom}";;
     restore_players)
       restore_players "$2";;
     --variables|--vars)
@@ -1443,41 +1469,39 @@ function main() {
   esac
 }
 
-## TODO: Deprecated. Replace for help argument.
-#if [ -z "$1" ]; then
-#  echo "${INFO} Permissible commands:"
-#  echo "........ version"
-#  echo "........ variables"
-#  echo "........ create_directories"
-#  echo "........ prepare"
-#  echo "........ get_utils"
-#  echo "........ install {validate beta}"
-#  echo "........ sync"
-#  echo "........ info"
-#  echo "........ start [first]"
-#  echo "........ stop [now] [fix]"
-#  echo "........ restart [now] [fix]"
-#  echo "........ restart_if_stuck"
-#  echo "........ kickusers"
-#  echo "........ rcon 'command'"
-#  echo "........ screen 'command'"
-#  echo "........ log_clear [int]"
-#  echo "........ map_clear [int]"
-#  echo "........ map_copy {top} {bottom} [name]"
-#  echo "........ map_copyto top bottom top_new bottom_new [name]"
-#  echo "........ map_regen {top} {bottom}"
-#  echo "........ range {top} {bottom}"
-#  echo "........ zombie_delete"
-#  echo "........ delete_manifest"
-#  echo "........ backup [type]"
-#  echo "........ logpvp"
-#  echo "........ log {search} [type] [action] [limit]"
-#  echo "........ clog {search} [type] [action] [limit]"
-#  echo "........ sql {query}"
-#  echo "........ fix"
-#  echo "........ restore_players {filename}"
-#  printf "[  >>  ] " & read CMD
-#fi
+if [ -z "$1" ]; then
+  echo "${INFO} Permissible commands:"
+  echo "........ --variables"
+  echo "........ --version"
+  echo "........ --help"
+  echo "........ dependencies"
+  echo "........ directories"
+  echo "........ utils"
+  echo "........ prepare"
+  echo "........ install [validate] [beta]" # TODO: Change args to options
+  echo "........ fix"
+  echo "........ sync"
+  echo "........ info"
+  echo "........ start [first]" # TODO: Change args to options
+  echo "........ stop [now] [fix]" # TODO: Change args to options
+  echo "........ restart [now] [fix]" # TODO: Change args to options
+  echo "........ restart_if_stuck"
+  echo "........ screen {\"command\"}"
+  echo "........ rcon {\"command\"}"
+  echo "........ kickusers"
+  echo "........ delete_manifest"
+  echo "........ delete_zombies"
+  echo "........ map_regen {top} {bottom}"
+  echo "........ map_copy {top} {bottom} {name}"
+  echo "........ map_copyto top bottom top_new bottom_new {name}"
+  echo "........ range {top} {bottom}"
+  echo "........ backup {type}"
+  echo "........ log {search} {type} {action} {limit}"
+  echo "........ clog {search} {type} {action} {limit}"
+  echo "........ sql {query}"
+  echo "........ restore_players {filename}"
+  printf "[  >>  ] " & read CMD
+fi
 
 if [ -n "$CMD" ]; then
   IFS=' ' read -ra args <<< "${CMD}"
