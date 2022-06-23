@@ -36,3 +36,4 @@ SERVER_PZ_DIR=${SERVER_PZ_DIR}
 
 #exp "${SERVER_PASSWORD}" ssh -o 'IdentitiesOnly=yes' "${SERVER_USER}@${SERVER_IP}" "mkdir -p ${SERVER_PZ_DIR}/config"
 exp "${SERVER_PASSWORD}" scp -o 'IdentitiesOnly=yes' server.sh "${SERVER_USER}@${SERVER_IP}":"${SERVER_PZ_DIR}/"
+exp "${SERVER_PASSWORD}" scp -o 'IdentitiesOnly=yes' testdata/utils/plugins/* "${SERVER_USER}@${SERVER_IP}":"${SERVER_PZ_DIR}/utils/plugins/"

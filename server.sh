@@ -12,7 +12,9 @@
 
 # VERSION of Project Zomboid Linux Server Manager.
 # Follows semantic versioning, SEE: http://semver.org/.
-VERSION="0.22.0"
+VERSION="0.22.1"
+YEAR="2022"
+AUTHOR="Pavel Korotkiy (outdead)"
 
 # Project Zomboid App ID and Dedicated Server App ID in Steam.
 APP_ID=108600
@@ -130,6 +132,21 @@ function echoerr() {
   echo "[$(date "+%Y-%m-%d %H:%M:%S")] $0 - $1" >> "${FILE_PZLSM_LOG}"
 }
 
+# get_screen_pid prints server's pid.
+function get_screen_pid() {
+  ps aux | grep -v grep | grep -i "screen -U -mdS ${SCREEN_ZOMBOID} " | awk '{print $2}'
+}
+
+# get_server_pid prints server's pid.
+function get_server_pid() {
+  pgrep -af ProjectZomboid64 | grep "servername ${SERVER_NAME}" | grep -o -e "^[0-9]*"
+}
+
+# is_server_running print true if server is running, or false if is not.
+function is_server_running() {
+  [ -n "$(get_screen_pid)" ] && echo "true" || echo "false"
+}
+
 # print_variables prints pzlsm variables.
 function print_variables() {
   echo "${INFO} MEMORY_AVAILABLE:            ${MEMORY_AVAILABLE}"
@@ -174,7 +191,7 @@ function strclear() {
   echo "${str}"
 }
 
-# install_dependencies Installs the necessary dependencies to the server.
+# install_dependencies installs the necessary dependencies to the server.
 # You must have sudo privileges to call function install_dependencies.
 # This is the only function in this script that needs root privileges.
 # You can install dependencies yourself before running this script and do
@@ -213,7 +230,7 @@ function install_dependencies() {
   echo "${OK} dependencies installed"
 }
 
-# create_directories creates dirs for pzlsm script.
+# create_directories creates directories for pzlsm script.
 function create_directories() {
   mkdir -p "${DIR_BACKUPS}"
   mkdir -p "${DIR_LOGS}"
@@ -387,7 +404,7 @@ function fix_args() {
   echo "${OK} args fixed"
 }
 
-# sync_config downloads config from github repo.
+# sync_config downloads Project Zomboid config files from github repo..
 function sync_config() {
   if [ -z "${GITHUB_ACCESS_TOKEN}" ] || [ -z "${GITHUB_CONFIG_REPO}" ]; then
     echoerr "github repo or token is not set"; return 1
@@ -456,80 +473,10 @@ function stats() {
   echo "${INFO} uptime:   ${uptime}"
 }
 
-# screencmd calls the $1 command to the game using screen util.
-# The screencmd function is faster than rconcmd, but you cannot get a response
-# to the request. Therefore, it should be used when the answer is not needed.
-function screencmd() {
-  local command="$1"
-  [ -z "${command}" ] && { echoerr "command is not set"; return 1; }
-
-  screen -S "${SCREEN_ZOMBOID}" -X stuff "${command}\r"
-}
-
-# rconcmd calls the $1 command to the game using Source RCON Protocol.
-# The port and authorization parameters takes from the Project Zomboid config.
-function rconcmd() {
-  local command="$1"
-  [ -z "${command}" ] && { echoerr "command is not set"; return 1; }
-
-  local timeout="$2"
-  [ -z "${timeout}" ] && timeout=3s
-
-  local host='127.0.0.1'
-  local port=""
-  local password=""
-
-  port=$(grep "RCONPort=" "${ZOMBOID_FILE_CONFIG_INI}"); port=${port//RCONPort=/}; port=${port// /}
-  password=$(grep "RCONPassword=" "${ZOMBOID_FILE_CONFIG_INI}"); password=${password//RCONPassword=/}; password=${password// /}
-
-  ${UTIL_RCON_FILE} -a "${host}:${port}" -p "${password}" -T "${timeout}" "${command}"
-}
-
-# kickusers kicks all players from the server.
-function kickusers() {
-  local players=""
-  if ! players=$(rconcmd "players"); then
-    echoerr "kickusers: cannot get users"; return 1;
-  fi
-
-  local i=0
-
-  players=$(echo "${players}" | grep ^"-")
-  if [ "${players}" ]; then
-    IFS=$'\n'
-
-    declare -a a
-    a=("${players}")
-
-    for line in "${a[@]}"; do
-      ((i=i+1))
-      local username="${line:1}"
-      screencmd "kickuser \"${username}\""
-    done
-  fi
-
-  echo "${OK} kicked ${i} users"
-}
-
-# get_screen_pid prints server's pid.
-function get_screen_pid() {
-  ps aux | grep -v grep | grep -i "screen -U -mdS ${SCREEN_ZOMBOID} " | awk '{print $2}'
-}
-
-# get_server_pid prints server's pid.
-function get_server_pid() {
-  pgrep -af ProjectZomboid64 | grep "servername ${SERVER_NAME}" | grep -o -e "^[0-9]*"
-}
-
-# is_server_running print true if server is running, or false if is not.
-function is_server_running() {
-  [ -n "$(get_screen_pid)" ] && echo "true" || echo "false"
-}
-
 # start starts the server in a screen window.
 # An error message will be displayed if server has been started earlier.
 function start() {
-  echo "${OK} starting the server..."
+  echo "${INFO} starting the server..."
 
   if [ "$(is_server_running)" == "true" ]; then
     echo "${INFO} server already started"; return 0
@@ -680,6 +627,61 @@ function shutdown_wrapper() {
       return 1
       ;;
   esac
+}
+
+# screencmd calls the $1 command to the game using screen util.
+# The screencmd function is faster than rconcmd, but you cannot get a response
+# to the request. Therefore, it should be used when the answer is not needed.
+function screencmd() {
+  local command="$1"
+  [ -z "${command}" ] && { echoerr "command is not set"; return 1; }
+
+  screen -S "${SCREEN_ZOMBOID}" -X stuff "${command}\r"
+}
+
+# rconcmd calls the $1 command to the game using Source RCON Protocol.
+# The port and authorization parameters takes from the Project Zomboid config.
+function rconcmd() {
+  local command="$1"
+  [ -z "${command}" ] && { echoerr "command is not set"; return 1; }
+
+  local timeout="$2"
+  [ -z "${timeout}" ] && timeout=3s
+
+  local host='127.0.0.1'
+  local port=""
+  local password=""
+
+  port=$(grep "RCONPort=" "${ZOMBOID_FILE_CONFIG_INI}"); port=${port//RCONPort=/}; port=${port// /}
+  password=$(grep "RCONPassword=" "${ZOMBOID_FILE_CONFIG_INI}"); password=${password//RCONPassword=/}; password=${password// /}
+
+  ${UTIL_RCON_FILE} -a "${host}:${port}" -p "${password}" -T "${timeout}" "${command}"
+}
+
+# kickusers kicks all players from the server.
+function kickusers() {
+  local players=""
+  if ! players=$(rconcmd "players"); then
+    echoerr "kickusers: cannot get users"; return 1;
+  fi
+
+  local i=0
+
+  players=$(echo "${players}" | grep ^"-")
+  if [ "${players}" ]; then
+    IFS=$'\n'
+
+    declare -a a
+    a=("${players}")
+
+    for line in "${a[@]}"; do
+      ((i=i+1))
+      local username="${line:1}"
+      screencmd "kickuser \"${username}\""
+    done
+  fi
+
+  echo "${OK} kicked ${i} users"
 }
 
 # delete_mods_manifest deletes appworkshop_108600.acf file. It need to
@@ -1317,142 +1319,165 @@ function restore_players() {
   echo "${OK} players backup ${filename} restored successful"
 }
 
+function print_help() {
+  echo "NAME:"
+  echo "  pzlsm - Terminal tool for manage Project Zomboid server on Linux"
+  echo ""
+  echo "USAGE:"
+  echo "  $0 [global options] command [arguments...] [options]"
+  echo ""
+  echo "VERSION:"
+  echo "  ${VERSION}"
+  echo ""
+  echo "DESCRIPTION:"
+  echo "  Tool kit for installation and management of Project Zomboid dedicated servers on Linux"
+  echo ""
+  echo "GLOBAL OPTIONS:"
+  echo "  --variables, --vars     print variables"
+  echo "  --version               print the version"
+  echo "  --help                  show help"
+  echo ""
+  echo "COMMANDS:"
+  echo "  dependencies            installs the necessary dependencies to the server."
+  echo "                          You must have sudo privileges to call function dependencies."
+  echo "  directories             creates directories for pzlsm script."
+  echo "  utils                   downloads vendor utils from repositories and puts them"
+  echo "                          to the utils directory."
+  echo "  prepare                 calls dependencies, directories and utils functions."
+  echo "  install [arguments...]  installs Project Zomboid dedicated server."
+  echo "  fix                     changes game language to EN and sets Project Zomboid args."
+  echo "  sync                    downloads Project Zomboid config files from github repo."
+  echo "  info                    displays information on the peak processor consumption,"
+  echo "                          current RAM consumption and other game stats."
+  echo "  start [arguments...]    starts the server in a screen window. An error message will"
+  echo "                          be displayed if server has been started earlier"
+  echo "  stop [arguments...]     stops the server. Triggers informational messages for players"
+  echo "                          to alert them of impending server shutdown."
+  echo "  restart [arguments...]  restarts the server. Triggers informational messages for players"
+  echo "                          to alert them of impending server shutdown."
+  echo "  restart_if_stuck        restarts server if it stuck an backups last logs."
+  echo "  screen [arguments...]   calls the 1 argument as a command on the game using screen util."
+  echo "  rcon [arguments...]     calls the 1 argument as a command on the game using rcon util."
+  echo "  kickusers               kicks all players from the server."
+  echo ""
+  echo ""
+  echo "COPYRIGHT:"
+  echo "  Copyright (c) ${YEAR} ${AUTHOR}"
+}
+
 # main contains a proxy for entering permissible functions.
 function main() {
   case "$1" in
-    version)
-      print_version
-      ;;
-    variables)
-      print_variables
-      ;;
+    dependencies)
+      install_dependencies;;
+    directories)
+      create_directories;;
+    utils)
+      install_range_builder
+      install_rcon;;
     prepare)
       install_dependencies
       create_directories
-      ;;
-    create_directories)
-      create_directories
-      ;;
-    get_utils)
       install_range_builder
-      install_rcon
-      ;;
+      install_rcon;;
     install)
-      install_server "$2" "$3"
-      ;;
+      install_server "$2" "$3";;
+    fix)
+      fix_options
+      fix_args;;
     sync)
-      sync_config
-      ;;
+      sync_config;;
     info)
-      stats
-      ;;
+      stats;;
     start)
-      start "$2"
-      ;;
+      start "$2";;
     stop)
-      shutdown_wrapper "stop" "$2" "$3"
-      ;;
+      shutdown_wrapper "stop" "$2" "$3";;
     restart)
-      shutdown_wrapper "restart" "$2" "$3"
-      ;;
+      shutdown_wrapper "restart" "$2" "$3";;
     restart_if_stuck)
-      restart_if_stuck
-      ;;
-    kickusers)
-      kickusers
-      ;;
-    rcon)
-      rconcmd "$2"
-      ;;
+      restart_if_stuck;;
     screen)
-      screencmd "$2"
-      ;;
+      screencmd "$2";;
+    rcon)
+      rconcmd "$2";;
+    kickusers)
+      kickusers;;
     log_clear)
-      delete_old_logs "$2"
-      ;;
+      delete_old_logs "$2";;
     map_clear)
-      delete_old_chunks "$2"
-      ;;
+      delete_old_chunks "$2";;
     map_copy)
-      map_copy "$2" "$3" "$4"
-      ;;
+      map_copy "$2" "$3" "$4";;
     map_copyto)
-      map_copyto "$2" "$3" "$4" "$5"
-      ;;
+      map_copyto "$2" "$3" "$4" "$5";;
     map_regen)
-      map_regen "$2" "$3"
-      ;;
+      map_regen "$2" "$3";;
     delete_zombies)
-      delete_zombies
-      ;;
+      delete_zombies;;
     delete_manifest)
-      delete_mods_manifest
-      ;;
+      delete_mods_manifest;;
     backup)
-      backup "$2"
-      ;;
+      backup "$2";;
     log)
-      log_search "$2" "$3" "$4" "$5"
-      ;;
+      log_search "$2" "$3" "$4" "$5";;
     clog)
-      clog_search "$2" "$3" "$4" "$5"
-      ;;
+      clog_search "$2" "$3" "$4" "$5";;
     sql)
-      fn_sqlite "$2"
-      ;;
+      fn_sqlite "$2";;
     range)
       local bottom="$3"
       if [ "${bottom}" == "-" ]; then
         bottom=$4
       fi
 
-      range "$2" "${bottom}"
-      ;;
-    fix)
-      fix_options
-      fix_args
-      ;;
+      range "$2" "${bottom}";;
     restore_players)
-      restore_players "$2"
-      ;;
+      restore_players "$2";;
+    --variables|--vars)
+      print_variables;;
+    --version)
+      print_version;;
+    --help|*)
+      print_help;;
   esac
 }
 
-# TODO: Deprecated. Replace for help argument.
-if [ -z "$1" ]; then
-  echo "${INFO} Permissible commands:"
-  echo "........ version"
-  echo "........ variables"
-  echo "........ create_directories"
-  echo "........ prepare"
-  echo "........ get_utils"
-  echo "........ install {validate beta}"
-  echo "........ sync"
-  echo "........ info"
-  echo "........ start [first]"
-  echo "........ stop [now] [fix]"
-  echo "........ restart [now] [fix]"
-  echo "........ restart_if_stuck"
-  echo "........ kickusers"
-  echo "........ rcon 'command'"
-  echo "........ screen 'command'"
-  echo "........ log_clear [int]"
-  echo "........ map_clear [int]"
-  echo "........ map_copy {top} {bottom} [name]"
-  echo "........ map_copyto top bottom top_new bottom_new [name]"
-  echo "........ map_regen {top} {bottom}"
-  echo "........ range {top} {bottom}"
-  echo "........ zombie_delete"
-  echo "........ delete_manifest"
-  echo "........ backup [type]"
-  echo "........ logpvp"
-  echo "........ log {search} [type] [action] [limit]"
-  echo "........ clog {search} [type] [action] [limit]"
-  echo "........ sql {query}"
-  echo "........ fix"
-  echo "........ restore_players {filename}"
-  printf "[  >>  ] " & read CMD
-fi
+## TODO: Deprecated. Replace for help argument.
+#if [ -z "$1" ]; then
+#  echo "${INFO} Permissible commands:"
+#  echo "........ version"
+#  echo "........ variables"
+#  echo "........ create_directories"
+#  echo "........ prepare"
+#  echo "........ get_utils"
+#  echo "........ install {validate beta}"
+#  echo "........ sync"
+#  echo "........ info"
+#  echo "........ start [first]"
+#  echo "........ stop [now] [fix]"
+#  echo "........ restart [now] [fix]"
+#  echo "........ restart_if_stuck"
+#  echo "........ kickusers"
+#  echo "........ rcon 'command'"
+#  echo "........ screen 'command'"
+#  echo "........ log_clear [int]"
+#  echo "........ map_clear [int]"
+#  echo "........ map_copy {top} {bottom} [name]"
+#  echo "........ map_copyto top bottom top_new bottom_new [name]"
+#  echo "........ map_regen {top} {bottom}"
+#  echo "........ range {top} {bottom}"
+#  echo "........ zombie_delete"
+#  echo "........ delete_manifest"
+#  echo "........ backup [type]"
+#  echo "........ logpvp"
+#  echo "........ log {search} [type] [action] [limit]"
+#  echo "........ clog {search} [type] [action] [limit]"
+#  echo "........ sql {query}"
+#  echo "........ fix"
+#  echo "........ restore_players {filename}"
+#  printf "[  >>  ] " & read CMD
+#fi
 
 if [ -n "$CMD" ]; then
   IFS=' ' read -ra args <<< "${CMD}"
