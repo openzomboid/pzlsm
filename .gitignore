@@ -3,11 +3,7 @@
 
 .tmp/
 testdata/
-utils/
-
-include/config/deploy/dev.sh
-include/config/deploy/prod1.sh
-include/config/deploy/prod2.sh
-include/config/deploy/prod3.sh
-
 .env
+
+!include/config/deploy/default.sh
+include/config/deploy/*

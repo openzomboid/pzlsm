@@ -1,10 +1,10 @@
-# pzctl
+# pzlsm
 Terminal tool for manage Project Zomboid server on Linux (pzlsm).  
 
 ## Installation
 1. Download the server.sh file from the [latest releases](https://github.com/openzomboid/pzctl/releases/latest)
 2. Put it to your server
-3. Configure config in `.env` ar in `config/pzlsm.cfg`
+3. Configure config in `.env` or in `config/pzlsm.cfg`
 4. Execute
    
        sudo ./server.sh prepare
