@@ -1464,7 +1464,7 @@ function main() {
       print_variables;;
     --version)
       print_version;;
-    --help|*)
+    --help)
       print_help;;
   esac
 }
