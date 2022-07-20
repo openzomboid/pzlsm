@@ -12,7 +12,7 @@
 
 # VERSION of Project Zomboid Linux Server Manager.
 # Follows semantic versioning, SEE: http://semver.org/.
-VERSION="0.22.1"
+VERSION="0.22.2"
 YEAR="2022"
 AUTHOR="Pavel Korotkiy (outdead)"
 
@@ -124,6 +124,9 @@ ZOMBOID_FILE_DB="${ZOMBOID_DIR_DB}/${SERVER_NAME}.db"
 ZOMBOID_MANIFEST="${SERVER_DIR}/steamapps/appmanifest_${APP_DEDICATED_ID}.acf"
 ZOMBOID_MODS_MANIFEST="${SERVER_DIR}/steamapps/workshop/appworkshop_${APP_ID}.acf"
 
+PZ_VERSION=$(grep -roE "versionNumber=[0-9]+.[0-9]+" "${ZOMBOID_DIR}/server-console.txt" | grep -Eo "[0-9]+.[0-9]+")
+[ -z "${PZ_VERSION}" ] && PZ_VERSION="$(echo -e "${RED}undefined${NC}")"
+
 fn_exists() { declare -F "$1" > /dev/null; }
 
 # echoerr prints error message to stderr and FILE_PZLSM_LOG file.
@@ -180,6 +183,7 @@ function print_variables() {
 # print_version prints versions.
 # TODO: Check installations.
 function print_version() {
+  echo "${INFO} Project Zomboid build ${PZ_VERSION}"
   echo "${INFO} pzlsm version ${VERSION}"
   echo "${INFO} gorcon version ${UTIL_RCON_VERSION}"
   echo "${INFO} range version ${UTIL_RANGE_VERSION}"
