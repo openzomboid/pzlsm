@@ -1255,9 +1255,9 @@ function log_search() {
   fi
 }
 
-# clog_search looks for string $1 in current log files. Chat logs excluded from search.
-# Using the optional parameter $2, you can specify the name of the log file to
-# search.
+# clog_search looks for string $1 in current log files. Chat logs excluded
+# from search. Using the optional parameter $2, you can specify the name of
+# the log file to search.
 #
 # Example: log_search outdead
 # Example: log_search outdead user
@@ -1389,9 +1389,9 @@ function print_help() {
   echo "  log [args...]           Looks for string 1 in log files. Chat logs excluded from search."
   echo "                          Using the optional parameter 2, you can specify the name of the log"
   echo "                          file to search."
-  echo "  log [args...]           Looks for string 1 in in current log files. Chat logs excluded from search."
-  echo "                          Using the optional parameter 2, you can specify the name of the log"
-  echo "                          file to search."
+  echo "  log [args...]           Looks for string 1 in in current log files. Chat logs excluded from"
+  echo "                          search. Using the optional parameter 2, you can specify the name of the"
+  echo "                          log file to search."
   echo "  sql [args...]           Executes query 1 to the Project Zomboid database and displays result"
   echo "  restore_players [args...]  Replaces players.db database from backup."
   echo ""
