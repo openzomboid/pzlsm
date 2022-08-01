@@ -20,13 +20,16 @@ AUTHOR="Pavel Korotkiy (outdead)"
 APP_ID=108600
 APP_DEDICATED_ID=380870
 
-BASEDIR=$(dirname "$(readlink -f "$BASH_SOURCE")")
+BASEDIR=$(dirname "$(readlink -f "${BASH_SOURCE[@]}")")
 
 # Color variables. Used when displaying messages in stdout.
-RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[0;33m'; BLUE='\033[0;36m'; NC='\033[0m'
+GREEN='\033[0;32m'; RED='\033[0;31m'; YELLOW='\033[0;33m'; BLUE='\033[0;36m'; NC='\033[0m'
 
 # Message types. Used when displaying messages in stdout.
-OK=$(echo -e "[ ${GREEN} OK ${NC} ]"); ER=$(echo -e "[ ${RED} ER ${NC} ]"); INFO=$(echo -e "[ ${BLUE}INFO${NC} ]")
+OK=$(echo -e "[ ${GREEN} OK ${NC} ]")
+ER=$(echo -e "[ ${RED} ER ${NC} ]")
+WARN=$(echo -e "[ ${YELLOW} YELLOW ${NC} ]")
+INFO=$(echo -e "[ ${BLUE}INFO${NC} ]")
 
 # MEMORY_AVAILABLE is the amount of memory available on the server in MB.
 MEMORY_AVAILABLE=$(free | awk 'NR==2 { printf("%.0f", $2/1024); }')
@@ -129,9 +132,15 @@ PZ_VERSION=$(grep -roE "versionNumber=[0-9]+.[0-9]+" "${ZOMBOID_DIR}/server-cons
 
 fn_exists() { declare -F "$1" > /dev/null; }
 
-# echoerr prints error message to stderr and FILE_PZLSM_LOG file.
+# echoerr prints red error message to stderr and FILE_PZLSM_LOG file.
 function echoerr() {
   echo "${ER} $1"
+  echo "[$(date "+%Y-%m-%d %H:%M:%S")] $0 - $1" >> "${FILE_PZLSM_LOG}"
+}
+
+# echowarn prints yellow error message to stderr and FILE_PZLSM_LOG file.
+function echowarn() {
+  echo "${WARN} $1"
   echo "[$(date "+%Y-%m-%d %H:%M:%S")] $0 - $1" >> "${FILE_PZLSM_LOG}"
 }
 
