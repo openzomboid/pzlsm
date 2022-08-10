@@ -12,7 +12,7 @@
 
 # VERSION of Project Zomboid Linux Server Manager.
 # Follows semantic versioning, SEE: http://semver.org/.
-VERSION="0.22.3"
+VERSION="0.22.4"
 YEAR="2022"
 AUTHOR="Pavel Korotkiy (outdead)"
 
@@ -60,6 +60,7 @@ DIR_PLUGINS="${BASEDIR}/utils/plugins"
 DIR_LOGS="${BASEDIR}/logs"
 DIR_CONFIG="${BASEDIR}/config"
 DIR_PUBLIC="${BASEDIR}/public"
+DIR_STATE="${BASEDIR}/state"
 
 DIR_BACKUPS_DOWN="${DIR_BACKUPS}/down"
 DIR_BACKUPS_ZOMBOID="${DIR_BACKUPS}/zomboid"
@@ -70,6 +71,7 @@ DIR_BACKUPS_TIME_MACHINE="${DIR_BACKUPS}/timemachine"
 # Linux Server Manager files definitions.
 FILE_PZLSM_LOG="${DIR_LOGS}/pzlsm.log"
 FILE_PZLSM_CONFIG="${DIR_CONFIG}/pzlsm.cfg"
+FILE_PZLSM_STATE="${DIR_STATE}/pzlsm.json"
 
 # Import config file if exists.
 # shellcheck source=config/pzlsm.cfg
@@ -91,6 +93,7 @@ test -f "${FILE_PZLSM_CONFIG}" && . "${FILE_PZLSM_CONFIG}"
 [ -z "${ZOMBOID_DIR}" ] && ZOMBOID_DIR="${SERVER_DIR}/Zomboid"
 [ -z "${FIRST_RUN_ADMIN_PASSWORD}" ] && FIRST_RUN_ADMIN_PASSWORD="changeme"
 [ -z "${BACKUP_ON_STOP}" ] && BACKUP_ON_STOP="false"
+[ -z "${AUTO_RESTORE}" ] && AUTO_RESTORE="false"
 
 [ -z "${STEAMCMD_USERNAME}" ] && STEAMCMD_USERNAME="anonymous"
 [ -z "${STEAMCMD_VALIDATE}" ] && STEAMCMD_VALIDATE=""
@@ -222,7 +225,7 @@ function install_dependencies() {
   apt-get install -y libc6 libc6-dev libc6-dbg linux-libc-dev gcc
 
   # Install Java-SDK. It is required to run the Project Zomboid game server.
-  apt-get install -y default-jdk
+  apt-get install -y openjdk-17-jdk
 
   # Install screen to run Project Zomboid in the background.
   apt-get install -y screen
@@ -251,6 +254,7 @@ function create_directories() {
   mkdir -p "${DIR_PUBLIC}"
   mkdir -p "${DIR_UTILS}"
   mkdir -p "${DIR_PLUGINS}"
+  mkdir -p "${DIR_STATE}"
 
   # Backups.
   mkdir -p "${DIR_BACKUPS_DOWN}"
@@ -495,6 +499,8 @@ function start() {
     echo "${INFO} server already started"; return 0
   fi
 
+  rm -f "${DIR_STATE}/started"
+
   screen -wipe > /dev/null 2>&1; sleep 1s
 
   if ! env LANG=ru_RU.utf8 screen -U -mdS "${SCREEN_ZOMBOID}" "${SERVER_DIR}/start-server.sh" -servername "${SERVER_NAME}"; then
@@ -505,11 +511,15 @@ function start() {
     sleep 1s && screencmd "${FIRST_RUN_ADMIN_PASSWORD}"
     sleep 1s && screencmd "${FIRST_RUN_ADMIN_PASSWORD}"
   fi
+
+  mkdir -p "${DIR_STATE}" && echo "${NOW}" > "${DIR_STATE}/started"
 }
 
 # stop stops the server.
 function stop() {
   echo "${INFO} stopping the server..."
+
+  rm -f "${DIR_STATE}/started"
 
   if [ "$(is_server_running)" == "false" ]; then
     echoerr "server already stopped"; return 0
@@ -543,7 +553,7 @@ function stop() {
     delete_mods_manifest
   fi
 
-  if [ "$1" == "now" ] || [ "${BACKUP_ON_STOP}" != "true" ]; then
+  if [ "$1" == "now" ] || [ "$1" == "kill" ] || [ "${BACKUP_ON_STOP}" != "true" ]; then
     return 0
   fi
 
@@ -568,10 +578,26 @@ function restart() {
 
 # restart_if_stuck restarts server if it stuck.
 function restart_if_stuck() {
+  if [ "${AUTO_RESTORE}" != "true" ]; then
+    return 0
+  fi
+
   local pid_zomboid=""
   pid_zomboid=$(get_server_pid)
-  if [ -z "${pid_zomboid}" ]; then
-    echo "server is not running"; return 0
+  if [ -z "${pid_zomboid}" ] && [ -f "${DIR_STATE}/started" ]; then
+    NOW=$(date "+%Y%m%d_%H%M%S")
+
+    local down="${DIR_BACKUPS_DOWN}/${NOW}"
+    mkdir "${down}"
+
+    find "${ZOMBOID_DIR_LOGS}" -maxdepth 1 -name \*.txt -exec cp {} "${down}" \;
+    cp "${ZOMBOID_DIR}/server-console.txt" "${down}"
+    cp "${DIR_LOGS}/gc/gc.out" "${down}"
+
+    start
+
+    return 0
+    #echo "server is not running"; return 0
   fi
 
   local result
@@ -586,7 +612,7 @@ function restart_if_stuck() {
     cp "${ZOMBOID_DIR}/server-console.txt" "${down}"
     cp "${DIR_LOGS}/gc/gc.out" "${down}"
 
-    restart now
+    restart kill
   fi
 }
 
@@ -602,7 +628,7 @@ function shutdown_wrapper() {
   ticker() {
     local msg=$1
 
-    if [ "$2" != "now" ]; then
+    if [ "$2" != "now" ] && [ "$2" != "kill" ]; then
       echo "${INFO} ${msg} 5 minutes"
       screencmd "servermsg \"${msg} 5 minutes\""
 
@@ -614,16 +640,18 @@ function shutdown_wrapper() {
       sleep 50s
     fi
 
-    echo "${INFO} ${msg} 10 seconds";
-    screencmd "servermsg \"${msg} 10 seconds\""
+    if [ "$2" != "kill" ]; then
+      echo "${INFO} ${msg} 10 seconds";
+      screencmd "servermsg \"${msg} 10 seconds\""
 
-    sleep 5s
-    t=5
-    while [ ${t} -gt 0 ]; do
-      screencmd "servermsg \"${msg} ${t} seconds\""
-      sleep 1s
-      ((t=t-1))
-    done
+      sleep 5s
+      t=5
+      while [ ${t} -gt 0 ]; do
+        screencmd "servermsg \"${msg} ${t} seconds\""
+        sleep 1s
+        ((t=t-1))
+      done
+    fi
   }
 
   case "$1" in
