@@ -369,8 +369,7 @@ function install_server() {
 
   # Download steamcmd if it is not in the specified directory.
   if [ ! -f "steamcmd.sh" ]; then
-    wget https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz &&
-    tar -xvzf steamcmd_linux.tar.gz
+    wget https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz && tar -xvzf steamcmd_linux.tar.gz
     rm steamcmd_linux.tar.gz
   fi
 
