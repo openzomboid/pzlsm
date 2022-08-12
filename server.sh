@@ -213,13 +213,13 @@ function strclear() {
 # You can install dependencies yourself before running this script and do
 # not call this function.
 function install_dependencies() {
+  apt-get update
+
   # If a 64-bit version of the system is used, then 32-bit libraries must
   # be installed for SteamCMD.
   if [ "$(arch)" == "x86_64" ]; then
-    apt-get install -y lib32gcc1
+    apt-get install -y lib32gcc-s1
   fi
-
-  apt-get install lib32gcc1
 
   # Update the C libraries for system calls.
   apt-get install -y libc6 libc6-dev libc6-dbg linux-libc-dev gcc

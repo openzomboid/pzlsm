@@ -36,6 +36,9 @@ DIR_PLUGINS=${DIR_PLUGINS}
 [[ -z "${SERVER_PASSWORD}" ]] && >&2 echo "$ER SERVER_PASSWORD is not set" && echo "${SERVER_IP}" && exit
 [[ -z "${SERVER_PZ_DIR}" ]] && >&2 echo "$ER SERVER_PZ_DIR is not set" && exit
 
-#exp "${SERVER_PASSWORD}" ssh -o 'IdentitiesOnly=yes' "${SERVER_USER}@${SERVER_IP}" "mkdir -p ${SERVER_PZ_DIR}/config"
+exp "${SERVER_PASSWORD}" ssh -o 'IdentitiesOnly=yes' "${SERVER_USER}@${SERVER_IP}" "mkdir -p ${SERVER_PZ_DIR}"
+exp "${SERVER_PASSWORD}" ssh -o 'IdentitiesOnly=yes' "${SERVER_USER}@${SERVER_IP}" "mkdir -p ${SERVER_PZ_DIR}/config"
+exp "${SERVER_PASSWORD}" ssh -o 'IdentitiesOnly=yes' "${SERVER_USER}@${SERVER_IP}" "mkdir -p ${SERVER_PZ_DIR}/utils/plugins"
+
 exp "${SERVER_PASSWORD}" scp -o 'IdentitiesOnly=yes' server.sh "${SERVER_USER}@${SERVER_IP}":"${SERVER_PZ_DIR}/"
 exp "${SERVER_PASSWORD}" scp -o 'IdentitiesOnly=yes' "${DIR_PLUGINS}"/* "${SERVER_USER}@${SERVER_IP}":"${SERVER_PZ_DIR}/utils/plugins/"
