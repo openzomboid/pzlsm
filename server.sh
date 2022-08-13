@@ -351,8 +351,7 @@ function install_server() {
   local validate="${STEAMCMD_VALIDATE}"
   local beta="${STEAMCMD_BETA}"
 
-  for arg in "$@"
-  do
+  for arg in "$@"; do
     case ${arg} in
       validate)
         validate="validate";;
