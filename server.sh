@@ -382,9 +382,6 @@ function install_server() {
   # Return to the script directory.
   cd "${BASEDIR}" || return
 
-  fix_options
-  fix_args
-
   echo "${OK} server installed"
 }
 
@@ -1386,20 +1383,20 @@ function print_help() {
   echo "  utils                   Downloads vendor utils from repositories and puts them"
   echo "                          to the utils directory."
   echo "  prepare                 Calls dependencies, directories and utils functions."
-  echo "  install [args...]       Installs Project Zomboid dedicated server."
+  echo "  install [args]          Installs Project Zomboid dedicated server."
   echo "  fix                     Changes game language to EN and sets Project Zomboid args."
   echo "  sync                    Downloads Project Zomboid config files from github repo."
   echo "  info                    Displays information on the peak processor consumption,"
   echo "                          current RAM consumption and other game stats."
-  echo "  start [args...]         Starts the server in a screen window. An error message will"
-  echo "                          be displayed if server has been started earlier"
-  echo "  stop [args...]          Stops the server. Triggers informational messages for players"
+  echo "  start [args]            Starts the server in a screen window. An error message will"
+  echo "                          be displayed if server has been started earlier."
+  echo "  stop [args]             Stops the server. Triggers informational messages for players"
   echo "                          to alert them of impending server shutdown."
-  echo "  restart [args...]       Restarts the server. Triggers informational messages for players"
+  echo "  restart [args]          Restarts the server. Triggers informational messages for players"
   echo "                          to alert them of impending server shutdown."
   echo "  restart_if_stuck        Restarts server if it stuck an backups last logs."
-  echo "  screen [args...]        Calls the 1 argument as a command on the game using screen util."
-  echo "  rcon [args...]          Calls the 1 argument as a command on the game using rcon util."
+  echo "  screen [args]           Calls the 1 argument as a command on the game using screen util."
+  echo "  rcon [args]             Calls the 1 argument as a command on the game using rcon util."
   echo "  kickusers               Kicks all players from the server."
   echo "  delete_manifest         Deletes appworkshop_108600.acf file. It need to"
   echo "                          update mods correctly."
@@ -1407,32 +1404,32 @@ function print_help() {
   echo "                          These files are responsible for placing zombies on the world."
   echo "                          It is recommended to use with a turned off server. When used on"
   echo "                          a running server, it can create more problems than it solves."
-  echo "  map_regen [args...]     Takes the coordinates of the upper right and lower left points"
+  echo "  map_regen [args]        Takes the coordinates of the upper right and lower left points"
   echo "                          and builds a rectangular area of chunks from them and deletes them."
-  echo "  map_copy [args...]      Takes the coordinates of the upper right and lower left points"
+  echo "  map_copy [args]         Takes the coordinates of the upper right and lower left points"
   echo "                          and builds a rectangular area of chunks from them and copies them to"
   echo "                          backups/copy directory. With an additional argument, you can specify"
   echo "                          a name for the catalog of copied chunks. If you don't specify a name,"
   echo "                          then it will generated based on the coordinates"
-  echo "  map_copyto [args...]    Takes the coordinates of the upper right and lower left points"
+  echo "  map_copyto [args]       Takes the coordinates of the upper right and lower left points"
   echo "                          and builds a rectangular area of chunks from them and copies them"
   echo "                          to backups/copy directory and rename to new coordinates. With an"
   echo "                          additional argument, you can specify a name for the catalog of copied"
   echo "                          chunks. If you don't specify a name, then it will generated based on"
   echo "                          the coordinates."
-  echo "  range [args...]         Takes the coordinates of the upper right and lower left points"
+  echo "  range [args]            Takes the coordinates of the upper right and lower left points"
   echo "                          and builds a rectangular area of chunks from them for generating regexp"
   echo "                          rule for searching the log."
-  echo "  backup [args...]        Copies server files to backup directory. After successful copying, check"
+  echo "  backup [args]           Copies server files to backup directory. After successful copying, check"
   echo "                          for old backups and delete them."
-  echo "  log [args...]           Looks for string 1 in log files. Chat logs excluded from search."
+  echo "  log [args]              Looks for string 1 in log files. Chat logs excluded from search."
   echo "                          Using the optional parameter 2, you can specify the name of the log"
   echo "                          file to search."
-  echo "  log [args...]           Looks for string 1 in in current log files. Chat logs excluded from"
+  echo "  сlog [args]             Looks for string 1 in current log files. Chat logs excluded from"
   echo "                          search. Using the optional parameter 2, you can specify the name of the"
   echo "                          log file to search."
-  echo "  sql [args...]           Executes query 1 to the Project Zomboid database and displays result"
-  echo "  restore_players [args...]  Replaces players.db database from backup."
+  echo "  sql [args]              Executes query 1 to the Project Zomboid database and displays result"
+  echo "  restore_players [args]  Replaces players.db database from backup."
   echo ""
   echo "COPYRIGHT:"
   echo "  Copyright (c) ${YEAR} ${AUTHOR}"
@@ -1454,7 +1451,9 @@ function main() {
       install_range_builder
       install_rcon;;
     install)
-      install_server "$2" "$3";;
+      install_server "$2" "$3"
+      fix_options
+      fix_args;;
     fix)
       fix_options
       fix_args;;
