@@ -77,6 +77,8 @@ FILE_PZLSM_STATE="${DIR_STATE}/pzlsm.json"
 # shellcheck source=config/pzlsm.cfg
 test -f "${FILE_PZLSM_CONFIG}" && . "${FILE_PZLSM_CONFIG}"
 
+BASENAME=$(basename "${BASEDIR}")
+
 ## Check config variables and set default values if not defined.
 [ -z "${CLEAR_MAP_DAY}" ] && CLEAR_MAP_DAY=21
 [ -z "${CLEAR_LOGS_DAY}" ] && CLEAR_LOGS_DAY=1000
@@ -130,7 +132,9 @@ ZOMBOID_FILE_DB="${ZOMBOID_DIR_DB}/${SERVER_NAME}.db"
 ZOMBOID_MANIFEST="${SERVER_DIR}/steamapps/appmanifest_${APP_DEDICATED_ID}.acf"
 ZOMBOID_MODS_MANIFEST="${SERVER_DIR}/steamapps/workshop/appworkshop_${APP_ID}.acf"
 
-PZ_VERSION=$(grep -roE "versionNumber=[0-9]+.[0-9]+" "${ZOMBOID_DIR}/server-console.txt" | grep -Eo "[0-9]+.[0-9]+")
+if [ -f "${ZOMBOID_DIR}/server-console.txt" ]; then
+  PZ_VERSION=$(grep -roE "versionNumber=[0-9]+.[0-9]+" "${ZOMBOID_DIR}/server-console.txt" | grep -Eo "[0-9]+.[0-9]+")
+fi
 [ -z "${PZ_VERSION}" ] && PZ_VERSION="$(echo -e "${RED}undefined${NC}")"
 
 fn_exists() { declare -F "$1" > /dev/null; }
