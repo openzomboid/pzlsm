@@ -2,12 +2,22 @@
 Project Zomboid Linux Server Manager (pzlsm) - terminal tool for manage Project Zomboid server on Linux.  
 
 ## Installation
-1. Download the server.sh file from the [latest releases](https://github.com/openzomboid/pzctl/releases/latest)
-2. Put it to your server
-3. Configure config in `.env` or/and in `config/pzlsm.cfg`
-4. Execute
+1. Do not work on root. Create a user and login.
+
+        adduser pz
+        su - pz
+
+2. Create directory for you server.
    
-       sudo ./server.sh prepare
+        mkdir pz1 && cd pz1
+
+3. Download the `server.sh` file from the [latest releases](https://github.com/openzomboid/pzctl/releases/latest) and put it to your server.
+   
+       wget -O server.sh https://raw.githubusercontent.com/openzomboid/pzlsm/master/server.sh && chmod +x server.sh
+
+4. Configure config in `.env` or/and in `config/pzlsm.cfg`, install dependencies, create folders, install server and run the server.
+   
+       ./server.sh prepare
        ./server.sh install
        ./server.sh start first
 

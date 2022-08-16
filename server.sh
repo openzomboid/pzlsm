@@ -217,35 +217,33 @@ function strclear() {
 # You can install dependencies yourself before running this script and do
 # not call this function.
 function install_dependencies() {
-  apt-get update
+  sudo apt-get update
 
   # If a 64-bit version of the system is used, then 32-bit libraries must
   # be installed for SteamCMD.
   if [ "$(arch)" == "x86_64" ]; then
-    apt-get install -y lib32gcc-s1
+    sudo apt-get install -y lib32gcc-s1
   fi
 
   # Update the C libraries for system calls.
-  apt-get install -y libc6 libc6-dev libc6-dbg linux-libc-dev gcc
+  sudo apt-get install -y libc6 libc6-dev libc6-dbg linux-libc-dev gcc
 
   # Install Java-SDK. It is required to run the Project Zomboid game server.
-  apt-get install -y openjdk-17-jdk
+  sudo apt-get install -y openjdk-17-jdk
 
   # Install screen to run Project Zomboid in the background.
-  apt-get install -y screen
+  sudo apt-get install -y screen
 
   # To access the game database, you will need the sqlite3 library.
-  apt-get install -y sqlite3
+  sudo apt-get install -y sqlite3
 
   # Install basic calculator.
-  apt-get install -y bc
+  sudo apt-get install -y bc
 
   # Install jq for json config parsing.
-  apt-get install -y jq
+  sudo apt-get install -y jq
 
-  apt-get install -y net-tools
-
-  apt-get install -y nmap
+  sudo apt-get install -y net-tools nmap
 
   echo "${OK} dependencies installed"
 }
@@ -1377,14 +1375,8 @@ function print_help() {
   echo "  --help                  Show help."
   echo ""
   echo "COMMANDS:"
-  echo "  dependencies            Installs the necessary dependencies to the server. You"
-  echo "                          must have sudo privileges to call function dependencies."
-  echo "  directories             Creates directories for pzlsm script."
-  echo "  utils                   Downloads vendor utils from repositories and puts them"
-  echo "                          to the utils directory."
   echo "  prepare                 Calls dependencies, directories and utils functions."
   echo "  install [args]          Installs Project Zomboid dedicated server."
-  echo "  fix                     Changes game language to EN and sets Project Zomboid args."
   echo "  sync                    Downloads Project Zomboid config files from github repo."
   echo "  info                    Displays information on the peak processor consumption,"
   echo "                          current RAM consumption and other game stats."
@@ -1430,6 +1422,12 @@ function print_help() {
   echo "                          log file to search."
   echo "  sql [args]              Executes query 1 to the Project Zomboid database and displays result"
   echo "  restore_players [args]  Replaces players.db database from backup."
+  echo "  dependencies            Installs the necessary dependencies to the server. You"
+  echo "                          must have sudo privileges to call function dependencies."
+  echo "  directories             Creates directories for pzlsm script."
+  echo "  utils                   Downloads vendor utils from repositories and puts them"
+  echo "                          to the utils directory."
+  echo "  fix                     Changes game language to EN and sets Project Zomboid args."
   echo ""
   echo "COPYRIGHT:"
   echo "  Copyright (c) ${YEAR} ${AUTHOR}"
