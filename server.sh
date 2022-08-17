@@ -12,24 +12,21 @@
 
 # VERSION of Project Zomboid Linux Server Manager.
 # Follows semantic versioning, SEE: http://semver.org/.
-VERSION="0.22.5"
+VERSION="0.22.6"
 YEAR="2022"
 AUTHOR="Pavel Korotkiy (outdead)"
+
+# Color variables. Used when displaying messages in stdout.
+GREEN='\033[0;32m'; RED='\033[0;31m'; YELLOW='\033[0;33m'; BLUE='\033[0;36m'; NC='\033[0m'
+
+# Message types. Used when displaying messages in stdout.
+OK=$(echo -e "[ ${GREEN} OK ${NC} ]"); ER=$(echo -e "[ ${RED} ER ${NC} ]"); WARN=$(echo -e "[ ${YELLOW} YELLOW ${NC} ]"); INFO=$(echo -e "[ ${BLUE}INFO${NC} ]")
 
 # Project Zomboid App ID and Dedicated Server App ID in Steam.
 APP_ID=108600
 APP_DEDICATED_ID=380870
 
 BASEDIR=$(dirname "$(readlink -f "${BASH_SOURCE[@]}")")
-
-# Color variables. Used when displaying messages in stdout.
-GREEN='\033[0;32m'; RED='\033[0;31m'; YELLOW='\033[0;33m'; BLUE='\033[0;36m'; NC='\033[0m'
-
-# Message types. Used when displaying messages in stdout.
-OK=$(echo -e "[ ${GREEN} OK ${NC} ]")
-ER=$(echo -e "[ ${RED} ER ${NC} ]")
-WARN=$(echo -e "[ ${YELLOW} YELLOW ${NC} ]")
-INFO=$(echo -e "[ ${BLUE}INFO${NC} ]")
 
 # MEMORY_AVAILABLE is the amount of memory available on the server in MB.
 MEMORY_AVAILABLE=$(free | awk 'NR==2 { printf("%.0f", $2/1024); }')
@@ -99,7 +96,7 @@ BASENAME=$(basename "${BASEDIR}")
 
 [ -z "${STEAMCMD_USERNAME}" ] && STEAMCMD_USERNAME="anonymous"
 [ -z "${STEAMCMD_VALIDATE}" ] && STEAMCMD_VALIDATE=""
-[ -z "${STEAMCMD_BETA}" ] && STEAMCMD_BETA=""
+[ -z "${STEAMCMD_BETA}" ] && STEAMCMD_BETA="-beta none"
 
 ## Utils
 
@@ -194,6 +191,59 @@ function print_variables() {
   echo "${INFO} ZOMBOID_FILE_CONFIG_INI:     ${ZOMBOID_FILE_CONFIG_INI}"
   echo "${INFO} ZOMBOID_FILE_CONFIG_SANDBOX: ${ZOMBOID_FILE_CONFIG_SANDBOX}"
   echo "${INFO} ZOMBOID_FILE_DB:             ${ZOMBOID_FILE_DB}"
+}
+
+# save_config_example saves pzlsm config example.
+function save_config_example() {
+  bash -c "cat <<'EOF' > ${DIR_CONFIG}/pzlsm.example.cfg
+#!/usr/bin/env bash
+
+# SERVER_MEMORY_LIMIT contains memory Limit for JVM in MB.
+SERVER_MEMORY_LIMIT=${SERVER_MEMORY_LIMIT}
+
+# SERVER_NAME contains name of Project Zomboid server.
+SERVER_NAME=\"${SERVER_NAME}\"
+
+# CLEAR_MAP_DAY contains the number of days after which map chunks will
+# be deleted if no one has visited them. Set to 0 to turn off.
+CLEAR_MAP_DAY=${CLEAR_MAP_DAY}
+
+# CLEAR_LOGS_DAY contains the number of days after which old game logs will
+# be deleted. Set to 0 to turn off.
+CLEAR_LOGS_DAY=${CLEAR_LOGS_DAY}
+
+# CLEAR_STACK_TRACE_DAY contains the number of days after which old game
+# hs_err_pid (java stack traces) files will be deleted. Set to 0 to turn off.
+CLEAR_STACK_TRACE_DAY=${CLEAR_STACK_TRACE_DAY}
+
+# CLEAR_BACKUPS_DAY contains the number of days after which old backups
+# will be deleted. Set to 0 to turn off.
+CLEAR_BACKUPS_DAY=${CLEAR_BACKUPS_DAY}
+
+# CLEAR_TIME_MACHINE_DAY contains the number of days after which old
+# time machine backups will be deleted. Set to 0 to turn off.
+CLEAR_TIME_MACHINE_DAY=${CLEAR_TIME_MACHINE_DAY}
+
+# BACKUP_ON_STOP contains switcher to make backup on every server stop.
+BACKUP_ON_STOP=\"${BACKUP_ON_STOP}\"
+
+# FIRST_RUN_ADMIN_PASSWORD contains password for user admin which be created
+# on first server run.
+FIRST_RUN_ADMIN_PASSWORD=\"${FIRST_RUN_ADMIN_PASSWORD}\"
+
+# AUTO_RESTORE contains switcher to restart server if it was down.
+AUTO_RESTORE=\"${AUTO_RESTORE}\"
+
+# GITHUB_CONFIG_REPO contains link to github repo with pz config files.
+# Leave it blank if you don't plan to use this.
+GITHUB_CONFIG_REPO=\"${GITHUB_CONFIG_REPO}\"
+
+# GITHUB_ACCESS_TOKEN contains access token for download server configs from GitHub.
+# Leave it blank if you don't plan to use this.
+GITHUB_ACCESS_TOKEN=\"${GITHUB_ACCESS_TOKEN}\"
+
+DIR_PLUGINS=\"${DIR_PLUGINS}\"
+EOF"
 }
 
 # print_version prints versions.
@@ -357,6 +407,8 @@ function install_server() {
     case ${arg} in
       validate)
         validate="validate";;
+      none)
+        beta="-beta none";;
       iwbums)
         beta="-beta iwillbackupmysave -betapassword iaccepttheconsequences";;
       unstable)
@@ -1506,6 +1558,8 @@ function main() {
       print_version;;
     --help)
       print_help;;
+    --test)
+      echo "test"
   esac
 }
 
