@@ -12,7 +12,7 @@
 
 # VERSION of Project Zomboid Linux Server Manager.
 # Follows semantic versioning, SEE: http://semver.org/.
-VERSION="0.22.6"
+VERSION="0.22.7"
 YEAR="2022"
 AUTHOR="Pavel Korotkiy (outdead)"
 
@@ -95,7 +95,6 @@ BASENAME=$(basename "${BASEDIR}")
 [ -z "${AUTO_RESTORE}" ] && AUTO_RESTORE="false"
 
 [ -z "${STEAMCMD_USERNAME}" ] && STEAMCMD_USERNAME="anonymous"
-[ -z "${STEAMCMD_VALIDATE}" ] && STEAMCMD_VALIDATE=""
 [ -z "${STEAMCMD_BETA}" ] && STEAMCMD_BETA="-beta none"
 
 ## Utils
@@ -308,6 +307,9 @@ function create_directories() {
   mkdir -p "${DIR_PLUGINS}"
   mkdir -p "${DIR_STATE}"
 
+  # Config.
+  save_config_example
+
   # Backups.
   mkdir -p "${DIR_BACKUPS_DOWN}"
   mkdir -p "${DIR_BACKUPS_ZOMBOID}"
@@ -400,21 +402,16 @@ function is_updated() {
 # The beta parameter will download and install the game from the experimental
 # IWBUMS branch. Only the latest stable and IWBUMS branches are supported.
 function install_server() {
-  local validate="${STEAMCMD_VALIDATE}"
   local beta="${STEAMCMD_BETA}"
 
-  for arg in "$@"; do
-    case ${arg} in
-      validate)
-        validate="validate";;
-      none)
-        beta="-beta none";;
-      iwbums)
-        beta="-beta iwillbackupmysave -betapassword iaccepttheconsequences";;
-      unstable)
-        beta="-beta unstable";;
-    esac
-  done
+  case $1 in
+    none)
+      beta="-beta none";;
+    iwbums)
+      beta="-beta iwillbackupmysave -betapassword iaccepttheconsequences";;
+    unstable)
+      beta="-beta unstable";;
+  esac
 
   # Create a directory for steamcmd and go to it. If the directory
   # already exists, no errors occur.
@@ -427,7 +424,7 @@ function install_server() {
   fi
 
   # Install Project Zomboid Server.
-  ./steamcmd.sh +login "${STEAMCMD_USERNAME}" +force_install_dir "${SERVER_DIR}" +app_update ${APP_DEDICATED_ID} ${beta} ${validate} +exit
+  ./steamcmd.sh +login "${STEAMCMD_USERNAME}" +force_install_dir "${SERVER_DIR}" +app_update ${APP_DEDICATED_ID} ${beta} validate +exit
 
   # Return to the script directory.
   cd "${BASEDIR}" || return
@@ -1501,7 +1498,19 @@ function main() {
       install_range_builder
       install_rcon;;
     install)
-      install_server "$2" "$3"
+      local branch
+
+      while [[ -n "$1" ]]; do
+        case "$1" in
+          --branch|-b) param="$2"
+            branch="$param"
+            shift;;
+        esac
+
+        shift
+      done
+
+      install_server "${branch}"
       fix_options
       fix_args;;
     fix)
