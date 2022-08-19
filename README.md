@@ -32,14 +32,7 @@ GLOBAL OPTIONS:
   --help                  Show help.
 
 COMMANDS:
-  dependencies            Installs the necessary dependencies to the server. You
-                          must have sudo privileges to call function dependencies.
-  directories             Creates directories for pzlsm script.
-  utils                   Downloads vendor utils from repositories and puts them
-                          to the utils directory.
-  prepare                 Calls dependencies, directories and utils functions.
   install [args]          Installs Project Zomboid dedicated server.
-  fix                     Changes game language to EN and sets Project Zomboid args.
   sync                    Downloads Project Zomboid config files from github repo.
   info                    Displays information on the peak processor consumption,
                           current RAM consumption and other game stats.
@@ -80,9 +73,10 @@ COMMANDS:
   log [args]              Looks for string 1 in log files. Chat logs excluded from search.
                           Using the optional parameter 2, you can specify the name of the log
                           file to search.
-  clog [args]             Looks for string 1 in current log files. Chat logs excluded from
+  сlog [args]             Looks for string 1 in current log files. Chat logs excluded from
                           search. Using the optional parameter 2, you can specify the name of the
                           log file to search.
   sql [args]              Executes query 1 to the Project Zomboid database and displays result
   restore_players [args]  Replaces players.db database from backup.
+  fix                     Changes game language to EN and sets Project Zomboid args.
 ```

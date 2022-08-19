@@ -12,7 +12,7 @@
 
 # VERSION of Project Zomboid Linux Server Manager.
 # Follows semantic versioning, SEE: http://semver.org/.
-VERSION="0.22.7"
+VERSION="0.22.8"
 YEAR="2022"
 AUTHOR="Pavel Korotkiy (outdead)"
 
@@ -297,8 +297,8 @@ function install_dependencies() {
   echo "${OK} dependencies installed"
 }
 
-# create_directories creates directories for pzlsm script.
-function create_directories() {
+# create_folders creates folders for pzlsm script.
+function create_folders() {
   mkdir -p "${DIR_BACKUPS}"
   mkdir -p "${DIR_LOGS}"
   mkdir -p "${DIR_CONFIG}"
@@ -354,7 +354,7 @@ function create_directories() {
 
   ln -sf "${ZOMBOID_FILE_DB}" "${DIR_PUBLIC}/saves/${SERVER_NAME}.db"
 
-  echo "${OK} directories created"
+  echo "${OK} folders created"
 }
 
 # install_range_builder downloads the regex-range-builder script and puts it
@@ -1424,7 +1424,6 @@ function print_help() {
   echo "  --help                  Show help."
   echo ""
   echo "COMMANDS:"
-  echo "  prepare                 Calls dependencies, directories and utils functions."
   echo "  install [args]          Installs Project Zomboid dedicated server."
   echo "  sync                    Downloads Project Zomboid config files from github repo."
   echo "  info                    Displays information on the peak processor consumption,"
@@ -1471,11 +1470,6 @@ function print_help() {
   echo "                          log file to search."
   echo "  sql [args]              Executes query 1 to the Project Zomboid database and displays result"
   echo "  restore_players [args]  Replaces players.db database from backup."
-  echo "  dependencies            Installs the necessary dependencies to the server. You"
-  echo "                          must have sudo privileges to call function dependencies."
-  echo "  directories             Creates directories for pzlsm script."
-  echo "  utils                   Downloads vendor utils from repositories and puts them"
-  echo "                          to the utils directory."
   echo "  fix                     Changes game language to EN and sets Project Zomboid args."
   echo ""
   echo "COPYRIGHT:"
@@ -1485,18 +1479,6 @@ function print_help() {
 # main contains a proxy for entering permissible functions.
 function main() {
   case "$1" in
-    dependencies)
-      install_dependencies;;
-    directories)
-      create_directories;;
-    utils)
-      install_range_builder
-      install_rcon;;
-    prepare)
-      install_dependencies
-      create_directories
-      install_range_builder
-      install_rcon;;
     install)
       local branch
 
@@ -1505,11 +1487,44 @@ function main() {
           --branch|-b) param="$2"
             branch="$param"
             shift;;
+          --dependencies|-d)
+            echo "${INFO} Installing dependencies.."
+            install_dependencies
+            return;;
+          --folders|-f)
+            echo "${INFO} Creating required folders.."
+            create_folders
+            return;;
+          --utils|-u)
+            echo "${INFO} Installing additional utils.."
+            install_range_builder
+            install_rcon
+            return;;
+          --prepare|-p)
+            echo "${INFO} Installing dependencies, additional utils and creating required folders.."
+            install_dependencies
+            create_folders
+            install_range_builder
+            install_rcon
+            return;;
+          --server|-s)
+            echo "${INFO} Installing only Project Zomboid server.."
+            install_server "${branch}"
+            fix_options
+            fix_args
+            return;;
+          --help)
+            echo ""
+            return ;;
         esac
 
         shift
       done
 
+      install_dependencies
+      create_folders
+      install_range_builder
+      install_rcon
       install_server "${branch}"
       fix_options
       fix_args;;
@@ -1578,7 +1593,7 @@ if [ -z "$1" ]; then
   echo "........ --version"
   echo "........ --help"
   echo "........ dependencies" # TODO: Join with install
-  echo "........ directories" # TODO: Join with install
+  echo "........ folders" # TODO: Join with install
   echo "........ utils" # TODO: Join with install
   echo "........ prepare"
   echo "........ install [validate] [beta]" # TODO: Change args to options
