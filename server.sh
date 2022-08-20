@@ -1470,67 +1470,149 @@ function print_help() {
   echo "                          log file to search."
   echo "  sql [args]              Executes query 1 to the Project Zomboid database and displays result"
   echo "  restore_players [args]  Replaces players.db database from backup."
-  echo "  fix                     Changes game language to EN and sets Project Zomboid args."
   echo ""
   echo "COPYRIGHT:"
   echo "  Copyright (c) ${YEAR} ${AUTHOR}"
+}
+
+function print_help_install() {
+  echo "COMMAND NAME:"
+  echo "  install"
+  echo
+  echo "DESCRIPTION:"
+  echo "  Installs Project Zomboid dedicated server and necessary dependencies."
+  echo "  Keep sub commands empty to install all is necessary."
+  echo "  OPTIONS:"
+  echo "    --branch|-b     Specifies branch name to install the game. Can take the"
+  echo "                    following values: none, beta, unstable (Default = none)."
+  echo "    --no-fixes|-n   Do not apply fixes after server installation."
+  echo "  EXAMPLE:"
+  echo "    $0 install"
+  echo "    $0 install -b none"
+  echo "    $0 install -b unstable -n"
+  echo
+  echo "USAGE:"
+  echo "  $0 install command [arguments...] [options...]"
+  echo
+  echo "COMMANDS:"
+  echo "  dependencies      Installs necessary dependencies to the server."
+  echo "  EXAMPLE:"
+  echo "    $0 install dependencies"
+  echo
+  echo "  folders           Creates necessary folders for pzlsm script."
+  echo "  EXAMPLE:"
+  echo "    $0 install folders"
+  echo
+  echo "  utils             Installs additional utils to the server."
+  echo "  EXAMPLE:"
+  echo "    $0 install utils"
+  echo
+  echo "  prepare           Installs necessary dependencies, additional utils to"
+  echo "                    the server and creates necessary folders for pzlsm script."
+  echo "  EXAMPLE:"
+  echo "    $0 install prepare"
+  echo
+  echo "  server            Installs only Project Zomboid dedicated server."
+  echo "  OPTIONS:"
+  echo "    --branch|-b     Specifies branch name to install the game. Can take the"
+  echo "                    following values: none, beta, unstable (Default = none)."
+  echo "    --no-fixes|-n   Do not apply fixes after server installation."
+  echo "  EXAMPLE:"
+  echo "    $0 install server -b unstable"
+  echo "    $0 install server -b unstable -n"
+  echo "    $0 install server -n"
+  echo
+  echo "  fix               Only apply fixes (Changes game language to EN and sets"
+  echo "                    Project Zomboid args)."
+  echo "  EXAMPLE:"
+  echo "    $0 install fix"
 }
 
 # main contains a proxy for entering permissible functions.
 function main() {
   case "$1" in
     install)
-      local branch
+      local branch="none"
+      local fixes="true"
 
-      while [[ -n "$1" ]]; do
-        case "$1" in
-          --branch|-b) param="$2"
+      while [[ -n "$2" ]]; do
+        case "$2" in
+          --branch|-b) param="$3"
             branch="$param"
-            shift;;
-          --dependencies|-d)
+            ;;
+          --no-fixes|-n)
+            fixes="false"
+            ;;
+          dependencies|dep)
             echo "${INFO} Installing dependencies.."
+
             install_dependencies
             return;;
-          --folders|-f)
+          folders)
             echo "${INFO} Creating required folders.."
+
             create_folders
             return;;
-          --utils|-u)
+          utils)
             echo "${INFO} Installing additional utils.."
+
             install_range_builder
             install_rcon
             return;;
-          --prepare|-p)
+          prepare)
             echo "${INFO} Installing dependencies, additional utils and creating required folders.."
+
             install_dependencies
             create_folders
             install_range_builder
             install_rcon
             return;;
-          --server|-s)
+          server)
             echo "${INFO} Installing only Project Zomboid server.."
+
+            while [[ -n "$3" ]]; do
+              case "$3" in
+                --branch|-b) param="$4"
+                  branch="$param"
+                  ;;
+                --no-fixes|-n)
+                  fixes="false"
+                  ;;
+              esac
+
+              shift
+            done
+
             install_server "${branch}"
-            fix_options
-            fix_args
+            if [ "${fixes}" == "true" ]; then
+              fix_options
+              fix_args
+            fi
             return;;
           --help)
-            echo ""
+            print_help_install
+            return ;;
+          fix)
+            echo "${INFO} Apply fixes.."
+            fix_options
+            fix_args
             return ;;
         esac
 
         shift
       done
 
+      echo "${INFO} Installing dependencies, additional utils, creating required folders and installs PZ server.."
       install_dependencies
       create_folders
       install_range_builder
       install_rcon
       install_server "${branch}"
-      fix_options
-      fix_args;;
-    fix)
-      fix_options
-      fix_args;;
+      if [ "${fixes}" == "true" ]; then
+        fix_options
+        fix_args
+      fi
+      ;;
     sync)
       sync_config;;
     info)
@@ -1592,12 +1674,7 @@ if [ -z "$1" ]; then
   echo "........ --variables"
   echo "........ --version"
   echo "........ --help"
-  echo "........ dependencies" # TODO: Join with install
-  echo "........ folders" # TODO: Join with install
-  echo "........ utils" # TODO: Join with install
-  echo "........ prepare"
-  echo "........ install [validate] [beta]" # TODO: Change args to options
-  echo "........ fix"
+  echo "........ install command [arguments...] [options...]"
   echo "........ sync"
   echo "........ info"
   echo "........ start [first]" # TODO: Change args to options
@@ -1629,20 +1706,20 @@ else
 fi
 
 for f in "${DIR_PLUGINS}"/*.sh ; do
-    test -f "${f}" && {
-      if grep -E '^[[:space:]]*([[:alnum:]_]+[[:space:]]*\(\)|function[[:space:]]+[[:alnum:]_]+)' "${f}" | grep -w main > /dev/null; then
-        echoerr "broken plugin $(basename "${f}")"; exit 1
-      fi
+  test -f "${f}" && {
+    if grep -E '^[[:space:]]*([[:alnum:]_]+[[:space:]]*\(\)|function[[:space:]]+[[:alnum:]_]+)' "${f}" | grep -w main > /dev/null; then
+      echoerr "broken plugin $(basename "${f}")"; exit 1
+    fi
 
-      if grep -E '^[[:space:]]*([[:alnum:]_]+[[:space:]]*\(\)|function[[:space:]]+[[:alnum:]_]+)' "${f}" | grep -w load > /dev/null; then
-        . "${f}";
+    if grep -E '^[[:space:]]*([[:alnum:]_]+[[:space:]]*\(\)|function[[:space:]]+[[:alnum:]_]+)' "${f}" | grep -w load > /dev/null; then
+      . "${f}";
 
-        if [ -n "$CMD" ]; then
-          IFS=' ' read -ra args <<< "${CMD}"
-          load "${args[@]}"
-        else
-          load "$@"
-        fi
+      if [ -n "$CMD" ]; then
+        IFS=' ' read -ra args <<< "${CMD}"
+        load "${args[@]}"
+      else
+        load "$@"
       fi
-    }
+    fi
+  }
 done
