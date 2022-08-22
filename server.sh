@@ -407,10 +407,14 @@ function install_server() {
   case $1 in
     none)
       beta="-beta none";;
-    iwbums)
-      beta="-beta iwillbackupmysave -betapassword iaccepttheconsequences";;
     unstable)
       beta="-beta unstable";;
+    iwbums)
+      beta="-beta iwillbackupmysave -betapassword iaccepttheconsequences";;
+    *)
+      if [ -n "$1" ]; then
+        beta="-beta $1"
+      fi
   esac
 
   # Create a directory for steamcmd and go to it. If the directory
@@ -430,6 +434,19 @@ function install_server() {
   cd "${BASEDIR}" || return
 
   echo "${OK} server installed"
+}
+
+# update_server updates Project Zomboid dedicated server.
+function update_server() {
+  cd "${HOME}/steamcmd" || return
+
+  # Install Project Zomboid Server.
+  ./steamcmd.sh +login "${STEAMCMD_USERNAME}" +force_install_dir "${SERVER_DIR}" +app_update ${APP_DEDICATED_ID} validate +exit
+
+  # Return to the script directory.
+  cd "${BASEDIR}" || return
+
+  echo "${OK} server updated"
 }
 
 # fix_options changes game language to EN.
@@ -541,6 +558,9 @@ function stats() {
 function start() {
   echo "${INFO} starting the server..."
 
+  local first="$1"
+  local no_screen="$2"
+
   if [ "$(is_server_running)" == "true" ]; then
     echo "${INFO} server already started"; return 0
   fi
@@ -549,11 +569,17 @@ function start() {
 
   screen -wipe > /dev/null 2>&1; sleep 1s
 
-  if ! env LANG=ru_RU.utf8 screen -U -mdS "${SCREEN_ZOMBOID}" "${SERVER_DIR}/start-server.sh" -servername "${SERVER_NAME}"; then
-    echoerr "server is not started"; return 1
+  if [ "$no_screen" == "true" ]; then
+    if ! "${SERVER_DIR}/start-server.sh" -servername "${SERVER_NAME}"; then
+      echoerr "server is not started"; return 1
+    fi
+  else
+    if ! env LANG=ru_RU.utf8 screen -U -mdS "${SCREEN_ZOMBOID}" "${SERVER_DIR}/start-server.sh" -servername "${SERVER_NAME}"; then
+      echoerr "server is not started"; return 1
+    fi
   fi
 
-  if [ "$1" == "first" ] && [ -n "${FIRST_RUN_ADMIN_PASSWORD}" ]; then
+  if [ "${first}" == "true" ] && [ -n "${FIRST_RUN_ADMIN_PASSWORD}" ]; then
     sleep 1s && screencmd "${FIRST_RUN_ADMIN_PASSWORD}"
     sleep 1s && screencmd "${FIRST_RUN_ADMIN_PASSWORD}"
   fi
@@ -1425,6 +1451,7 @@ function print_help() {
   echo ""
   echo "COMMANDS:"
   echo "  install [args]          Installs Project Zomboid dedicated server."
+  echo "  update                  Updates Project Zomboid dedicated server."
   echo "  sync                    Downloads Project Zomboid config files from github repo."
   echo "  info                    Displays information on the peak processor consumption,"
   echo "                          current RAM consumption and other game stats."
@@ -1482,17 +1509,20 @@ function print_help_install() {
   echo "DESCRIPTION:"
   echo "  Installs Project Zomboid dedicated server and necessary dependencies."
   echo "  Keep sub commands empty to install all is necessary."
-  echo "  OPTIONS:"
-  echo "    --branch|-b     Specifies branch name to install the game. Can take the"
-  echo "                    following values: none, beta, unstable (Default = none)."
-  echo "    --no-fixes|-n   Do not apply fixes after server installation."
-  echo "  EXAMPLE:"
-  echo "    $0 install"
-  echo "    $0 install -b none"
-  echo "    $0 install -b unstable -n"
   echo
   echo "USAGE:"
   echo "  $0 install command [arguments...] [options...]"
+  echo
+  echo "OPTIONS:"
+  echo "  --branch|-b       Specifies branch name to install the game. Can take the"
+  echo "                    following values: none, beta, unstable (Default = none)."
+  echo "  --no-fixes|-n     Do not apply fixes after server installation."
+  echo "  --help            Prints help."
+  echo
+  echo "EXAMPLE:"
+  echo "  $0 install"
+  echo "  $0 install -b none"
+  echo "  $0 install -b unstable -n"
   echo
   echo "COMMANDS:"
   echo "  dependencies      Installs necessary dependencies to the server."
@@ -1528,6 +1558,25 @@ function print_help_install() {
   echo "    $0 install fix"
 }
 
+function print_help_update() {
+  echo "COMMAND NAME:"
+  echo "  update"
+  echo
+  echo "DESCRIPTION:"
+  echo "  Updates Project Zomboid dedicated server."
+  echo
+  echo "USAGE:"
+  echo "  $0 install command [arguments...] [options...]"
+  echo
+  echo "OPTIONS:"
+  echo "  --no-fixes|-n     Do not apply fixes after server installation."
+  echo "  --help            Prints help."
+  echo
+  echo "EXAMPLE:"
+  echo "  $0 update"
+  echo "  $0 update -n"
+}
+
 # main contains a proxy for entering permissible functions.
 function main() {
   case "$1" in
@@ -1537,28 +1586,24 @@ function main() {
 
       while [[ -n "$2" ]]; do
         case "$2" in
-          --branch|-b) param="$3"
-            branch="$param"
-            ;;
-          --no-fixes|-n)
-            fixes="false"
-            ;;
+          --branch|-b) branch="$3" ;;
+          --no-fixes|-n) fixes="false" ;;
           dependencies|dep)
             echo "${INFO} Installing dependencies.."
 
             install_dependencies
-            return;;
+            return ;;
           folders)
             echo "${INFO} Creating required folders.."
 
             create_folders
-            return;;
+            return ;;
           utils)
             echo "${INFO} Installing additional utils.."
 
             install_range_builder
             install_rcon
-            return;;
+            return ;;
           prepare)
             echo "${INFO} Installing dependencies, additional utils and creating required folders.."
 
@@ -1566,29 +1611,25 @@ function main() {
             create_folders
             install_range_builder
             install_rcon
-            return;;
+            return ;;
           server)
-            echo "${INFO} Installing only Project Zomboid server.."
-
             while [[ -n "$3" ]]; do
               case "$3" in
-                --branch|-b) param="$4"
-                  branch="$param"
-                  ;;
-                --no-fixes|-n)
-                  fixes="false"
-                  ;;
+                --branch|-b) branch="$4" ;;
+                --no-fixes|-n) fixes="false" ;;
               esac
 
               shift
             done
+
+            echo "${INFO} Installing only Project Zomboid server from \"${branch}\" branch.."
 
             install_server "${branch}"
             if [ "${fixes}" == "true" ]; then
               fix_options
               fix_args
             fi
-            return;;
+            return ;;
           --help)
             print_help_install
             return ;;
@@ -1611,14 +1652,44 @@ function main() {
       if [ "${fixes}" == "true" ]; then
         fix_options
         fix_args
-      fi
-      ;;
+      fi ;;
+    update)
+      local fixes="true"
+
+      while [[ -n "$2" ]]; do
+        case "$2" in
+          --no-fixes|-n) fixes="false" ;;
+        esac
+
+        shift
+      done
+
+      echo "${INFO} Updating Project Zomboid server.."
+
+      update_server
+
+      if [ "${fixes}" == "true" ]; then
+        fix_options
+        fix_args
+      fi ;;
     sync)
       sync_config;;
     info)
       stats;;
     start)
-      start "$2";;
+      local first="false"
+      local no_screen="false"
+
+      while [[ -n "$2" ]]; do
+        case "$2" in
+          --first|-f) first="true";;
+          --no-screen|-n) no_screen="true";;
+        esac
+
+        shift
+      done
+
+      start "${first}" "${no_screen}";;
     stop)
       shutdown_wrapper "stop" "$2" "$3";;
     restart)
@@ -1675,9 +1746,10 @@ if [ -z "$1" ]; then
   echo "........ --version"
   echo "........ --help"
   echo "........ install command [arguments...] [options...]"
+  echo "........ update"
   echo "........ sync"
   echo "........ info"
-  echo "........ start [first]" # TODO: Change args to options
+  echo "........ start [options...]"
   echo "........ stop [now] [fix]" # TODO: Change args to options
   echo "........ restart [now] [fix]" # TODO: Change args to options
   echo "........ restart_if_stuck"
@@ -1688,7 +1760,7 @@ if [ -z "$1" ]; then
   echo "........ delete_zombies"
   echo "........ map_regen {top} {bottom}"
   echo "........ map_copy {top} {bottom} {name}"
-  echo "........ map_copyto top bottom top_new bottom_new {name}"
+  echo "........ map_copyto {top} {bottom} {top_new} {bottom_new} {name}"
   echo "........ range {top} {bottom}"
   echo "........ backup {type}"
   echo "........ log {search} {type} {action} {limit}"
