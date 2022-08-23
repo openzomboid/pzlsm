@@ -29,7 +29,6 @@
 ## Глобальные аргументы
 | Имя аргумента       | Аргумент
 | ------------------- | --------------------------
-| --variables, --vars | ./server.sh --variables`
-| --version           | ./server.sh --version`
-| --help              | ./server.sh --help`
-
+| --variables, --vars | `./server.sh --variables`
+| --version           | `./server.sh --version`
+| --help              | `./server.sh --help`
