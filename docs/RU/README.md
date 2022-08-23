@@ -2,5 +2,6 @@
 
 * [Installation](installation.md)
 * [Commands](commands/README.md)
-    * [install](commands/install.md)
-    * [update](commands/update.md)
+    * [Install](commands/install.md)
+    * [Update](commands/update.md)
+    * [Sync](commands/sync.md)
