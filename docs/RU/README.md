@@ -1,4 +1,4 @@
-# PZSLM Documentation
+# PZLSM Documentation
 
 * [Installation](installation.md)
 * [Commands](commands/README.md)
