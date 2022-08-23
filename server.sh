@@ -402,6 +402,10 @@ function is_updated() {
 # The beta parameter will download and install the game from the experimental
 # IWBUMS branch. Only the latest stable and IWBUMS branches are supported.
 function install_server() {
+  if [ "$(is_server_running)" == "true" ]; then
+    echo "${ER} cannot install on started server"; return 0
+  fi
+
   local beta="${STEAMCMD_BETA}"
 
   case $1 in
@@ -438,6 +442,10 @@ function install_server() {
 
 # update_server updates Project Zomboid dedicated server.
 function update_server() {
+  if [ "$(is_server_running)" == "true" ]; then
+    echo "${ER} cannot update on started server"; return 0
+  fi
+
   cd "${HOME}/steamcmd" || return
 
   # Install Project Zomboid Server.
