@@ -3,8 +3,8 @@
 ## Базовые команды
 | Имя команды      | Аргументы       | Команда
 | ---------------- | --------------- | --------------------------
-| prepare          |                 | `./server.sh prepare`
 | install          | Не обязательные | `./server.sh install`
+| update           | Не обязательные | `./server.sh update`
 | sync             |                 | `./server.sh sync`
 | info             |                 | `./server.sh info`
 | start            | Не обязательные | `./server.sh start`
@@ -25,10 +25,6 @@
 | сlog             | Обязательные    | `./server.sh сlog`
 | sql              | Обязательные    | `./server.sh sql`
 | restore_players  | Обязательные    | `./server.sh restore_players`
-| dependencies     |                 | `./server.sh dependencies`
-| directories      |                 | `./server.sh directories`
-| utils            |                 | `./server.sh utils`
-| fix              |                 | `./server.sh fix`
 
 ## Глобальные аргументы
 | Имя аргумента       | Аргумент
