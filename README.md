@@ -33,6 +33,7 @@ GLOBAL OPTIONS:
 
 COMMANDS:
   install [args]          Installs Project Zomboid dedicated server.
+  update                  Updates Project Zomboid dedicated server.
   sync                    Downloads Project Zomboid config files from github repo.
   info                    Displays information on the peak processor consumption,
                           current RAM consumption and other game stats.
@@ -78,5 +79,4 @@ COMMANDS:
                           log file to search.
   sql [args]              Executes query 1 to the Project Zomboid database and displays result
   restore_players [args]  Replaces players.db database from backup.
-  fix                     Changes game language to EN and sets Project Zomboid args.
 ```
