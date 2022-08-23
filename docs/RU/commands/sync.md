@@ -1,4 +1,4 @@
-Sync
+# Sync
 В PZLSM предусмотрена возможность поместить конфиги сервера в git репозиторий. Поддерживается любой git репозиторий, который позволяет скачивать сырые файлы по прямой ссылке с использованием авторизации по token. Для этого нужно в файле конфигурации указать переменные `GITHUB_CONFIG_REPO` и `GITHUB_ACCESS_TOKEN`. В `GITHUB_CONFIG_REPO` нужно указать "[сырую](https://github.com/orgs/community/discussions/22537)" ссылку на корень репозитория с указанием имени ветки. В `GITHUB_ACCESS_TOKEN` нужно указать [токен доступа](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token).
 
     # GITHUB_CONFIG_REPO contains link to github repo with pz config files.
