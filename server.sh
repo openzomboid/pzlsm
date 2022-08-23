@@ -1589,6 +1589,10 @@ function print_help_update() {
 function main() {
   case "$1" in
     install)
+      if [ "$(is_server_running)" == "true" ]; then
+        echo "${ER} cannot install on started server"; return 0
+      fi
+
       local branch="none"
       local fixes="true"
 
@@ -1662,6 +1666,10 @@ function main() {
         fix_args
       fi ;;
     update)
+      if [ "$(is_server_running)" == "true" ]; then
+        echo "${ER} cannot update on started server"; return 0
+      fi
+
       local fixes="true"
 
       while [[ -n "$2" ]]; do
