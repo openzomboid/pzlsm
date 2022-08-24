@@ -79,4 +79,5 @@ COMMANDS:
 PLUGINS:
   stats                   Displays information on the peak processor consumption,
                           current RAM consumption and other game stats. 
+  web                     Contains presets to web commands.
 ```
