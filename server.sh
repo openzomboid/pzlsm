@@ -12,7 +12,7 @@
 
 # VERSION of Project Zomboid Linux Server Manager.
 # Follows semantic versioning, SEE: http://semver.org/.
-VERSION="0.22.8"
+VERSION="0.22.9"
 YEAR="2022"
 AUTHOR="Pavel Korotkiy (outdead)"
 
@@ -528,37 +528,6 @@ function sync_config() {
   echo "${cfg_regions}" > "${ZOMBOID_FILE_CONFIG_SPAWNREGIONS}"
 
   echo "${OK} config downloaded"
-}
-
-# stats displays information on the peak processor consumption and
-# current RAM consumption.
-function stats() {
-  local pid_zomboid=""
-  pid_zomboid=$(get_server_pid)
-  if [ -z "${pid_zomboid}" ]; then
-    echoerr "server is not running"; return 1
-  fi
-
-  local cpu; cpu=$(strclear "$(ps S -p "${pid_zomboid}" -o pcpu=)")
-
-  local mem1; mem1=$(ps S -p "${pid_zomboid}" -o pmem=)
-  local mem2; mem2=$(ps -ylp "${pid_zomboid}" | awk '{x += $8} END {print "" x/1024;}')
-
-  local jvmres; jvmres=$(jstat -gc "${pid_zomboid}")
-
-  local jvm1; jvm1=$(echo "${jvmres}" | awk 'NR>1 { printf("%.1f", $8/$7*100); }')
-  local jvm2; jvm2=$(echo "${jvmres}" | awk 'NR>1 { printf("%.2f", $8/1024); }')
-  local jvm3; jvm3=$(echo "${jvmres}" | awk 'NR>1 { printf("%.2f", $7/1024); }')
-
-  local mem_used_percent=$((100*"${MEMORY_USED}"/"${MEMORY_AVAILABLE}"))
-
-  local uptime; uptime=$(ps -p "${pid_zomboid}" -o etime | grep -v "ELAPSED" | xargs)
-
-  echo "${INFO} cpu srv:  ${cpu}%"
-  echo "${INFO} mem host: ${mem_used_percent}% (${MEMORY_USED} MB from ${MEMORY_AVAILABLE})"
-  echo "${INFO} mem srv:  ${mem1}% (${mem2} MB)"
-  echo "${INFO} mem jvm:  ${jvm1}% (${jvm2} MB from ${jvm3} MB)"
-  echo "${INFO} uptime:   ${uptime}"
 }
 
 # start starts the server in a screen window.
@@ -1439,6 +1408,30 @@ function restore_players() {
   echo "${OK} players backup ${filename} restored successful"
 }
 
+PLUGINS_COMMANDS_HELP=""
+
+IFS=';' read -ra ADDR <<< "${DIR_PLUGINS}"
+for i in "${ADDR[@]}"; do
+  for f in "${i}"/*.sh ; do
+    test -f "${f}" && {
+      if grep -E '^[[:space:]]*([[:alnum:]_]+[[:space:]]*\(\)|function[[:space:]]+[[:alnum:]_]+)' "${f}" | grep -w main > /dev/null; then
+        echoerr "broken plugin $(basename "${f}")"; exit 1
+      fi
+
+      if grep -E '^[[:space:]]*([[:alnum:]_]+[[:space:]]*\(\)|function[[:space:]]+[[:alnum:]_]+)' "${f}" | grep -w load > /dev/null; then
+        . "${f}";
+
+        if [ -n "$CMD" ]; then
+          IFS=' ' read -ra args <<< "${CMD}"
+          load "${args[@]}"
+        else
+          load "$@"
+        fi
+      fi
+    }
+  done
+done
+
 function print_help() {
   echo "NAME:"
   echo "  pzlsm - Terminal tool for manage Project Zomboid server on Linux"
@@ -1461,8 +1454,6 @@ function print_help() {
   echo "  install [args]          Installs Project Zomboid dedicated server."
   echo "  update                  Updates Project Zomboid dedicated server."
   echo "  sync                    Downloads Project Zomboid config files from github repo."
-  echo "  info                    Displays information on the peak processor consumption,"
-  echo "                          current RAM consumption and other game stats."
   echo "  start [args]            Starts the server in a screen window. An error message will"
   echo "                          be displayed if server has been started earlier."
   echo "  stop [args]             Stops the server. Triggers informational messages for players"
@@ -1505,7 +1496,10 @@ function print_help() {
   echo "                          log file to search."
   echo "  sql [args]              Executes query 1 to the Project Zomboid database and displays result"
   echo "  restore_players [args]  Replaces players.db database from backup."
-  echo ""
+  echo
+  echo "PLUGINS:"
+  echo "  ${PLUGINS_COMMANDS_HELP}"
+  echo
   echo "COPYRIGHT:"
   echo "  Copyright (c) ${YEAR} ${AUTHOR}"
 }
@@ -1690,8 +1684,6 @@ function main() {
       fi ;;
     sync)
       sync_config;;
-    info)
-      stats;;
     start)
       local first="false"
       local no_screen="false"
@@ -1764,7 +1756,6 @@ if [ -z "$1" ]; then
   echo "........ install command [arguments...] [options...]"
   echo "........ update"
   echo "........ sync"
-  echo "........ info"
   echo "........ start [options...]"
   echo "........ stop [now] [fix]" # TODO: Change args to options
   echo "........ restart [now] [fix]" # TODO: Change args to options
@@ -1793,21 +1784,24 @@ else
   main "$@"
 fi
 
-for f in "${DIR_PLUGINS}"/*.sh ; do
-  test -f "${f}" && {
-    if grep -E '^[[:space:]]*([[:alnum:]_]+[[:space:]]*\(\)|function[[:space:]]+[[:alnum:]_]+)' "${f}" | grep -w main > /dev/null; then
-      echoerr "broken plugin $(basename "${f}")"; exit 1
-    fi
-
-    if grep -E '^[[:space:]]*([[:alnum:]_]+[[:space:]]*\(\)|function[[:space:]]+[[:alnum:]_]+)' "${f}" | grep -w load > /dev/null; then
-      . "${f}";
-
-      if [ -n "$CMD" ]; then
-        IFS=' ' read -ra args <<< "${CMD}"
-        load "${args[@]}"
-      else
-        load "$@"
-      fi
-    fi
-  }
-done
+#IFS=';' read -ra ADDR <<< "${DIR_PLUGINS}"
+#for i in "${ADDR[@]}"; do
+#  for f in "${i}"/*.sh ; do
+#    test -f "${f}" && {
+#      if grep -E '^[[:space:]]*([[:alnum:]_]+[[:space:]]*\(\)|function[[:space:]]+[[:alnum:]_]+)' "${f}" | grep -w main > /dev/null; then
+#        echoerr "broken plugin $(basename "${f}")"; exit 1
+#      fi
+#
+#      if grep -E '^[[:space:]]*([[:alnum:]_]+[[:space:]]*\(\)|function[[:space:]]+[[:alnum:]_]+)' "${f}" | grep -w load > /dev/null; then
+#        . "${f}";
+#
+#        if [ -n "$CMD" ]; then
+#          IFS=' ' read -ra args <<< "${CMD}"
+#          load "${args[@]}"
+#        else
+#          load "$@"
+#        fi
+#      fi
+#    }
+#  done
+#done

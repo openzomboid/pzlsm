@@ -42,3 +42,4 @@ exp "${SERVER_PASSWORD}" ssh -o 'IdentitiesOnly=yes' "${SERVER_USER}@${SERVER_IP
 
 exp "${SERVER_PASSWORD}" scp -o 'IdentitiesOnly=yes' server.sh "${SERVER_USER}@${SERVER_IP}":"${SERVER_PZ_DIR}/"
 exp "${SERVER_PASSWORD}" scp -o 'IdentitiesOnly=yes' "${DIR_PLUGINS}"/* "${SERVER_USER}@${SERVER_IP}":"${SERVER_PZ_DIR}/utils/plugins/"
+exp "${SERVER_PASSWORD}" scp -o 'IdentitiesOnly=yes' plugins/* "${SERVER_USER}@${SERVER_IP}":"${SERVER_PZ_DIR}/utils/plugins/"
