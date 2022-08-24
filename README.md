@@ -33,8 +33,6 @@ COMMANDS:
   install [args]          Installs Project Zomboid dedicated server.
   update                  Updates Project Zomboid dedicated server.
   sync                    Downloads Project Zomboid config files from github repo.
-  info                    Displays information on the peak processor consumption,
-                          current RAM consumption and other game stats.
   start [args]            Starts the server in a screen window. An error message will
                           be displayed if server has been started earlier.
   stop [args]             Stops the server. Triggers informational messages for players
