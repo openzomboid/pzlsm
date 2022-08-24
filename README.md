@@ -75,4 +75,8 @@ COMMANDS:
                           log file to search.
   sql [args]              Executes query 1 to the Project Zomboid database and displays result
   restore_players [args]  Replaces players.db database from backup.
+
+PLUGINS:
+  stats                   Displays information on the peak processor consumption,
+                          current RAM consumption and other game stats. 
 ```
