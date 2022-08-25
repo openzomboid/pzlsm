@@ -6,7 +6,6 @@
 | install          | Не обязательные | `./server.sh install`
 | update           | Не обязательные | `./server.sh update`
 | sync             |                 | `./server.sh sync`
-| info             |                 | `./server.sh info`
 | start            | Не обязательные | `./server.sh start`
 | stop             | Не обязательные | `./server.sh stop`
 | restart          | Не обязательные | `./server.sh restart`

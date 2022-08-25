@@ -2,6 +2,7 @@
 
 * [Installation](installation.md)
 * [Commands](commands/README.md)
-    * [Install](commands/install.md)
-    * [Update](commands/update.md)
-    * [Sync](commands/sync.md)
+    * [install](commands/install.md)
+    * [update](commands/update.md)
+    * [sync](commands/sync.md)
+    * [start-stop-restart.md](commands/start-stop-restart.md)
