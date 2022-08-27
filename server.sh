@@ -492,44 +492,6 @@ function fix_args() {
   echo "${OK} args fixed"
 }
 
-# sync_config downloads Project Zomboid config files from github repo..
-function sync_config() {
-  if [ -z "${GITHUB_ACCESS_TOKEN}" ] || [ -z "${GITHUB_CONFIG_REPO}" ]; then
-    echoerr "github repo or token is not set"; return 1
-  fi
-
-  local cfg_ini=""
-  cfg_ini=$(curl -H "Authorization: token ${GITHUB_ACCESS_TOKEN}" -s -L "${GITHUB_CONFIG_REPO}/${SERVER_NAME}/${SERVER_NAME}.ini")
-  if [ "$(echo "${cfg_ini}" | wc -l)" -lt "100" ]; then
-    echoerr "downloaded invalid ${SERVER_NAME}.ini";  return 1
-  fi;
-
-  local cfg_sand=""
-  cfg_sand=$(curl -H "Authorization: token ${GITHUB_ACCESS_TOKEN}" -s -L "${GITHUB_CONFIG_REPO}/${SERVER_NAME}/${SERVER_NAME}_SandboxVars.lua")
-  if [ "$(echo "${cfg_sand}" | wc -l)" -lt "100" ]; then
-    echoerr "downloaded invalid ${SERVER_NAME}_SandboxVars.lua";  return 1
-  fi;
-
-  local cfg_points=""
-  cfg_points=$(curl -H "Authorization: token ${GITHUB_ACCESS_TOKEN}" -s -L "${GITHUB_CONFIG_REPO}/${SERVER_NAME}/${SERVER_NAME}_spawnpoints.lua")
-  if [ "$(echo "${cfg_points}" | wc -l)" -lt "7" ]; then
-    echoerr "downloaded invalid ${SERVER_NAME}_spawnpoints.lua";  return 1
-  fi;
-
-  local cfg_regions=""
-  cfg_regions=$(curl -H "Authorization: token ${GITHUB_ACCESS_TOKEN}" -s -L "${GITHUB_CONFIG_REPO}/${SERVER_NAME}/${SERVER_NAME}_spawnregions.lua")
-  if [ "$(echo "${cfg_regions}" | wc -l)" -lt "10" ]; then
-    echoerr "downloaded invalid ${SERVER_NAME}_spawnregions.lua";  return 1
-  fi;
-
-  echo "${cfg_ini}" > "${ZOMBOID_FILE_CONFIG_INI}"
-  echo "${cfg_sand}" > "${ZOMBOID_FILE_CONFIG_SANDBOX}"
-  echo "${cfg_points}" > "${ZOMBOID_FILE_CONFIG_SPAWNPOINTS}"
-  echo "${cfg_regions}" > "${ZOMBOID_FILE_CONFIG_SPAWNREGIONS}"
-
-  echo "${OK} config downloaded"
-}
-
 # start starts the server in a screen window.
 # An error message will be displayed if server has been started earlier.
 function start() {
@@ -1453,7 +1415,7 @@ function print_help() {
   echo "COMMANDS:"
   echo "  install [args]          Installs Project Zomboid dedicated server."
   echo "  update                  Updates Project Zomboid dedicated server."
-  echo "  sync                    Downloads Project Zomboid config files from github repo."
+  echo "  sync                    Downloads Project Zomboid config files from github repo (DEPRECATED)."
   echo "  start [args]            Starts the server in a screen window. An error message will"
   echo "                          be displayed if server has been started earlier."
   echo "  stop [args]             Stops the server. Triggers informational messages for players"
@@ -1683,7 +1645,8 @@ function main() {
         fix_args
       fi ;;
     sync)
-      sync_config;;
+      # TODO: Deprecate me.
+      config_pull;;
     start)
       local first="false"
       local no_screen="false"
@@ -1755,7 +1718,6 @@ if [ -z "$1" ]; then
   echo "........ --help"
   echo "........ install command [arguments...] [options...]"
   echo "........ update"
-  echo "........ sync"
   echo "........ start [options...]"
   echo "........ stop [now] [fix]" # TODO: Change args to options
   echo "........ restart [now] [fix]" # TODO: Change args to options
@@ -1774,6 +1736,7 @@ if [ -z "$1" ]; then
   echo "........ clog {search} {type} {action} {limit}"
   echo "........ sql {query}"
   echo "........ restore_players {filename}"
+  echo "........ sync"
   printf "[  >>  ] " & read CMD
 fi
 
@@ -1783,25 +1746,3 @@ if [ -n "$CMD" ]; then
 else
   main "$@"
 fi
-
-#IFS=';' read -ra ADDR <<< "${DIR_PLUGINS}"
-#for i in "${ADDR[@]}"; do
-#  for f in "${i}"/*.sh ; do
-#    test -f "${f}" && {
-#      if grep -E '^[[:space:]]*([[:alnum:]_]+[[:space:]]*\(\)|function[[:space:]]+[[:alnum:]_]+)' "${f}" | grep -w main > /dev/null; then
-#        echoerr "broken plugin $(basename "${f}")"; exit 1
-#      fi
-#
-#      if grep -E '^[[:space:]]*([[:alnum:]_]+[[:space:]]*\(\)|function[[:space:]]+[[:alnum:]_]+)' "${f}" | grep -w load > /dev/null; then
-#        . "${f}";
-#
-#        if [ -n "$CMD" ]; then
-#          IFS=' ' read -ra args <<< "${CMD}"
-#          load "${args[@]}"
-#        else
-#          load "$@"
-#        fi
-#      fi
-#    }
-#  done
-#done
