@@ -1534,7 +1534,7 @@ function print_help_update() {
   echo "  Updates Project Zomboid dedicated server."
   echo
   echo "USAGE:"
-  echo "  $0 install command [arguments...] [options...]"
+  echo "  $0 update command [arguments...] [options...]"
   echo
   echo "OPTIONS:"
   echo "  --no-fixes|-n     Do not apply fixes after server installation."
@@ -1543,6 +1543,52 @@ function print_help_update() {
   echo "EXAMPLE:"
   echo "  $0 update"
   echo "  $0 update -n"
+}
+
+function print_help_start() {
+  echo "COMMAND NAME:"
+  echo "  start"
+  echo
+  echo "DESCRIPTION:"
+  echo "  Starts Project Zomboid dedicated server."
+  echo
+  echo "USAGE:"
+  echo "  $0 start command [arguments...] [options...]"
+  echo
+  echo "OPTIONS:"
+  echo "  --no-screen|-n    Runs server without screen session."
+  echo "  --help            Prints help."
+  echo
+  echo "EXAMPLE:"
+  echo "  $0 start"
+  echo "  $0 start -n"
+}
+
+function print_help_stop() {
+  echo "COMMAND NAME:"
+  echo "  stop"
+  echo
+  echo "DESCRIPTION:"
+  echo "  Stops Project Zomboid dedicated server in 5 minutes."
+  echo "  You can change timer period with arguments \"now\" and \"kill\"."
+  echo
+  echo "USAGE:"
+  echo "  $0 stop [arguments...] [options...]"
+  echo
+  echo "ARGUMENTS:"
+  echo "  fix               Delete mods manifest file for force update mods. DEPRECATED, use --fixes option."
+  echo "  now               Stops server in 10 seconds."
+  echo "  kill              Stops the server immediately."
+  echo
+  echo "OPTIONS:"
+  echo "  --fixes|-f        Delete mods manifest file for force update mods."
+  echo "  --help            Prints help."
+  echo
+  echo "EXAMPLE:"
+  echo "  $0 stop"
+  echo "  $0 stop -f"
+  echo "  $0 stop now -f"
+  echo "  $0 stop -f kill"
 }
 
 # main contains a proxy for entering permissible functions.
@@ -1635,6 +1681,9 @@ function main() {
       while [[ -n "$2" ]]; do
         case "$2" in
           --no-fixes|-n) fixes="false" ;;
+          --help)
+            print_help_update
+            return ;;
         esac
 
         shift
@@ -1652,12 +1701,14 @@ function main() {
       # TODO: Deprecate me.
       config_pull;;
     start)
-      local first="false"
       local no_screen="false"
 
       while [[ -n "$2" ]]; do
         case "$2" in
           --no-screen|-n) no_screen="true";;
+          --help)
+            print_help_start
+            return ;;
         esac
 
         shift
@@ -1665,7 +1716,22 @@ function main() {
 
       start "${no_screen}";;
     stop)
-      shutdown_wrapper "stop" "$2" "$3";;
+      local when
+      local fixes
+
+      while [[ -n "$2" ]]; do
+        case "$2" in
+          now|kill) when="$2";;
+          --fixes|-f|fix) fixes="fix";;
+          --help)
+            print_help_stop
+            return ;;
+        esac
+
+        shift
+      done
+
+      shutdown_wrapper "stop" "${when}" "${fixes}";;
     restart)
       shutdown_wrapper "restart" "$2" "$3";;
     restart_if_stuck)

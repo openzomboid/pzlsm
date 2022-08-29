@@ -21,3 +21,9 @@ PZLSM предоставляет простой способ для запуск
 
 ## Остановка сервера
 Команда `stop` корректно завершает работу сервера.
+
+    ./server.sh stop
+    ./server.sh stop -f
+    ./server.sh stop now -f
+    ./server.sh stop -f kill
+    ./server.sh stop fix # Deprecated

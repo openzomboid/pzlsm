@@ -77,6 +77,7 @@ COMMANDS:
   restore_players [args]  Replaces players.db database from backup.
 
 PLUGINS:
+  config                  Contains commands for manipulating server config.
   stats                   Displays information on the peak processor consumption,
                           current RAM consumption and other game stats. 
   web                     Contains presets to web commands.

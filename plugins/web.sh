@@ -228,12 +228,12 @@ function web_help() {
   echo "  $0 stats command [arguments...] [options...]"
   echo
   echo "COMMANDS:"
-  echo "  install     Installs nginx, certbot."
+  echo "  install     Installs nginx, certbot, munin, etc."
   echo "  OPTIONS:"
   echo "  EXAMPLE:"
   echo "    $0 web install"  echo
-  echo "COMMANDS:"
-  echo "  enable     Configures web."
+  echo
+  echo "  enable      Configures web."
   echo "  OPTIONS:"
   echo "    --domain|-d     Domain for public web (default empty)."
   echo "    --username|-u   Username for public web (default empty)."
