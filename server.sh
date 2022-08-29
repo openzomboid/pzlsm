@@ -12,7 +12,7 @@
 
 # VERSION of Project Zomboid Linux Server Manager.
 # Follows semantic versioning, SEE: http://semver.org/.
-VERSION="0.22.9"
+VERSION="0.22.10"
 YEAR="2022"
 AUTHOR="Pavel Korotkiy (outdead)"
 
@@ -157,9 +157,14 @@ function get_server_pid() {
   pgrep -af ProjectZomboid64 | grep "servername ${SERVER_NAME}" | grep -o -e "^[0-9]*"
 }
 
-# is_server_running print true if server is running, or false if is not.
+# is_server_running prints true if server is running, or false if is not.
 function is_server_running() {
   [ -n "$(get_screen_pid)" ] && echo "true" || echo "false"
+}
+
+# is_admin_exists prints true if admin username exists in PZ database.
+function is_admin_exists() {
+  [ "$(sqlite3 "${ZOMBOID_FILE_DB}" "SELECT count(*) FROM whitelist WHERE username='admin'" 2> /dev/null)" == "1" ] && echo "true" || echo "false"
 }
 
 # print_variables prints pzlsm variables.
@@ -497,8 +502,7 @@ function fix_args() {
 function start() {
   echo "${INFO} starting the server..."
 
-  local first="$1"
-  local no_screen="$2"
+  local no_screen="$1"
 
   if [ "$(is_server_running)" == "true" ]; then
     echo "${INFO} server already started"; return 0
@@ -518,7 +522,7 @@ function start() {
     fi
   fi
 
-  if [ "${first}" == "true" ] && [ -n "${FIRST_RUN_ADMIN_PASSWORD}" ]; then
+  if [ "$(is_admin_exists)" == "false" ] && [ -n "${FIRST_RUN_ADMIN_PASSWORD}" ]; then
     sleep 1s && screencmd "${FIRST_RUN_ADMIN_PASSWORD}"
     sleep 1s && screencmd "${FIRST_RUN_ADMIN_PASSWORD}"
   fi
@@ -1653,14 +1657,13 @@ function main() {
 
       while [[ -n "$2" ]]; do
         case "$2" in
-          --first|-f) first="true";;
           --no-screen|-n) no_screen="true";;
         esac
 
         shift
       done
 
-      start "${first}" "${no_screen}";;
+      start "${no_screen}";;
     stop)
       shutdown_wrapper "stop" "$2" "$3";;
     restart)
@@ -1708,6 +1711,7 @@ function main() {
       print_help;;
     --test)
       echo "test"
+      is_admin_exists
   esac
 }
 

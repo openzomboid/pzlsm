@@ -4,5 +4,5 @@
 * [Commands](commands/README.md)
     * [install](commands/install.md)
     * [update](commands/update.md)
-    * [sync](commands/sync.md)
+    * [config](commands/config.md)
     * [start-stop-restart.md](commands/start-stop-restart.md)
