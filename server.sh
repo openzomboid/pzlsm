@@ -12,7 +12,7 @@
 
 # VERSION of Project Zomboid Linux Server Manager.
 # Follows semantic versioning, SEE: http://semver.org/.
-VERSION="0.22.10"
+VERSION="0.22.11"
 YEAR="2022"
 AUTHOR="Pavel Korotkiy (outdead)"
 
@@ -453,7 +453,7 @@ function update_server() {
 
   cd "${HOME}/steamcmd" || return
 
-  # Install Project Zomboid Server.
+  # Update Project Zomboid Server.
   ./steamcmd.sh +login "${STEAMCMD_USERNAME}" +force_install_dir "${SERVER_DIR}" +app_update ${APP_DEDICATED_ID} validate +exit
 
   # Return to the script directory.
@@ -1591,6 +1591,33 @@ function print_help_stop() {
   echo "  $0 stop -f kill"
 }
 
+function print_help_restart() {
+  echo "COMMAND NAME:"
+  echo "  restart"
+  echo
+  echo "DESCRIPTION:"
+  echo "  Restarts Project Zomboid dedicated server in 5 minutes."
+  echo "  You can change timer period with arguments \"now\" and \"kill\"."
+  echo
+  echo "USAGE:"
+  echo "  $0 restart [arguments...] [options...]"
+  echo
+  echo "ARGUMENTS:"
+  echo "  fix               Delete mods manifest file for force update mods. DEPRECATED, use --fixes option."
+  echo "  now               Restarts server in 10 seconds."
+  echo "  kill              Restarts the server immediately."
+  echo
+  echo "OPTIONS:"
+  echo "  --fixes|-f        Delete mods manifest file for force update mods."
+  echo "  --help            Prints help."
+  echo
+  echo "EXAMPLE:"
+  echo "  $0 restart"
+  echo "  $0 restart -f"
+  echo "  $0 restart now -f"
+  echo "  $0 restart -f kill"
+}
+
 # main contains a proxy for entering permissible functions.
 function main() {
   case "$1" in
@@ -1733,7 +1760,22 @@ function main() {
 
       shutdown_wrapper "stop" "${when}" "${fixes}";;
     restart)
-      shutdown_wrapper "restart" "$2" "$3";;
+      local when
+      local fixes
+
+      while [[ -n "$2" ]]; do
+        case "$2" in
+          now|kill) when="$2";;
+          --fixes|-f|fix) fixes="fix";;
+          --help)
+            print_help_restart
+            return ;;
+        esac
+
+        shift
+      done
+
+      shutdown_wrapper "restart" "${when}" "${fixes}";;
     restart_if_stuck)
       restart_if_stuck;;
     screen)
