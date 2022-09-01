@@ -40,6 +40,7 @@ COMMANDS:
   restart [args]          Restarts the server. Triggers informational messages for players
                           to alert them of impending server shutdown.
   autorestart             Restarts server if it stuck an backups last logs.
+  console                 Allows access the output of the game server console.
   screen [args]           Calls the 1 argument as a command on the game using screen util.
   rcon [args]             Calls the 1 argument as a command on the game using rcon util.
   kickusers               Kicks all players from the server.

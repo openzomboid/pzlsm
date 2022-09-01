@@ -10,6 +10,7 @@
 | stop             | Не обязательные | `./server.sh stop`
 | restart          | Не обязательные | `./server.sh restart`
 | autorestart      |                 | `./server.sh autorestart`
+| console          |                 | `./server.sh console`
 | screen           | Обязательные    | `./server.sh screen`
 | rcon             | Обязательные    | `./server.sh rcon`
 | kickusers        |                 | `./server.sh kickusers`
