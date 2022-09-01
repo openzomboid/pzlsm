@@ -5,5 +5,5 @@
     * [install](commands/install.md)
     * [update](commands/update.md)
     * [config](commands/config.md)
-    * [start-stop-restart.md](commands/start-stop-restart.md)
-    * [autrestart.md](commands/autrestart.md)
+    * [start-stop-restart](commands/start-stop-restart.md)
+    * [autorestart](commands/autorestart.md)
