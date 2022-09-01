@@ -5,11 +5,11 @@
 | ---------------- | --------------- | --------------------------
 | install          | Не обязательные | `./server.sh install`
 | update           | Не обязательные | `./server.sh update`
-| sync             |                 | `./server.sh sync`
+| config           | Обязательные    | `./server.sh config sync`
 | start            | Не обязательные | `./server.sh start`
 | stop             | Не обязательные | `./server.sh stop`
 | restart          | Не обязательные | `./server.sh restart`
-| restart_if_stuck |                 | `./server.sh restart_if_stuck`
+| autorestart      |                 | `./server.sh autorestart`
 | screen           | Обязательные    | `./server.sh screen`
 | rcon             | Обязательные    | `./server.sh rcon`
 | kickusers        |                 | `./server.sh kickusers`
