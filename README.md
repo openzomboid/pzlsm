@@ -74,7 +74,8 @@ COMMANDS:
   сlog [args]             Looks for string 1 in current log files. Chat logs excluded from
                           search. Using the optional parameter 2, you can specify the name of the
                           log file to search.
-  sql [args]              Executes query 1 to the Project Zomboid database and displays result
+  sql [args]              Executes query 1 to the Project Zomboid database and displays result.
+  vehicles                Prints vehicles coordinates.
   restore_players [args]  Replaces players.db database from backup.
 
 PLUGINS:

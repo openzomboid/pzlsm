@@ -124,6 +124,7 @@ ZOMBOID_FILE_CONFIG_SANDBOX="${ZOMBOID_DIR_SERVER}/${SERVER_NAME}_SandboxVars.lu
 ZOMBOID_FILE_CONFIG_SPAWNPOINTS="${ZOMBOID_DIR_SERVER}/${SERVER_NAME}_spawnpoints.lua"
 ZOMBOID_FILE_CONFIG_SPAWNREGIONS="${ZOMBOID_DIR_SERVER}/${SERVER_NAME}_spawnregions.lua"
 ZOMBOID_FILE_DB="${ZOMBOID_DIR_DB}/${SERVER_NAME}.db"
+ZOMBOID_FILE_VEHICLES_DB="${ZOMBOID_DIR_MAP}/vehicles.db"
 
 ZOMBOID_MANIFEST="${SERVER_DIR}/steamapps/appmanifest_${APP_DEDICATED_ID}.acf"
 ZOMBOID_MODS_MANIFEST="${SERVER_DIR}/steamapps/workshop/appworkshop_${APP_ID}.acf"
@@ -1360,6 +1361,11 @@ function fn_sqlite() {
   sqlite3 "${ZOMBOID_FILE_DB}" "${query}"
 }
 
+# fn_vehicles prints vehicles coordinates.
+function fn_vehicles() {
+  sqlite3 -separator ',' "${ZOMBOID_FILE_VEHICLES_DB}" "SELECT cast(round(x) as int) as x, cast(round(y) as int) as y, 0 as z FROM vehicles;"
+}
+
 # restore_players replaces players.db database from backup.
 function restore_players() {
   local filename="$1"
@@ -1469,7 +1475,8 @@ function print_help() {
   echo "  сlog [args]             Looks for string 1 in current log files. Chat logs excluded from"
   echo "                          search. Using the optional parameter 2, you can specify the name of the"
   echo "                          log file to search."
-  echo "  sql [args]              Executes query 1 to the Project Zomboid database and displays result"
+  echo "  sql [args]              Executes query 1 to the Project Zomboid database and displays result."
+  echo "  vehicles                Prints vehicles coordinates."
   echo "  restore_players [args]  Replaces players.db database from backup."
   echo
   echo "PLUGINS:"
@@ -1820,6 +1827,8 @@ function main() {
       clog_search "$2" "$3" "$4" "$5";;
     sql)
       fn_sqlite "$2";;
+    vehicles)
+      fn_vehicles;;
     restore_players)
       restore_players "$2";;
     --variables|--vars)
