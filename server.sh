@@ -684,6 +684,16 @@ function shutdown_wrapper() {
   esac
 }
 
+# console connects to screen session.
+function console() {
+  if [ "$(is_server_running)" == "false" ]; then
+    echoerr "server is not running"
+    return 0
+  fi
+
+  screen -r "${SERVER_NAME}"
+}
+
 # screencmd calls the $1 command to the game using screen util.
 # The screencmd function is faster than rconcmd, but you cannot get a response
 # to the request. Therefore, it should be used when the answer is not needed.
@@ -1777,6 +1787,8 @@ function main() {
       shutdown_wrapper "restart" "${when}" "${fixes}";;
     autorestart)
       autorestart;;
+    console)
+      console;;
     screen)
       screencmd "$2";;
     rcon)
@@ -1830,9 +1842,10 @@ if [ -z "$1" ]; then
   echo "........ install command [arguments...] [options...]"
   echo "........ update"
   echo "........ start [options...]"
-  echo "........ stop [now] [fix]" # TODO: Change args to options
-  echo "........ restart [now] [fix]" # TODO: Change args to options
+  echo "........ stop [options...]"
+  echo "........ restart [options...]"
   echo "........ autorestart"
+  echo "........ console"
   echo "........ screen {\"command\"}"
   echo "........ rcon {\"command\"}"
   echo "........ kickusers"
