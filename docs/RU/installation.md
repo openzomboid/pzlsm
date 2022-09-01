@@ -3,8 +3,9 @@
 
        wget -O user.sh https://raw.githubusercontent.com/outdead/randomutils/master/scripts/user/user.sh && sudo bash user.sh create username password sudo; rm user.sh
 
-   в котором задать свои значения для username, password и указать в group будет ли доступна пользователю привилегия sudo.  
-   Или создать пользователя самостоятельно:
+   > Не забудьте задать свои значения для **username**, **password** и указать будет ли доступна пользователю привилегия **sudo**.  
+   
+    Или создать пользователя самостоятельно:
 
        adduser pz
        su - pz
