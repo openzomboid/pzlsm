@@ -1,18 +1,18 @@
 # Команды
 
 ## Базовые команды
-| Имя команды                                 | Аргументы       | Команда
-| ------------------------------------------- | --------------- | --------------------------
-| [install](commands/install.md)              | Не обязательные | `./server.sh install`
-| [update](commands/update.md)                | Не обязательные | `./server.sh update`
-| [config](commands/config.md)                | Обязательные    | `./server.sh config pull`
-| [start](commands/start-stop-restart.md)     | Не обязательные | `./server.sh start`
-| [stop](commands/start-stop-restart.md)      | Не обязательные | `./server.sh stop`
-| [restart](commands/start-stop-restart.md)   | Не обязательные | `./server.sh restart`
-| [autorestart](commands/autorestart.md)      |                 | `./server.sh autorestart`
-| [console](commands/console.md)              |                 | `./server.sh console`
-| [cmd](commands/cmd.md)                      | Обязательные    | `./server.sh cmd`
-| [kickusers](commands/kickusers.md)          |                 | `./server.sh kickusers`
+| Имя команды                        | Аргументы       | Команда
+| ---------------------------------- | --------------- | --------------------------
+| [install](install.md)              | Не обязательные | `./server.sh install`
+| [update](update.md)                | Не обязательные | `./server.sh update`
+| [config](config.md)                | Обязательные    | `./server.sh config pull`
+| [start](start-stop-restart.md)     | Не обязательные | `./server.sh start`
+| [stop](start-stop-restart.md)      | Не обязательные | `./server.sh stop`
+| [restart](start-stop-restart.md)   | Не обязательные | `./server.sh restart`
+| [autorestart](autorestart.md)      |                 | `./server.sh autorestart`
+| [console](console.md)              |                 | `./server.sh console`
+| [cmd](cmd.md)                      | Обязательные    | `./server.sh cmd`
+| [kickusers](kickusers.md)          |                 | `./server.sh kickusers`
 | delete_manifest  |                 | `./server.sh delete_manifest`
 | delete_zombies   |                 | `./server.sh delete_zombies`
 | map_regen        | Обязательные    | `./server.sh map_regen`
