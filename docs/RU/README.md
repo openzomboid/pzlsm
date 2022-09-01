@@ -8,3 +8,4 @@
     * [start-stop-restart](commands/start-stop-restart.md)
     * [autorestart](commands/autorestart.md)
     * [console](commands/console.md)
+    * [cmd](commands/cmd.md)

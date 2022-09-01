@@ -41,8 +41,7 @@ COMMANDS:
                           to alert them of impending server shutdown.
   autorestart             Restarts server if it stuck an backups last logs.
   console                 Allows access the output of the game server console.
-  screen [args]           Calls the 1 argument as a command on the game using screen util.
-  rcon [args]             Calls the 1 argument as a command on the game using rcon util.
+  cmd [args]              Executes the 1 argument as a command on the game server.
   kickusers               Kicks all players from the server.
   delete_manifest         Deletes appworkshop_108600.acf file. It need to
                           update mods correctly.

@@ -688,8 +688,7 @@ function shutdown_wrapper() {
 # console connects to screen session.
 function console() {
   if [ "$(is_server_running)" == "false" ]; then
-    echoerr "server is not running"
-    return 0
+    echoerr "server is not running"; return 0
   fi
 
   screen -r "${SERVER_NAME}"
@@ -699,6 +698,10 @@ function console() {
 # The screencmd function is faster than rconcmd, but you cannot get a response
 # to the request. Therefore, it should be used when the answer is not needed.
 function screencmd() {
+  if [ "$(is_server_running)" == "false" ]; then
+    echoerr "server is not running"; return 0
+  fi
+
   local command="$1"
   [ -z "${command}" ] && { echoerr "command is not set"; return 1; }
 
@@ -708,6 +711,10 @@ function screencmd() {
 # rconcmd calls the $1 command to the game using Source RCON Protocol.
 # The port and authorization parameters takes from the Project Zomboid config.
 function rconcmd() {
+  if [ "$(is_server_running)" == "false" ]; then
+    echoerr "server is not running"; return 0
+  fi
+
   local command="$1"
   [ -z "${command}" ] && { echoerr "command is not set"; return 1; }
 
@@ -728,7 +735,7 @@ function rconcmd() {
 function kickusers() {
   local players=""
   if ! players=$(rconcmd "players"); then
-    echoerr "kickusers: cannot get users"; return 1;
+    echoerr "kickusers: cannot get users"; return 0;
   fi
 
   local i=0
@@ -1442,8 +1449,7 @@ function print_help() {
   echo "  restart [args]          Restarts the server. Triggers informational messages for players"
   echo "                          to alert them of impending server shutdown."
   echo "  autorestart             Restarts server if it stuck an backups last logs."
-  echo "  screen [args]           Calls the 1 argument as a command on the game using screen util."
-  echo "  rcon [args]             Calls the 1 argument as a command on the game using rcon util."
+  echo "  cmd [args]              Executes the 1 argument as a command on the game server."
   echo "  kickusers               Kicks all players from the server."
   echo "  delete_manifest         Deletes appworkshop_108600.acf file. It need to"
   echo "                          update mods correctly."
@@ -1634,6 +1640,30 @@ function print_help_restart() {
   echo "  $0 restart -f kill"
 }
 
+function print_help_cmd() {
+  echo "COMMAND NAME:"
+  echo "  cmd"
+  echo
+  echo "DESCRIPTION:"
+  echo "  Executes command on the game server."
+  echo
+  echo "USAGE:"
+  echo "  $0 cmd command [options...]"
+  echo
+  echo "OPTIONS:"
+  echo "  --rcon|-r         Use RCON protocol. Prints response in terminal. Used by default."
+  echo "  --screen|-s       Sends command to screen session. No response. Faster then rcon, "
+  echo "                    can work when rcon is not enabled."
+  echo "  --help            Prints help."
+  echo
+  echo "EXAMPLE:"
+  echo "  $0 cmd players"
+  echo "  $0 cmd players -r"
+  echo "  $0 cmd quit -s"
+  echo "  $0 cmd \"banuser TestUser\""
+  echo "  $0 cmd 'banuser \"Test User\"'"
+}
+
 # main contains a proxy for entering permissible functions.
 function main() {
   case "$1" in
@@ -1796,10 +1826,32 @@ function main() {
       autorestart;;
     console)
       console;;
-    screen)
-      screencmd "$2";;
-    rcon)
-      rconcmd "$2";;
+    cmd)
+      local proto="rcon"
+      local command
+
+      while [[ -n "$2" ]]; do
+        case "$2" in
+          --screen|-s) proto="screen" ;;
+          --rcon|-r) proto="rcon" ;;
+          --help)
+            print_help_cmd
+            return ;;
+          *)
+            if [ -n "${command}" ]; then
+              echoerr "to many arguments"; return
+            fi
+            command="$2" ;;
+        esac
+
+        shift
+      done
+
+      if [ "${proto}" == "rcon" ]; then
+         rconcmd "${command}"
+      else
+         screencmd "${command}"
+      fi ;;
     kickusers)
       kickusers;;
     delete_manifest)
@@ -1855,8 +1907,7 @@ if [ -z "$1" ]; then
   echo "........ restart [options...]"
   echo "........ autorestart"
   echo "........ console"
-  echo "........ screen {\"command\"}"
-  echo "........ rcon {\"command\"}"
+  echo "........ cmd command"
   echo "........ kickusers"
   echo "........ delete_manifest"
   echo "........ delete_zombies"
