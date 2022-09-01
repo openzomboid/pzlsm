@@ -5,7 +5,7 @@
 | ---------------- | --------------- | --------------------------
 | install          | Не обязательные | `./server.sh install`
 | update           | Не обязательные | `./server.sh update`
-| config           | Обязательные    | `./server.sh config sync`
+| config           | Обязательные    | `./server.sh config pull`
 | start            | Не обязательные | `./server.sh start`
 | stop             | Не обязательные | `./server.sh stop`
 | restart          | Не обязательные | `./server.sh restart`
