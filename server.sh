@@ -12,7 +12,7 @@
 
 # VERSION of Project Zomboid Linux Server Manager.
 # Follows semantic versioning, SEE: http://semver.org/.
-VERSION="0.22.11"
+VERSION="0.22.12"
 YEAR="2022"
 AUTHOR="Pavel Korotkiy (outdead)"
 
@@ -591,8 +591,8 @@ function restart() {
   start
 }
 
-# restart_if_stuck restarts server if it stuck.
-function restart_if_stuck() {
+# autorestart restarts server if it stuck.
+function autorestart() {
   if [ "${AUTO_RESTORE}" != "true" ]; then
     return 0
   fi
@@ -612,7 +612,6 @@ function restart_if_stuck() {
     start
 
     return 0
-    #echo "server is not running"; return 0
   fi
 
   local result
@@ -1426,7 +1425,7 @@ function print_help() {
   echo "                          to alert them of impending server shutdown."
   echo "  restart [args]          Restarts the server. Triggers informational messages for players"
   echo "                          to alert them of impending server shutdown."
-  echo "  restart_if_stuck        Restarts server if it stuck an backups last logs."
+  echo "  autorestart             Restarts server if it stuck an backups last logs."
   echo "  screen [args]           Calls the 1 argument as a command on the game using screen util."
   echo "  rcon [args]             Calls the 1 argument as a command on the game using rcon util."
   echo "  kickusers               Kicks all players from the server."
@@ -1776,8 +1775,8 @@ function main() {
       done
 
       shutdown_wrapper "restart" "${when}" "${fixes}";;
-    restart_if_stuck)
-      restart_if_stuck;;
+    autorestart)
+      autorestart;;
     screen)
       screencmd "$2";;
     rcon)
@@ -1833,7 +1832,7 @@ if [ -z "$1" ]; then
   echo "........ start [options...]"
   echo "........ stop [now] [fix]" # TODO: Change args to options
   echo "........ restart [now] [fix]" # TODO: Change args to options
-  echo "........ restart_if_stuck"
+  echo "........ autorestart"
   echo "........ screen {\"command\"}"
   echo "........ rcon {\"command\"}"
   echo "........ kickusers"

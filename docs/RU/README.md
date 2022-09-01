@@ -6,3 +6,4 @@
     * [update](commands/update.md)
     * [config](commands/config.md)
     * [start-stop-restart.md](commands/start-stop-restart.md)
+    * [autrestart.md](commands/autrestart.md)
