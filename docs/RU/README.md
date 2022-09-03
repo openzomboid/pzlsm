@@ -9,3 +9,4 @@
     * [autorestart](commands/autorestart.md)
     * [console](commands/console.md)
     * [cmd](commands/cmd.md)
+    * [kickusers](commands/kickusers.md)
