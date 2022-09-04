@@ -1854,6 +1854,21 @@ function main() {
       fi ;;
     kickusers)
       kickusers;;
+    delfile)
+      while [[ -n "$2" ]]; do
+        case "$2" in
+          manifest)
+            delete_mods_manifest
+            return ;;
+          --help|*)
+            echo "delfile help is not implemented"
+            return ;;
+        esac
+
+        shift
+      done
+
+      echo "delfile help is not implemented" ;;
     delete_manifest)
       delete_mods_manifest;;
     delete_zombies)
