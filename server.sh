@@ -1860,6 +1860,9 @@ function main() {
           manifest)
             delete_mods_manifest
             return ;;
+          zombies)
+            delete_zombies
+            return ;;
           --help|*)
             echo "delfile help is not implemented"
             return ;;
@@ -1869,10 +1872,6 @@ function main() {
       done
 
       echo "delfile help is not implemented" ;;
-    delete_manifest)
-      delete_mods_manifest;;
-    delete_zombies)
-      delete_zombies;;
     map_regen)
       map_regen "$2" "$3";;
     map_copy)
@@ -1924,8 +1923,7 @@ if [ -z "$1" ]; then
   echo "........ console"
   echo "........ cmd command"
   echo "........ kickusers"
-  echo "........ delete_manifest"
-  echo "........ delete_zombies"
+  echo "........ delfile command"
   echo "........ map_regen {top} {bottom}"
   echo "........ map_copy {top} {bottom} {name}"
   echo "........ map_copyto {top} {bottom} {top_new} {bottom_new} {name}"

@@ -43,12 +43,7 @@ COMMANDS:
   console                 Allows access the output of the game server console.
   cmd [args]              Executes the 1 argument as a command on the game server.
   kickusers               Kicks all players from the server.
-  delete_manifest         Deletes appworkshop_108600.acf file. It need to
-                          update mods correctly.
-  delete_zombies          Deletes all zpop_*_*.bin files from Zomboid/Saves directory.
-                          These files are responsible for placing zombies on the world.
-                          It is recommended to use with a turned off server. When used on
-                          a running server, it can create more problems than it solves.
+  delfile [args]          Deletes some PZ files.
   map_regen [args]        Takes the coordinates of the upper right and lower left points
                           and builds a rectangular area of chunks from them and deletes them.
   map_copy [args]         Takes the coordinates of the upper right and lower left points
