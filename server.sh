@@ -1429,15 +1429,15 @@ function print_help() {
   echo ""
   echo "VERSION:"
   echo "  ${VERSION}"
-  echo ""
+  echo
   echo "DESCRIPTION:"
   echo "  Tool kit for installation and management of Project Zomboid dedicated servers on Linux"
-  echo ""
+  echo
   echo "GLOBAL OPTIONS:"
   echo "  --variables, --vars     Print variables."
   echo "  --version               Print the version."
   echo "  --help                  Show help."
-  echo ""
+  echo
   echo "COMMANDS:"
   echo "  install [args]          Installs Project Zomboid dedicated server."
   echo "  update                  Updates Project Zomboid dedicated server."
@@ -1451,12 +1451,7 @@ function print_help() {
   echo "  autorestart             Restarts server if it stuck an backups last logs."
   echo "  cmd [args]              Executes the 1 argument as a command on the game server."
   echo "  kickusers               Kicks all players from the server."
-  echo "  delete_manifest         Deletes appworkshop_108600.acf file. It need to"
-  echo "                          update mods correctly."
-  echo "  delete_zombies          Deletes all zpop_*_*.bin files from Zomboid/Saves directory."
-  echo "                          These files are responsible for placing zombies on the world."
-  echo "                          It is recommended to use with a turned off server. When used on"
-  echo "                          a running server, it can create more problems than it solves."
+  echo "  delfile [args]          Deletes selected Project Zomboid files."
   echo "  map_regen [args]        Takes the coordinates of the upper right and lower left points"
   echo "                          and builds a rectangular area of chunks from them and deletes them."
   echo "  map_copy [args]         Takes the coordinates of the upper right and lower left points"
@@ -1645,7 +1640,8 @@ function print_help_cmd() {
   echo "  cmd"
   echo
   echo "DESCRIPTION:"
-  echo "  Executes command on the game server."
+  echo "  Executes command on the game server. To see list of allowed commands"
+  echo "  execute $0 cmd help."
   echo
   echo "USAGE:"
   echo "  $0 cmd command [options...]"
@@ -1662,6 +1658,33 @@ function print_help_cmd() {
   echo "  $0 cmd quit -s"
   echo "  $0 cmd \"banuser TestUser\""
   echo "  $0 cmd 'banuser \"Test User\"'"
+}
+
+function print_help_delfile() {
+  echo "COMMAND NAME:"
+  echo "  delfile"
+  echo
+  echo "DESCRIPTION:"
+  echo "  Deletes selected Project Zomboid files."
+  echo
+  echo "USAGE:"
+  echo "  $0 delfile [global options...] command"
+  echo
+  echo "GLOBAL OPTIONS:"
+  echo "  --help            Prints help."
+  echo
+  echo "COMMANDS:"
+  echo "  manifest          Deletes appworkshop_108600.acf file. It need to"
+  echo "                    update mods correctly."
+  echo "  EXAMPLE:"
+  echo "    $0 delfile manifest"
+  echo
+  echo "  zombies           Deletes all zpop_*_*.bin files from Zomboid/Saves directory."
+  echo "                    These files are responsible for placing zombies on the world."
+  echo "                    It is recommended to use with a turned off server. When used on"
+  echo "                    a running server, it can create more problems than it solves."
+  echo "  EXAMPLE:"
+  echo "    $0 delfile zombies"
 }
 
 # main contains a proxy for entering permissible functions.
@@ -1864,14 +1887,14 @@ function main() {
             delete_zombies
             return ;;
           --help|*)
-            echo "delfile help is not implemented"
+            print_help_delfile
             return ;;
         esac
 
         shift
       done
 
-      echo "delfile help is not implemented" ;;
+      print_help_delfile ;;
     map_regen)
       map_regen "$2" "$3";;
     map_copy)

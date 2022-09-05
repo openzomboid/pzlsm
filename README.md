@@ -43,7 +43,7 @@ COMMANDS:
   console                 Allows access the output of the game server console.
   cmd [args]              Executes the 1 argument as a command on the game server.
   kickusers               Kicks all players from the server.
-  delfile [args]          Deletes some PZ files.
+  delfile [args]          Deletes selected Project Zomboid files.
   map_regen [args]        Takes the coordinates of the upper right and lower left points
                           and builds a rectangular area of chunks from them and deletes them.
   map_copy [args]         Takes the coordinates of the upper right and lower left points
