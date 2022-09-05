@@ -846,14 +846,12 @@ function delete_old_chunks() {
 function get_rectangle() {
   local from="$1"
   if [ -z "${from}" ]; then
-     echoerr "upper right corner is not set"
-     echo "0 0 0 0"; return 1
+     echo "0 0 0 0 upper right corner is not set"; return 1
   fi
 
   local to="$2"
   if [ -z "${to}" ]; then
-     echoerr "lower left corner is not set"
-     echo "0 0 0 0"; return 1
+     echo "0 0 0 0 lower left corner is not set"; return 1
   fi
 
   local regexp='^[0-9]+$'
@@ -863,8 +861,7 @@ function get_rectangle() {
   local top_x="${point_top[0]}"
   local top_y="${point_top[1]}"
   if ! [[ ${top_x} =~ $regexp ]] || ! [[ ${top_y} =~ $regexp ]]; then
-     echoerr "upper right corner is invalid"
-     echo "0 0 0 0"; return 1
+     echo "0 0 0 0 upper right corner is invalid"; return 1
   fi
 
   # Lower left corner.
@@ -872,8 +869,7 @@ function get_rectangle() {
   local bot_x="${point_bot[0]}";
   local bot_y="${point_bot[1]}"
   if ! [[ ${bot_x} =~ $regexp ]] || ! [[ ${bot_y} =~ $regexp ]]; then
-     echoerr "lower left corner is invalid"
-     echo "0 0 0 0"; return 1
+     echo "0 0 0 0 lower left corner is invalid"; return 1
   fi
 
   echo "${top_x} ${top_y} ${bot_x} ${bot_y}"
@@ -895,6 +891,9 @@ function map_regen() {
   fi
 
   local rectangle=($(get_rectangle "${from}" "${to}"))
+  if [ -n "${rectangle[4]}" ]; then
+    echoerr "${rectangle[*]:4}"; return 1
+  fi
 
   # Delete last digit to convert to chunk name.
   local top_x; top_x=$(echo "${rectangle[0]}/10" |bc)
@@ -903,8 +902,7 @@ function map_regen() {
   local bot_y; bot_y=$(echo "${rectangle[3]}/10" |bc)
 
   if [ "${top_x}" -ge "${bot_x}" ] || [ "${top_y}" -ge "${bot_y}" ]; then
-     echoerr "invalid points"
-     return 1
+     echoerr "invalid points"; return 1
   fi
 
   local count=0
@@ -943,6 +941,9 @@ function map_copy() {
   fi
 
   local rectangle=($(get_rectangle "${from}" "${to}"))
+  if [ -n "${rectangle[4]}" ]; then
+    echoerr "${rectangle[*]:4}"; return 1
+  fi
 
   # Delete last digit to convert to chunk name.
   local top_x; top_x=$(echo "${rectangle[0]}/10" |bc)
@@ -951,8 +952,7 @@ function map_copy() {
   local bot_y; bot_y=$(echo "${rectangle[3]}/10" |bc)
 
   if [ "${top_x}" -ge "${bot_x}" ] || [ "${top_y}" -ge "${bot_y}" ]; then
-     echoerr "invalid points"
-     return 1
+     echoerr "invalid points"; return 1
   fi
 
   local copy_path="${DIR_BACKUPS_COPY}"
@@ -964,8 +964,7 @@ function map_copy() {
 
   mkdir -p "${copy_path}" #> /dev/null 2>&1
   if [ ! $? -eq 0 ]; then
-    echoerr "can not create directory ${copy_path} to copy"
-    return 1
+    echoerr "can not create directory ${copy_path} to copy"; return 1
   fi
 
   local count=0
@@ -1006,6 +1005,9 @@ function map_copyto() {
   fi
 
   local rectangle=($(get_rectangle "${from}" "${to}"))
+  if [ -n "${rectangle[4]}" ]; then
+    echoerr "${rectangle[*]:4}"; return 1
+  fi
 
   # Delete last digit to convert to chunk name.
   local top_x; top_x=$(echo "${rectangle[0]}/10" |bc)
@@ -1014,8 +1016,7 @@ function map_copyto() {
   local bot_y; bot_y=$(echo "${rectangle[3]}/10" |bc)
 
   if [ "${top_x}" -ge "${bot_x}" ] || [ "${top_y}" -ge "${bot_y}" ]; then
-     echoerr "invalid points"
-     return 1
+     echoerr "invalid points"; return 1
   fi
 
   local from_new="$3"
@@ -1026,8 +1027,7 @@ function map_copyto() {
   local top_y_new; top_y_new=$(echo "${point_top[1]}/10" |bc)
 
   if ! [[ ${top_x_new} =~ $regexp ]] || ! [[ ${top_y_new} =~ $regexp ]]; then
-     echoerr "upper new point is invalid"
-     return 1
+     echoerr "upper new point is invalid"; return 1
   fi
 
   local copy_path="${DIR_BACKUPS_COPY}"
@@ -1039,8 +1039,7 @@ function map_copyto() {
 
   mkdir -p "${copy_path}" #> /dev/null 2>&1
   if [[ ! $? -eq 0 ]]; then
-    echoerr "can not create directory ${copy_path} to copy"
-    return 1
+    echoerr "can not create directory ${copy_path} to copy"; return 1
   fi
 
   local x_new="${top_x_new}"
@@ -1094,6 +1093,9 @@ function range() {
   fi
 
   local rectangle=($(get_rectangle "${from}" "${to}"))
+  if [ -n "${rectangle[4]}" ]; then
+    echoerr "${rectangle[*]:4}"; return 1
+  fi
 
   local top_x; top_x=$(echo "${rectangle[0]}" |bc)
   local top_y; top_y=$(echo "${rectangle[1]}" |bc)
@@ -1668,7 +1670,7 @@ function print_help_delfile() {
   echo "  Deletes selected Project Zomboid files."
   echo
   echo "USAGE:"
-  echo "  $0 delfile [global options...] command"
+  echo "  $0 delfile [global options...] command [arguments...]"
   echo
   echo "GLOBAL OPTIONS:"
   echo "  --help            Prints help."
@@ -1685,6 +1687,15 @@ function print_help_delfile() {
   echo "                    a running server, it can create more problems than it solves."
   echo "  EXAMPLE:"
   echo "    $0 delfile zombies"
+  echo
+  echo "  map {from} {to}   Deletes map_*_*.bin files from Zomboid/Saves directory."
+  echo "                    Takes the coordinates of the upper right and lower left points"
+  echo "                    and builds a rectangular area of chunks from them and deletes them."
+  echo "  ARGUMENTS:"
+  echo "    from            The upper right XY point with 'x' delimiter."
+  echo "    to              The lower left XY point with 'x' delimiter."
+  echo "  EXAMPLE:"
+  echo "    $0 delfile map 10626x10600 10679x10661"
 }
 
 # main contains a proxy for entering permissible functions.
@@ -1885,6 +1896,9 @@ function main() {
             return ;;
           zombies)
             delete_zombies
+            return ;;
+          map)
+            map_regen "$3" "$4"
             return ;;
           --help|*)
             print_help_delfile
