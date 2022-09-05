@@ -13,7 +13,7 @@
 | [console](console.md)              |                 | `./server.sh console`
 | [cmd](cmd.md)                      | Обязательные    | `./server.sh cmd`
 | [kickusers](kickusers.md)          |                 | `./server.sh kickusers`
-| [delfile](delfile.md)              |                 | `./server.sh delfile`
+| [delfile](delfile.md)              | Обязательные    | `./server.sh delfile`
 | map_regen        | Обязательные    | `./server.sh map_regen`
 | map_copy         | Обязательные    | `./server.sh map_copy`
 | map_copyto       | Обязательные    | `./server.sh map_copyto`
