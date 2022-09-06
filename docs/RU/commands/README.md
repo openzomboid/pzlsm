@@ -16,7 +16,7 @@
 | [delfile](delfile.md)              | Обязательные    | `./server.sh delfile`
 | [map](map.md)                      | Обязательные    | `./server.sh map`
 | [range](range.md)                  | Обязательные    | `./server.sh range`
-| backup           | Не обязательные | `./server.sh backup`
+| [backup](backup.md)                | Не обязательные | `./server.sh backup`
 | log              | Обязательные    | `./server.sh log`
 | сlog             | Обязательные    | `./server.sh сlog`
 | sql              | Обязательные    | `./server.sh sql`

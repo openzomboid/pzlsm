@@ -12,7 +12,7 @@
 
 # VERSION of Project Zomboid Linux Server Manager.
 # Follows semantic versioning, SEE: http://semver.org/.
-VERSION="0.22.13"
+VERSION="0.22.14"
 YEAR="2022"
 AUTHOR="Pavel Korotkiy (outdead)"
 
@@ -1753,6 +1753,31 @@ function print_help_range() {
   echo "  $0 range 10626x10600 10679x10661"
 }
 
+function print_help_backup() {
+  echo "COMMAND NAME:"
+  echo "  backup"
+  echo
+  echo "DESCRIPTION:"
+  echo "  Copies server files to backup directory. After successful copying, checks"
+  echo "  for old backups and delete them."
+  echo
+  echo "USAGE:"
+  echo "  $0 backup [global options...] [arguments]"
+  echo
+  echo "GLOBAL OPTIONS:"
+  echo "  --help            Prints help."
+  echo
+  echo "ARGUMENTS:"
+  echo "  fast              Saves database files to backup folder."
+  echo "  players           Saves players database file to backup folder."
+  echo "  world             Saves Zomboid folder file to backup folder."
+  echo
+  echo "EXAMPLE:"
+  echo "  $0 backup fast"
+  echo "  $0 backup players"
+  echo "  $0 backup world"
+}
+
 # main contains a proxy for entering permissible functions.
 function main() {
   case "$1" in
@@ -2014,7 +2039,17 @@ function main() {
 
       range "${top}" "${bottom}" ;;
     backup)
-      backup "$2";;
+      while [[ -n "$2" ]]; do
+        case "$2" in
+          --help|*)
+            print_help_backup
+            return ;;
+        esac
+
+        shift
+      done
+
+      backup "$2" ;;
     log)
       log_search "$2" "$3" "$4" "$5";;
     clog)

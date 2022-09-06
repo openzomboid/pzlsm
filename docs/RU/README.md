@@ -28,3 +28,7 @@
       * delete
       * copy
     * [range](commands/range.md)
+    * [backup](commands/backup.md)
+      * fast
+      * players
+      * world
