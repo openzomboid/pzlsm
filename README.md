@@ -32,7 +32,6 @@ GLOBAL OPTIONS:
 COMMANDS:
   install [args]          Installs Project Zomboid dedicated server.
   update                  Updates Project Zomboid dedicated server.
-  sync                    Downloads Project Zomboid config files from github repo.
   start [args]            Starts the server in a screen window. An error message will
                           be displayed if server has been started earlier.
   stop [args]             Stops the server. Triggers informational messages for players
@@ -44,19 +43,7 @@ COMMANDS:
   cmd [args]              Executes the 1 argument as a command on the game server.
   kickusers               Kicks all players from the server.
   delfile [args]          Deletes selected Project Zomboid files.
-  map_regen [args]        Takes the coordinates of the upper right and lower left points
-                          and builds a rectangular area of chunks from them and deletes them.
-  map_copy [args]         Takes the coordinates of the upper right and lower left points
-                          and builds a rectangular area of chunks from them and copies them to
-                          backups/copy directory. With an additional argument, you can specify
-                          a name for the catalog of copied chunks. If you don't specify a name,
-                          then it will generated based on the coordinates
-  map_copyto [args]       Takes the coordinates of the upper right and lower left points
-                          and builds a rectangular area of chunks from them and copies them
-                          to backups/copy directory and rename to new coordinates. With an
-                          additional argument, you can specify a name for the catalog of copied
-                          chunks. If you don't specify a name, then it will generated based on
-                          the coordinates.
+  map [args]              Manipulates with map chunk files.
   range [args]            Takes the coordinates of the upper right and lower left points
                           and builds a rectangular area of chunks from them for generating regexp
                           rule for searching the log.
@@ -71,6 +58,8 @@ COMMANDS:
   sql [args]              Executes query 1 to the Project Zomboid database and displays result.
   vehicles                Prints vehicles coordinates.
   restore_players [args]  Replaces players.db database from backup.
+  sync                    Downloads Project Zomboid config files from github repo. (DEPRECATED).
+  map_regen [args]        Deletes chunks. (DEPRECATED).
 
 PLUGINS:
   config                  Contains commands for manipulating server config.

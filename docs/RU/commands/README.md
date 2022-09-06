@@ -14,9 +14,7 @@
 | [cmd](cmd.md)                      | Обязательные    | `./server.sh cmd`
 | [kickusers](kickusers.md)          |                 | `./server.sh kickusers`
 | [delfile](delfile.md)              | Обязательные    | `./server.sh delfile`
-| map_regen        | Обязательные    | `./server.sh map_regen`
-| map_copy         | Обязательные    | `./server.sh map_copy`
-| map_copyto       | Обязательные    | `./server.sh map_copyto`
+| [map](map.md)                      | Обязательные    | `./server.sh map`
 | range            | Обязательные    | `./server.sh range`
 | backup           | Не обязательные | `./server.sh backup`
 | log              | Обязательные    | `./server.sh log`

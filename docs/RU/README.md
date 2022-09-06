@@ -11,3 +11,4 @@
     * [cmd](commands/cmd.md)
     * [kickusers](commands/kickusers.md)
     * [delfile](commands/delfile.md)
+    * [map](commands/map.md)

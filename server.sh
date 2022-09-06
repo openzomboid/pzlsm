@@ -12,7 +12,7 @@
 
 # VERSION of Project Zomboid Linux Server Manager.
 # Follows semantic versioning, SEE: http://semver.org/.
-VERSION="0.22.12"
+VERSION="0.22.13"
 YEAR="2022"
 AUTHOR="Pavel Korotkiy (outdead)"
 
@@ -973,11 +973,14 @@ function map_copy() {
     for (( y=top_y; y <= bot_y; y++ )) do
       (( count++ ))
       local name="map_${x}_${y}.bin"
-      cp "${ZOMBOID_DIR_MAP}/${name}" "${copy_path}" > /dev/null 2>&1
-      if [ $? -eq 0 ]; then
-        (( count_success++ ))
-      else
-        echoerr "can not copy chunk ${name}"
+
+      if [ -f "${ZOMBOID_DIR_MAP}/${name}" ]; then
+        cp "${ZOMBOID_DIR_MAP}/${name}" "${copy_path}" > /dev/null 2>&1
+        if [ $? -eq 0 ]; then
+          (( count_success++ ))
+        else
+          echoerr "can not copy chunk ${name}"
+        fi
       fi
     done
   done
@@ -1443,7 +1446,6 @@ function print_help() {
   echo "COMMANDS:"
   echo "  install [args]          Installs Project Zomboid dedicated server."
   echo "  update                  Updates Project Zomboid dedicated server."
-  echo "  sync                    Downloads Project Zomboid config files from github repo (DEPRECATED)."
   echo "  start [args]            Starts the server in a screen window. An error message will"
   echo "                          be displayed if server has been started earlier."
   echo "  stop [args]             Stops the server. Triggers informational messages for players"
@@ -1454,19 +1456,7 @@ function print_help() {
   echo "  cmd [args]              Executes the 1 argument as a command on the game server."
   echo "  kickusers               Kicks all players from the server."
   echo "  delfile [args]          Deletes selected Project Zomboid files."
-  echo "  map_regen [args]        Takes the coordinates of the upper right and lower left points"
-  echo "                          and builds a rectangular area of chunks from them and deletes them."
-  echo "  map_copy [args]         Takes the coordinates of the upper right and lower left points"
-  echo "                          and builds a rectangular area of chunks from them and copies them to"
-  echo "                          backups/copy directory. With an additional argument, you can specify"
-  echo "                          a name for the catalog of copied chunks. If you don't specify a name,"
-  echo "                          then it will generated based on the coordinates"
-  echo "  map_copyto [args]       Takes the coordinates of the upper right and lower left points"
-  echo "                          and builds a rectangular area of chunks from them and copies them"
-  echo "                          to backups/copy directory and rename to new coordinates. With an"
-  echo "                          additional argument, you can specify a name for the catalog of copied"
-  echo "                          chunks. If you don't specify a name, then it will generated based on"
-  echo "                          the coordinates."
+  echo "  map [args]              Manipulates with map chunk files."
   echo "  range [args]            Takes the coordinates of the upper right and lower left points"
   echo "                          and builds a rectangular area of chunks from them for generating regexp"
   echo "                          rule for searching the log."
@@ -1481,6 +1471,8 @@ function print_help() {
   echo "  sql [args]              Executes query 1 to the Project Zomboid database and displays result."
   echo "  vehicles                Prints vehicles coordinates."
   echo "  restore_players [args]  Replaces players.db database from backup."
+  echo "  sync                    Downloads Project Zomboid config files from github repo (DEPRECATED)."
+  echo "  map_regen [args]        Deletes chunks. (DEPRECATED)."
   echo
   echo "PLUGINS:"
   echo "  ${PLUGINS_COMMANDS_HELP}"
@@ -1688,14 +1680,54 @@ function print_help_delfile() {
   echo "  EXAMPLE:"
   echo "    $0 delfile zombies"
   echo
-  echo "  map {from} {to}   Deletes map_*_*.bin files from Zomboid/Saves directory."
-  echo "                    Takes the coordinates of the upper right and lower left points"
-  echo "                    and builds a rectangular area of chunks from them and deletes them."
+  echo "  map {top} {bottom}  Deletes map_*_*.bin files from Zomboid/Saves directory."
+  echo "                      Takes the coordinates of the upper right and lower left points"
+  echo "                      and builds a rectangular area of chunks from them and deletes them."
   echo "  ARGUMENTS:"
-  echo "    from            The upper right XY point with 'x' delimiter."
-  echo "    to              The lower left XY point with 'x' delimiter."
+  echo "    top             The upper right XY point with 'x' delimiter."
+  echo "    bottom          The lower left XY point with 'x' delimiter."
   echo "  EXAMPLE:"
   echo "    $0 delfile map 10626x10600 10679x10661"
+}
+
+function print_help_map() {
+  echo "COMMAND NAME:"
+  echo "  map"
+  echo
+  echo "DESCRIPTION:"
+  echo "  Manipulates with map chunk files."
+  echo
+  echo "USAGE:"
+  echo "  $0 map [global options...] command [arguments...]"
+  echo
+  echo "GLOBAL OPTIONS:"
+  echo "  --help            Prints help."
+  echo
+  echo "COMMANDS:"
+  echo "  delete {top} {bottom}  Deletes map_*_*.bin files from Zomboid/Saves directory."
+  echo "                         Takes the coordinates of the upper right and lower left points"
+  echo "                         and builds a rectangular area of chunks from them and deletes them."
+  echo "  ARGUMENTS:"
+  echo "    top             The upper right XY point with 'x' delimiter."
+  echo "    bottom          The lower left XY point with 'x' delimiter."
+  echo "  EXAMPLE:"
+  echo "    $0 map delete 10626x10600 10679x10661"
+  echo
+  echo "  copy {top} {bottom}  Copies map_*_*.bin files from Zomboid/Saves directory."
+  echo "                       Takes the coordinates of the upper right and lower left points"
+  echo "                       and builds a rectangular area of chunks from them and copies them"
+  echo "                       to backups/copy directory."
+  echo "  ARGUMENTS:"
+  echo "    top             The upper right XY point with 'x' delimiter."
+  echo "    bottom          The lower left XY point with 'x' delimiter."
+  echo "  OPTIONS:"
+  echo "    --name          Specifies a name for the catalog of copied chunks. If you don't"
+  echo "                    specify a name, then it will generated based on the coordinates."
+  echo "    --to            Renames chunks for new top point."
+  echo "  EXAMPLE:"
+  echo "    $0 map copy 11591x8239 11620x8270"
+  echo "    $0 map copy 11591x8239 11620x8270 --name bar"
+  echo "    $0 map copy 10626x10600 10679x10661 --name Gas-2-Go --to 10696x10619"
 }
 
 # main contains a proxy for entering permissible functions.
@@ -1804,9 +1836,6 @@ function main() {
         fix_options
         fix_args
       fi ;;
-    sync)
-      # TODO: Deprecate me.
-      config_pull;;
     start)
       local no_screen="false"
 
@@ -1898,7 +1927,8 @@ function main() {
             delete_zombies
             return ;;
           map)
-            map_regen "$3" "$4"
+
+            gen "$3" "$4"
             return ;;
           --help|*)
             print_help_delfile
@@ -1909,12 +1939,43 @@ function main() {
       done
 
       print_help_delfile ;;
-    map_regen)
-      map_regen "$2" "$3";;
-    map_copy)
-      map_copy "$2" "$3" "$4";;
-    map_copyto)
-      map_copyto "$2" "$3" "$4" "$5";;
+    map)
+      while [[ -n "$2" ]]; do
+        case "$2" in
+          delete)
+            map_regen "$3" "$4"
+            return ;;
+          copy)
+            local top="$3"
+            local bottom="$4"
+            local name
+            local to
+
+            while [[ -n "$5" ]]; do
+              case "$5" in
+                --name) name="$6";;
+                --to) to="$6";;
+              esac
+
+              shift
+            done
+
+            if [ -z "${to}" ]; then
+              map_copy "${top}" "${bottom}" "${name}"
+            else
+              map_copyto "${top}" "${bottom}" "${to}" "${name}"
+            fi
+
+            return ;;
+          --help|*)
+            print_help_map
+            return ;;
+        esac
+
+        shift
+      done
+
+      print_help_map ;;
     range)
       local bottom="$3"
       if [ "${bottom}" == "-" ]; then
@@ -1942,7 +2003,13 @@ function main() {
       print_help;;
     --test)
       echo "test"
-      is_admin_exists
+      ;;
+
+    # TODO: Deprecated commands.
+    sync)
+      config_pull;;
+    map_regen)
+      map_regen "$2" "$3";;
   esac
 }
 
@@ -1961,9 +2028,7 @@ if [ -z "$1" ]; then
   echo "........ cmd command"
   echo "........ kickusers"
   echo "........ delfile command"
-  echo "........ map_regen {top} {bottom}"
-  echo "........ map_copy {top} {bottom} {name}"
-  echo "........ map_copyto {top} {bottom} {top_new} {bottom_new} {name}"
+  echo "........ map {top} {bottom}"
   echo "........ range {top} {bottom}"
   echo "........ backup {type}"
   echo "........ log {search} {type} {action} {limit}"
