@@ -27,3 +27,4 @@
     * [map](commands/map.md)
       * delete
       * copy
+    * [range](commands/range.md)

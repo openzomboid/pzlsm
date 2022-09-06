@@ -1730,6 +1730,29 @@ function print_help_map() {
   echo "    $0 map copy 10626x10600 10679x10661 --name Gas-2-Go --to 10696x10619"
 }
 
+function print_help_range() {
+  echo "COMMAND NAME:"
+  echo "  range"
+  echo
+  echo "DESCRIPTION:"
+  echo "  Takes the coordinates of the upper right and lower left points"
+  echo "  and builds a rectangular area of chunks from them for generating regexp"
+  echo "  rule for searching the log."
+  echo
+  echo "USAGE:"
+  echo "  $0 range [global options...] [arguments...]"
+  echo
+  echo "GLOBAL OPTIONS:"
+  echo "  --help            Prints help."
+  echo
+  echo "ARGUMENTS:"
+  echo "  top               The upper right XY point with 'x' delimiter."
+  echo "  bottom            The lower left XY point with 'x' delimiter."
+  echo
+  echo "EXAMPLE:"
+  echo "  $0 range 10626x10600 10679x10661"
+}
+
 # main contains a proxy for entering permissible functions.
 function main() {
   case "$1" in
@@ -1927,8 +1950,7 @@ function main() {
             delete_zombies
             return ;;
           map)
-
-            gen "$3" "$4"
+            map_regen "$3" "$4"
             return ;;
           --help|*)
             print_help_delfile
@@ -1977,12 +1999,20 @@ function main() {
 
       print_help_map ;;
     range)
-      local bottom="$3"
-      if [ "${bottom}" == "-" ]; then
-        bottom=$4
-      fi
+      while [[ -n "$2" ]]; do
+        case "$2" in
+          --help|*)
+            print_help_range
+            return ;;
+        esac
 
-      range "$2" "${bottom}";;
+        shift
+      done
+
+      local top="$2"
+      local bottom="$3"; [ "${bottom}" == "-" ] && bottom=$4
+
+      range "${top}" "${bottom}" ;;
     backup)
       backup "$2";;
     log)

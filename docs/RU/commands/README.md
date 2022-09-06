@@ -15,7 +15,7 @@
 | [kickusers](kickusers.md)          |                 | `./server.sh kickusers`
 | [delfile](delfile.md)              | Обязательные    | `./server.sh delfile`
 | [map](map.md)                      | Обязательные    | `./server.sh map`
-| range            | Обязательные    | `./server.sh range`
+| [range](range.md)                  | Обязательные    | `./server.sh range`
 | backup           | Не обязательные | `./server.sh backup`
 | log              | Обязательные    | `./server.sh log`
 | сlog             | Обязательные    | `./server.sh сlog`
