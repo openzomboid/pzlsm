@@ -12,7 +12,7 @@
 
 # VERSION of Project Zomboid Linux Server Manager.
 # Follows semantic versioning, SEE: http://semver.org/.
-VERSION="0.22.14"
+VERSION="0.22.15"
 YEAR="2022"
 AUTHOR="Pavel Korotkiy (outdead)"
 
@@ -1465,9 +1465,6 @@ function print_help() {
   echo "  log [args]              Looks for string 1 in log files. Chat logs excluded from search."
   echo "                          Using the optional parameter 2, you can specify the name of the log"
   echo "                          file to search."
-  echo "  сlog [args]             Looks for string 1 in current log files. Chat logs excluded from"
-  echo "                          search. Using the optional parameter 2, you can specify the name of the"
-  echo "                          log file to search."
   echo "  sql [args]              Executes query 1 to the Project Zomboid database and displays result."
   echo "  vehicles                Prints vehicles coordinates."
   echo "  restore_players [args]  Replaces players.db database from backup."
@@ -1740,7 +1737,7 @@ function print_help_range() {
   echo "  rule for searching the log."
   echo
   echo "USAGE:"
-  echo "  $0 range [global options...] [arguments...]"
+  echo "  $0 range [global options...] {top} {bottom}"
   echo
   echo "GLOBAL OPTIONS:"
   echo "  --help            Prints help."
@@ -1762,7 +1759,7 @@ function print_help_backup() {
   echo "  for old backups and delete them."
   echo
   echo "USAGE:"
-  echo "  $0 backup [global options...] [arguments]"
+  echo "  $0 backup [global options...] argument"
   echo
   echo "GLOBAL OPTIONS:"
   echo "  --help            Prints help."
@@ -1776,6 +1773,35 @@ function print_help_backup() {
   echo "  $0 backup fast"
   echo "  $0 backup players"
   echo "  $0 backup world"
+}
+
+function print_help_log() {
+  echo "COMMAND NAME:"
+  echo "  log"
+  echo
+  echo "DESCRIPTION:"
+  echo "  Looks for string in log files. Chat logs excluded from search."
+  echo "  Using the optional parameter 2, you can specify the name of the log"
+  echo "  file to search"
+  echo
+  echo "USAGE:"
+  echo "  $0 log [global options...] {search} {type}"
+  echo
+  echo "GLOBAL OPTIONS:"
+  echo "  -a|--action       Set log action (\"fully connected\"|disconnected|died)."
+  echo "  -c|--current      Search only in current server start logs."
+  echo "  -l|--limit        Set limit to returned records."
+  echo "  --help            Prints help end exit."
+  echo
+  echo "ARGUMENTS:"
+  echo "  search            Needle string."
+  echo "  type              Log filename type (DebugLog-server|chat|connection|user|cmd|pvp|kick|ClientActionLog|admin|item|map). Not required."
+  echo
+  echo "EXAMPLE:"
+  echo "  $0 log outdead"
+  echo "  $0 log outdead user"
+  echo "  $0 log outdead user -a \"fully connected\""
+  echo "  $0 log -c outdead user -a disconnected -l 2"
 }
 
 # main contains a proxy for entering permissible functions.
@@ -2024,36 +2050,66 @@ function main() {
 
       print_help_map ;;
     range)
-      while [[ -n "$2" ]]; do
-        case "$2" in
-          --help|*)
-            print_help_range
-            return ;;
-        esac
-
-        shift
-      done
+      if [ "$2" == "--help" ]; then
+        print_help_range; return
+      fi
 
       local top="$2"
       local bottom="$3"; [ "${bottom}" == "-" ] && bottom=$4
 
       range "${top}" "${bottom}" ;;
     backup)
+      if [ "$2" == "--help" ]; then
+        print_help_backup; return
+      fi
+
+      backup "$2" ;;
+    log)
+      local current="false"
+      local args=()
+
+      local action
+      local limit
+
       while [[ -n "$2" ]]; do
         case "$2" in
-          --help|*)
-            print_help_backup
+          -c|--current)
+            current="true"
+            shift ;;
+          -a|--action)
+            action="$3"
+            shift; shift ;;
+          -l|--limit)
+            limit="$3"
+            case "${limit}" in
+              ''|*[!1-9]*) echoerr "invalid limit"; return ;;
+            esac
+
+            shift; shift ;;
+          --help)
+            print_help_log
             return ;;
         esac
+
+        if [ -n "$2" ]; then
+          args+=("$2")
+        fi
 
         shift
       done
 
-      backup "$2" ;;
-    log)
-      log_search "$2" "$3" "$4" "$5";;
-    clog)
-      clog_search "$2" "$3" "$4" "$5";;
+      if [ -n "${args[2]}" ]; then
+        print_help_log; return
+      fi
+
+      local search="${args[0]}"
+      local filename="${args[1]}"
+
+      if [ "${current}" == "false" ]; then
+        log_search "${search}" "${filename}" "${action}" "${limit}"
+      else
+        clog_search "${search}" "${filename}" "${action}" "${limit}"
+      fi ;;
     sql)
       fn_sqlite "$2";;
     vehicles)

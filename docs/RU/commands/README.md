@@ -17,7 +17,7 @@
 | [map](map.md)                      | Обязательные    | `./server.sh map`
 | [range](range.md)                  | Обязательные    | `./server.sh range`
 | [backup](backup.md)                | Не обязательные | `./server.sh backup`
-| log              | Обязательные    | `./server.sh log`
+| [log](log.md)                      | Обязательные    | `./server.sh log`
 | сlog             | Обязательные    | `./server.sh сlog`
 | sql              | Обязательные    | `./server.sh sql`
 | vehicles         |                 | `./server.sh vehicles`
