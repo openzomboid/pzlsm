@@ -4,4 +4,3 @@
 ## Команды
 
     ./server.sh kickusers
-
