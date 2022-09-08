@@ -18,7 +18,6 @@
 | [range](range.md)                  | Обязательные    | `./server.sh range`
 | [backup](backup.md)                | Не обязательные | `./server.sh backup`
 | [log](log.md)                      | Обязательные    | `./server.sh log`
-| сlog             | Обязательные    | `./server.sh сlog`
 | sql              | Обязательные    | `./server.sh sql`
 | vehicles         |                 | `./server.sh vehicles`
 | restore_players  | Обязательные    | `./server.sh restore_players`
