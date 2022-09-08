@@ -62,3 +62,7 @@
   Вывести все записи игрока outdead из пользовательского лога: 
 
       ./server.sh log outdead user
+
+  По умолчанию логи `DebugLog-server` и `chat` игнорируются, но их можно вывести указав их в аргументе `type`:
+
+      ./server.sh log outdead DebugLog-server
