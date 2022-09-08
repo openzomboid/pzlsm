@@ -36,7 +36,7 @@
 
       ./server.sh log "removed IsoObject"
 
-Поддерживается поиск по регулярному выражению. Показать логи игроков outdead и admin:
+  Поддерживается поиск по регулярному выражению. Показать логи игроков outdead и admin:
 
       ./server.sh "outdead|admin"
 
