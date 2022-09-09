@@ -2071,28 +2071,32 @@ function main() {
       local action
       local limit
 
-      while [[ -n "$2" ]]; do
-        case "$2" in
+      shift
+
+      while [[ -n "$1" ]]; do
+        local double="false"
+
+        case "$1" in
           -c|--current)
-            current="true"
-            shift ;;
+            current="true" ;;
           -a|--action)
-            action="$3"
-            shift; shift ;;
+            shift && action="$1" && double="true" ;;
           -l|--limit)
-            limit="$3"
+            shift && limit="$1" && double="true"
             case "${limit}" in
               ''|*[!1-9]*) echoerr "invalid limit"; return ;;
-            esac
-
-            shift; shift ;;
+            esac ;;
           --help)
             print_help_log
             return ;;
         esac
 
-        if [ -n "$2" ]; then
-          args+=("$2")
+        if [ "$double" == "true" ]; then
+          shift; continue
+        fi
+
+        if [ -n "$1" ]; then
+          args+=("$1")
         fi
 
         shift
