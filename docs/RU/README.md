@@ -16,3 +16,4 @@
     * [backup](commands/backup.md) [fast, players, world]
     * [log](commands/log.md)
     * [sql](commands/sql.md)
+    * [players](commands/players.md)
