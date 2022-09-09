@@ -12,7 +12,7 @@
 
 # VERSION of Project Zomboid Linux Server Manager.
 # Follows semantic versioning, SEE: http://semver.org/.
-VERSION="0.22.16"
+VERSION="0.22.17"
 YEAR="2022"
 AUTHOR="Pavel Korotkiy (outdead)"
 
@@ -1388,11 +1388,11 @@ function fn_vehicles() {
   sqlite3 -separator ',' "${ZOMBOID_FILE_VEHICLES_DB}" "SELECT cast(round(x) as int) as x, cast(round(y) as int) as y, 0 as z FROM vehicles;"
 }
 
-# restore_players replaces players.db database from backup.
-function restore_players() {
+# players_restore replaces players.db database from backup.
+function players_restore() {
   local filename="$1"
   if [ -z "${filename}" ]; then
-     echoerr "filename param is not set"; return 1
+     echoerr "backup filename param is not set"; return 1
   fi
 
   local path="${DIR_BACKUPS_PLAYERS}/${filename}"
@@ -1476,8 +1476,8 @@ function print_help() {
   echo "                          Using the optional parameter 2, you can specify the name of the log"
   echo "                          file to search."
   echo "  sql [args]              Executes query 1 to the Project Zomboid database and displays result."
+  echo "  players [args]          Manipulates with players database."
   echo "  vehicles                Prints vehicles coordinates."
-  echo "  restore_players [args]  Replaces players.db database from backup."
   echo "  sync                    Downloads Project Zomboid config files from github repo (DEPRECATED)."
   echo "  map_regen [args]        Deletes chunks. (DEPRECATED)."
   echo
@@ -1836,6 +1836,36 @@ function print_help_sql() {
   echo "  $0 sql --db vehicles \"SELECT count(*) FROM vehicles;\""
 }
 
+function print_help_players() {
+  echo "COMMAND NAME:"
+  echo "  players"
+  echo
+  echo "DESCRIPTION:"
+  echo "  Manipulates with players database."
+  echo
+  echo "USAGE:"
+  echo "  $0 players [global options...] command [arguments...] [options...]"
+  echo
+  echo "GLOBAL OPTIONS:"
+  echo "  --help            Prints help."
+  echo
+  echo "COMMANDS:"
+  echo "  backups           Show players.db available backups."
+  echo "  OPTIONS:"
+  echo "    -1              Print every backup name on new line."
+  echo "  EXAMPLE:"
+  echo "    $0 players backups"
+  echo "    $0 players backups -1"
+  echo
+  echo "  restore {backup}  Replaces players.db database from backup."
+  echo "  EXAMPLE:"
+  echo "    $0 players restore players_20220909_050001.db"
+  echo
+  echo "  sql {query}       Executes SQL query on players.db database."
+  echo "  EXAMPLE:"
+  echo "    $0 players sql \"SELECT count(*) FROM networkPlayers;\""
+}
+
 # main contains a proxy for entering permissible functions.
 function main() {
   case "$1" in
@@ -2167,10 +2197,29 @@ function main() {
       done
 
       fn_sqlite "${dbname}" "${query}" ;;
+    players)
+      while [[ -n "$2" ]]; do
+        case "$2" in
+          backups)
+            ls "${DIR_BACKUPS_PLAYERS}" $3
+            return ;;
+          restore)
+            players_restore "$3"
+            return ;;
+          sql)
+            fn_sqlite "players" "${3}"
+            return ;;
+          --help|*)
+            print_help_players
+            return ;;
+        esac
+
+        shift
+      done
+
+      print_help_players ;;
     vehicles)
       fn_vehicles;;
-    restore_players)
-      restore_players "$2";;
     --variables|--vars)
       print_variables;;
     --version)
@@ -2210,7 +2259,7 @@ if [ -z "$1" ]; then
   echo "........ log {search} {type} {action} {limit}"
   echo "........ clog {search} {type} {action} {limit}"
   echo "........ sql {query}"
-  echo "........ restore_players {filename}"
+  echo "........ players {command}"
   echo "........ sync"
   printf "[  >>  ] " & read CMD
 fi

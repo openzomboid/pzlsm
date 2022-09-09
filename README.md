@@ -53,8 +53,8 @@ COMMANDS:
                           Using the optional parameter 2, you can specify the name of the log
                           file to search.
   sql [args]              Executes query 1 to the Project Zomboid database and displays result.
+  players [args]          Manipulates with players database.
   vehicles                Prints vehicles coordinates.
-  restore_players [args]  Replaces players.db database from backup.
   sync                    Downloads Project Zomboid config files from github repo. (DEPRECATED).
   map_regen [args]        Deletes chunks. (DEPRECATED).
 
