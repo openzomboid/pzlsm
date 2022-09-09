@@ -12,7 +12,7 @@
 
 # VERSION of Project Zomboid Linux Server Manager.
 # Follows semantic versioning, SEE: http://semver.org/.
-VERSION="0.22.15"
+VERSION="0.22.16"
 YEAR="2022"
 AUTHOR="Pavel Korotkiy (outdead)"
 
@@ -125,6 +125,7 @@ ZOMBOID_FILE_CONFIG_SPAWNPOINTS="${ZOMBOID_DIR_SERVER}/${SERVER_NAME}_spawnpoint
 ZOMBOID_FILE_CONFIG_SPAWNREGIONS="${ZOMBOID_DIR_SERVER}/${SERVER_NAME}_spawnregions.lua"
 ZOMBOID_FILE_DB="${ZOMBOID_DIR_DB}/${SERVER_NAME}.db"
 ZOMBOID_FILE_VEHICLES_DB="${ZOMBOID_DIR_MAP}/vehicles.db"
+ZOMBOID_FILE_PLAYERS_DB="${ZOMBOID_DIR_MAP}/players.db"
 
 ZOMBOID_MANIFEST="${SERVER_DIR}/steamapps/appmanifest_${APP_DEDICATED_ID}.acf"
 ZOMBOID_MODS_MANIFEST="${SERVER_DIR}/steamapps/workshop/appworkshop_${APP_ID}.acf"
@@ -1365,12 +1366,21 @@ function clog_search() {
 #
 # Example: fn_sqlite 'select * from whitelist limit 1'
 function fn_sqlite() {
-  local query="$1"
+  local query="$2"
   if [ -z "${query}" ]; then
      echoerr "query param is not set"; return 1
   fi
 
-  sqlite3 "${ZOMBOID_FILE_DB}" "${query}"
+  case "$1" in
+    db)
+      sqlite3 "${ZOMBOID_FILE_DB}" "${query}" ;;
+    players)
+      sqlite3 "${ZOMBOID_FILE_PLAYERS_DB}" "${query}" ;;
+    vehicles)
+      sqlite3 "${ZOMBOID_FILE_VEHICLES_DB}" "${query}" ;;
+    *)
+      echoerr "unknown db param \"$1\""; return 1 ;;
+  esac
 }
 
 # fn_vehicles prints vehicles coordinates.
@@ -1804,6 +1814,28 @@ function print_help_log() {
   echo "  $0 log -c outdead user -a disconnected -l 2"
 }
 
+function print_help_sql() {
+  echo "COMMAND NAME:"
+  echo "  sql"
+  echo
+  echo "DESCRIPTION:"
+  echo "  Executes query to the Project Zomboid database and displays result."
+  echo
+  echo "USAGE:"
+  echo "  $0 sql [global options...] query"
+  echo
+  echo "GLOBAL OPTIONS:"
+  echo "  --db              Select database. Possible values: db|players|vehicles (default=db)."
+  echo "  --help            Prints help."
+  echo
+  echo "EXAMPLE:"
+  echo "  $0 sql \"SELECT * FROM bannedid ORDER BY steamid;\""
+  echo "  $0 sql \"SELECT steamid, count(username) AS c, group_concat(username) FROM whitelist WHERE steamid != '' GROUP BY steamid HAVING c > 2 ORDER BY c DESC;\""
+  echo "  $0 sql --db players \"SELECT count(*) FROM whitelist;\""
+  echo "  $0 sql --db players \"SELECT count(*) FROM networkPlayers;\""
+  echo "  $0 sql --db vehicles \"SELECT count(*) FROM vehicles;\""
+}
+
 # main contains a proxy for entering permissible functions.
 function main() {
   case "$1" in
@@ -2115,7 +2147,26 @@ function main() {
         clog_search "${search}" "${filename}" "${action}" "${limit}"
       fi ;;
     sql)
-      fn_sqlite "$2";;
+      local db_type="db"
+      local query
+
+      while [[ -n "$2" ]]; do
+        case "$2" in
+          --db) db_type="$3"; shift ;;
+          --help)
+            print_help_sql
+            return ;;
+          *)
+            if [ -n "${query}" ]; then
+              echoerr "to many arguments"; return
+            fi
+            query="$2" ;;
+        esac
+
+        shift
+      done
+
+      fn_sqlite "${db_type}" "${query}" ;;
     vehicles)
       fn_vehicles;;
     restore_players)
