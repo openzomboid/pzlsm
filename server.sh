@@ -1372,7 +1372,7 @@ function fn_sqlite() {
   fi
 
   case "$1" in
-    db)
+    whitelist)
       sqlite3 "${ZOMBOID_FILE_DB}" "${query}" ;;
     players)
       sqlite3 "${ZOMBOID_FILE_PLAYERS_DB}" "${query}" ;;
@@ -1825,13 +1825,13 @@ function print_help_sql() {
   echo "  $0 sql [global options...] query"
   echo
   echo "GLOBAL OPTIONS:"
-  echo "  --db              Select database. Possible values: db|players|vehicles (default=db)."
+  echo "  --db              Select database. Possible values: whitelist|players|vehicles (default=whitelist)."
   echo "  --help            Prints help."
   echo
   echo "EXAMPLE:"
   echo "  $0 sql \"SELECT * FROM bannedid ORDER BY steamid;\""
   echo "  $0 sql \"SELECT steamid, count(username) AS c, group_concat(username) FROM whitelist WHERE steamid != '' GROUP BY steamid HAVING c > 2 ORDER BY c DESC;\""
-  echo "  $0 sql --db players \"SELECT count(*) FROM whitelist;\""
+  echo "  $0 sql --db whitelist \"SELECT count(*) FROM whitelist;\""
   echo "  $0 sql --db players \"SELECT count(*) FROM networkPlayers;\""
   echo "  $0 sql --db vehicles \"SELECT count(*) FROM vehicles;\""
 }
@@ -2147,12 +2147,12 @@ function main() {
         clog_search "${search}" "${filename}" "${action}" "${limit}"
       fi ;;
     sql)
-      local db_type="db"
+      local dbname="whitelist"
       local query
 
       while [[ -n "$2" ]]; do
         case "$2" in
-          --db) db_type="$3"; shift ;;
+          --db) dbname="$3"; shift ;;
           --help)
             print_help_sql
             return ;;
@@ -2166,7 +2166,7 @@ function main() {
         shift
       done
 
-      fn_sqlite "${db_type}" "${query}" ;;
+      fn_sqlite "${dbname}" "${query}" ;;
     vehicles)
       fn_vehicles;;
     restore_players)
