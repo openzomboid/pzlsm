@@ -12,7 +12,7 @@
 
 # VERSION of Project Zomboid Linux Server Manager.
 # Follows semantic versioning, SEE: http://semver.org/.
-VERSION="0.22.19"
+VERSION="0.22.20"
 YEAR="2022"
 AUTHOR="Pavel Korotkiy (outdead)"
 
@@ -632,6 +632,45 @@ function autorestart() {
   fi
 }
 
+# stats displays information on the peak processor consumption and
+# current RAM consumption.
+function stats() {
+  local pid_zomboid=""
+  pid_zomboid=$(get_server_pid)
+  if [ -z "${pid_zomboid}" ]; then
+    echoerr "server is not running"; return 1
+  fi
+
+  local cpu; cpu=$(strclear "$(ps S -p "${pid_zomboid}" -o pcpu=)")
+
+  local mem1; mem1=$(ps S -p "${pid_zomboid}" -o pmem=)
+  local mem2; mem2=$(ps -ylp "${pid_zomboid}" | awk '{x += $8} END {print "" x/1024;}')
+
+  local jvmres; jvmres=$(jstat -gc "${pid_zomboid}")
+
+  local jvm1; jvm1=$(echo "${jvmres}" | awk 'NR>1 { printf("%.1f", $8/$7*100); }')
+  local jvm2; jvm2=$(echo "${jvmres}" | awk 'NR>1 { printf("%.2f", $8/1024); }')
+  local jvm3; jvm3=$(echo "${jvmres}" | awk 'NR>1 { printf("%.2f", $7/1024); }')
+
+  local mem_used_percent=$((100*"${MEMORY_USED}"/"${MEMORY_AVAILABLE}"))
+
+  local uptime; uptime=$(ps -p "${pid_zomboid}" -o etime | grep -v "ELAPSED" | xargs)
+
+  echo "${INFO} cpu srv:  ${cpu}%"
+  echo "${INFO} mem host: ${mem_used_percent}% (${MEMORY_USED} MB from ${MEMORY_AVAILABLE})"
+  echo "${INFO} mem srv:  ${mem1}% (${mem2} MB)"
+  echo "${INFO} mem jvm:  ${jvm1}% (${jvm2} MB from ${jvm3} MB)"
+  echo "${INFO} uptime:   ${uptime}"
+}
+
+# stats_top prints list of top $1 processes with memory usage.
+function stats_top() {
+  local number="$1"
+  [ -z "${number}" ] && number=10
+
+  ps axo rss,comm,pid | awk '{ proc_list[$2]++; proc_list[$2 "," 1] += $1; } END { for (proc in proc_list) { printf("%d\t%s\n", proc_list[proc "," 1],proc); }}' | sort -n | tail -n ${number} | sort -rn | awk '{$1/=1024;printf "%.0fMB\t",$1}{print $2}'
+}
+
 # shutdown_wrapper triggers informational messages for players to alert them of
 # impending server shutdown. After 5 minutes, it calls the stop or restart
 # function.
@@ -1137,6 +1176,44 @@ function backup() {
   echoerr "unknown backup \"${type}\" command"
 }
 
+# config_pull downloads Project Zomboid config files from github repo.
+function config_pull() {
+  if [ -z "${GITHUB_ACCESS_TOKEN}" ] || [ -z "${GITHUB_CONFIG_REPO}" ]; then
+    echoerr "github repo or token is not set"; return 1
+  fi
+
+  local cfg_ini=""
+  cfg_ini=$(curl -H "Authorization: token ${GITHUB_ACCESS_TOKEN}" -s -L "${GITHUB_CONFIG_REPO}/${SERVER_NAME}/${SERVER_NAME}.ini")
+  if [ "$(echo "${cfg_ini}" | wc -l)" -lt "100" ]; then
+    echoerr "downloaded invalid ${SERVER_NAME}.ini";  return 1
+  fi;
+
+  local cfg_sand=""
+  cfg_sand=$(curl -H "Authorization: token ${GITHUB_ACCESS_TOKEN}" -s -L "${GITHUB_CONFIG_REPO}/${SERVER_NAME}/${SERVER_NAME}_SandboxVars.lua")
+  if [ "$(echo "${cfg_sand}" | wc -l)" -lt "100" ]; then
+    echoerr "downloaded invalid ${SERVER_NAME}_SandboxVars.lua";  return 1
+  fi;
+
+  local cfg_points=""
+  cfg_points=$(curl -H "Authorization: token ${GITHUB_ACCESS_TOKEN}" -s -L "${GITHUB_CONFIG_REPO}/${SERVER_NAME}/${SERVER_NAME}_spawnpoints.lua")
+  if [ "$(echo "${cfg_points}" | wc -l)" -lt "7" ]; then
+    echoerr "downloaded invalid ${SERVER_NAME}_spawnpoints.lua";  return 1
+  fi;
+
+  local cfg_regions=""
+  cfg_regions=$(curl -H "Authorization: token ${GITHUB_ACCESS_TOKEN}" -s -L "${GITHUB_CONFIG_REPO}/${SERVER_NAME}/${SERVER_NAME}_spawnregions.lua")
+  if [ "$(echo "${cfg_regions}" | wc -l)" -lt "10" ]; then
+    echoerr "downloaded invalid ${SERVER_NAME}_spawnregions.lua";  return 1
+  fi;
+
+  echo "${cfg_ini}" > "${ZOMBOID_FILE_CONFIG_INI}"
+  echo "${cfg_sand}" > "${ZOMBOID_FILE_CONFIG_SANDBOX}"
+  echo "${cfg_points}" > "${ZOMBOID_FILE_CONFIG_SPAWNPOINTS}"
+  echo "${cfg_regions}" > "${ZOMBOID_FILE_CONFIG_SPAWNREGIONS}"
+
+  echo "${OK} config downloaded"
+}
+
 # time_machine_save saves database files to backup folder.
 function time_machine_save() {
   [ -z "$1" ] && NOW=$(date "+%Y%m%d_%H%M%S") || NOW="$1"
@@ -1456,6 +1533,7 @@ function print_help() {
   echo "COMMANDS:"
   echo "  install [args]          Installs Project Zomboid dedicated server."
   echo "  update                  Updates Project Zomboid dedicated server."
+  echo "  config [args]           Manipulates with server config."
   echo "  start [args]            Starts the server in a screen window. An error message will"
   echo "                          be displayed if server has been started earlier."
   echo "  stop [args]             Stops the server. Triggers informational messages for players"
@@ -1463,6 +1541,9 @@ function print_help() {
   echo "  restart [args]          Restarts the server. Triggers informational messages for players"
   echo "                          to alert them of impending server shutdown."
   echo "  autorestart             Restarts server if it stuck an backups last logs."
+  echo "  stats [args]            Contains presets to OS statistics. Keep sub command empty"
+  echo "                          to use default action. Displays information on the peak"
+  echo "                          processor consumption and current RAM consumption."
   echo "  cmd [args]              Executes the 1 argument as a command on the game server."
   echo "  kickusers               Kicks all players from the server."
   echo "  delfile [args]          Deletes selected Project Zomboid files."
@@ -1561,6 +1642,23 @@ function print_help_update() {
   echo "  $0 update -n"
 }
 
+function print_help_config() {
+  echo "COMMAND NAME:"
+  echo "  config"
+  echo
+  echo "DESCRIPTION:"
+  echo "  Contains commands for manipulating server config."
+  echo
+  echo "USAGE:"
+  echo "  $0 config subcommand [arguments...] [options...]"
+  echo
+  echo "SUBCOMMANDS:"
+  echo "  pull        Downloads Project Zomboid config files from github repo."
+  echo "              Be careful - old PZ config files will be rewritten."
+  echo "  EXAMPLE:"
+  echo "    $0 config pull"
+}
+
 function print_help_start() {
   echo "COMMAND NAME:"
   echo "  start"
@@ -1632,6 +1730,32 @@ function print_help_restart() {
   echo "  $0 restart -f"
   echo "  $0 restart now -f"
   echo "  $0 restart -f kill"
+}
+
+function print_help_stats() {
+  echo "COMMAND NAME:"
+  echo "  stats"
+  echo
+  echo "DESCRIPTION:"
+  echo "  Contains presets to OS statistics. Keep sub command empty"
+  echo "  to use default action. Displays information on the peak"
+  echo "  processor consumption and current RAM consumption."
+  echo
+  echo "USAGE:"
+  echo "  $0 stats subcommand [arguments...] [options...]"
+  echo
+  echo "SUBCOMMANDS:"
+  echo "  info     Displays information on the peak processor consumption and"
+  echo "           current RAM consumption (Default command)."
+  echo "  EXAMPLE:"
+  echo "    $0 stats info"
+  echo "    $0 stats"
+  echo
+  echo "  top      Prints list of top processes with memory usage."
+  echo "  OPTIONS:"
+  echo "    --number|-n     Number of lines (default=10)."
+  echo "  EXAMPLE:"
+  echo "    $0 stats top -n 10"
 }
 
 function print_help_cmd() {
@@ -1993,6 +2117,13 @@ function main() {
         fix_options
         fix_args
       fi ;;
+    config)
+      case "$2" in
+        pull)
+          config_pull ;;
+        --help|*)
+          print_help_config ;;
+      esac ;;
     start)
       local no_screen="false"
 
@@ -2043,9 +2174,33 @@ function main() {
 
       shutdown_wrapper "restart" "${when}" "${fixes}";;
     autorestart)
-      autorestart;;
+      autorestart ;;
+    stats)
+      case "$2" in
+        info)
+          stats;;
+        top)
+          local number=10
+
+          while [[ -n "$3" ]]; do
+            case "$3" in
+              --number|-n) param="$4"
+                number="$param"
+                shift ;;
+            esac
+
+            shift
+          done
+
+          stats_top "${number}";;
+        --help|*)
+          if [ -z "$2" ]; then
+            stats; return
+          fi
+          print_help_stats;;
+      esac ;;
     console)
-      console;;
+      console ;;
     cmd)
       local proto="rcon"
       local command
@@ -2276,12 +2431,13 @@ if [ -z "$1" ]; then
   echo "........ --help"
   echo "........ install command [arguments...] [options...]"
   echo "........ update"
+  echo "........ config command"
   echo "........ start [options...]"
   echo "........ stop [options...]"
   echo "........ restart [options...]"
   echo "........ autorestart"
   echo "........ console"
-  echo "........ cmd command"
+  echo "........ cmd {command}"
   echo "........ kickusers"
   echo "........ delfile command"
   echo "........ map {top} {bottom}"

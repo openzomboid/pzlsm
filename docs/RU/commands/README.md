@@ -10,6 +10,7 @@
 | [stop](start-stop-restart.md)      | Не обязательные | `./server.sh stop`
 | [restart](start-stop-restart.md)   | Не обязательные | `./server.sh restart`
 | [autorestart](autorestart.md)      |                 | `./server.sh autorestart`
+| [stats](stats.md)                  | Не обязательные | `./server.sh stats`
 | [console](console.md)              |                 | `./server.sh console`
 | [cmd](cmd.md)                      | Обязательные    | `./server.sh cmd`
 | [kickusers](kickusers.md)          |                 | `./server.sh kickusers`

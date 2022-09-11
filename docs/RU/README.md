@@ -7,6 +7,7 @@
     * [config](commands/config.md) [pull]
     * [start-stop-restart](commands/start-stop-restart.md) [start, stop, restart]
     * [autorestart](commands/autorestart.md)
+    * [stats](commands/stats.md) [info, top]
     * [console](commands/console.md)
     * [cmd](commands/cmd.md)
     * [kickusers](commands/kickusers.md)
