@@ -21,7 +21,7 @@
 | [log](log.md)                      | Обязательные    | `./server.sh log`
 | [sql](sql.md)                      | Обязательные    | `./server.sh sql`
 | [players](players.md)              | Обязательные    | `./server.sh players`
-| [vehicles](vehicles.md)            |                 | `./server.sh vehicles`
+| [vehicles](vehicles.md)            | Обязательные    | `./server.sh vehicles`
 
 ## Глобальные аргументы
 | Имя аргумента       | Аргумент
