@@ -54,7 +54,7 @@ COMMANDS:
                           file to search.
   sql [args]              Executes query 1 to the Project Zomboid database and displays result.
   players [args]          Manipulates with players database.
-  vehicles                Prints vehicles coordinates.
+  vehicles [args]         Manipulates with vehicles database..
   sync                    Downloads Project Zomboid config files from github repo. (DEPRECATED).
   map_regen [args]        Deletes chunks. (DEPRECATED).
 
