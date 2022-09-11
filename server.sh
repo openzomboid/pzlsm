@@ -12,7 +12,7 @@
 
 # VERSION of Project Zomboid Linux Server Manager.
 # Follows semantic versioning, SEE: http://semver.org/.
-VERSION="0.22.18"
+VERSION="0.22.19"
 YEAR="2022"
 AUTHOR="Pavel Korotkiy (outdead)"
 
@@ -1478,8 +1478,6 @@ function print_help() {
   echo "  sql [args]              Executes query 1 to the Project Zomboid database and displays result."
   echo "  players [args]          Manipulates with players database."
   echo "  vehicles [args]         Manipulates with vehicles database."
-  echo "  sync                    Downloads Project Zomboid config files from github repo (DEPRECATED)."
-  echo "  map_regen [args]        Deletes chunks. (DEPRECATED)."
   echo
   echo "PLUGINS:"
   echo "  ${PLUGINS_COMMANDS_HELP}"
@@ -2268,12 +2266,6 @@ function main() {
     --test)
       echo "test"
       ;;
-
-    # TODO: Deprecated commands.
-    sync)
-      config_pull;;
-    map_regen)
-      map_regen "$2" "$3";;
   esac
 }
 
@@ -2295,11 +2287,9 @@ if [ -z "$1" ]; then
   echo "........ map {top} {bottom}"
   echo "........ range {top} {bottom}"
   echo "........ backup {type}"
-  echo "........ log {search} {type} {action} {limit}"
-  echo "........ clog {search} {type} {action} {limit}"
+  echo "........ log {search} {type} [options...]"
   echo "........ sql {query}"
   echo "........ players {command}"
-  echo "........ sync"
   printf "[  >>  ] " & read CMD
 fi
 
