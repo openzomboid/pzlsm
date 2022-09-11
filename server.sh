@@ -2015,6 +2015,10 @@ function print_help_vehicles() {
 function main() {
   case "$1" in
     install)
+      if [ "$2" == "--help" ]; then
+        print_help_install; return
+      fi
+
       if [ "$(is_server_running)" == "true" ]; then
         echo "${ER} cannot install on started server"; return 0
       fi
