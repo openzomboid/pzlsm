@@ -19,8 +19,8 @@
 | [backup](backup.md)                | Не обязательные | `./server.sh backup`
 | [log](log.md)                      | Обязательные    | `./server.sh log`
 | [sql](sql.md)                      | Обязательные    | `./server.sh sql`
-| [players](players.md)              | Обязательные    | `./server.sh restore_players`
-| vehicles         |                 | `./server.sh vehicles`
+| [players](players.md)              | Обязательные    | `./server.sh players`
+| [vehicles](vehicles.md)            |                 | `./server.sh vehicles`
 
 ## Глобальные аргументы
 | Имя аргумента       | Аргумент

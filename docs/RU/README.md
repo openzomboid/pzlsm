@@ -17,3 +17,4 @@
     * [log](commands/log.md)
     * [sql](commands/sql.md)
     * [players](commands/players.md) [backups, restore, sql]
+    * [vehicles](commands/vehicles.md) [list, sql]

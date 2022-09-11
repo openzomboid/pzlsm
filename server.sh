@@ -12,7 +12,7 @@
 
 # VERSION of Project Zomboid Linux Server Manager.
 # Follows semantic versioning, SEE: http://semver.org/.
-VERSION="0.22.17"
+VERSION="0.22.18"
 YEAR="2022"
 AUTHOR="Pavel Korotkiy (outdead)"
 
@@ -2242,7 +2242,23 @@ function main() {
 
       print_help_players ;;
     vehicles)
-      fn_vehicles;;
+      while [[ -n "$2" ]]; do
+        case "$2" in
+          list)
+            fn_vehicles
+            return ;;
+          sql)
+            fn_sqlite "vehicles" "${3}"
+            return ;;
+          --help|*)
+            print_help_vehicles
+            return ;;
+        esac
+
+        shift
+      done
+
+      print_help_vehicles ;;
     --variables|--vars)
       print_variables;;
     --version)
