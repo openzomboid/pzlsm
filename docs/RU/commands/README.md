@@ -23,8 +23,8 @@
 | [players](players.md)              | Обязательные    | `./server.sh players`
 | [vehicles](vehicles.md)            | Обязательные    | `./server.sh vehicles`
 
-## Глобальные аргументы
-| Имя аргумента       | Аргумент
+## Глобальные опции
+| Имя опции           | Опция
 | ------------------- | --------------------------
 | --variables, --vars | `./server.sh --variables`
 | --version           | `./server.sh --version`
