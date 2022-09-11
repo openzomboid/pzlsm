@@ -1866,6 +1866,29 @@ function print_help_players() {
   echo "    $0 players sql \"SELECT count(*) FROM networkPlayers;\""
 }
 
+function print_help_vehicles() {
+  echo "COMMAND NAME:"
+  echo "  vehicles"
+  echo
+  echo "DESCRIPTION:"
+  echo "  Manipulates with vehicles database."
+  echo
+  echo "USAGE:"
+  echo "  $0 vehicles [global options...] command [arguments...] [options...]"
+  echo
+  echo "GLOBAL OPTIONS:"
+  echo "  --help            Prints help."
+  echo
+  echo "COMMANDS:"
+  echo "  list              Prints vehicles coordinates."
+  echo "  EXAMPLE:"
+  echo "    $0 vehicles list"
+  echo
+  echo "  sql {query}       Executes SQL query on vehicles.db database."
+  echo "  EXAMPLE:"
+  echo "    $0 vehicles sql \"SELECT count(*) FROM vehicles;\""
+}
+
 # main contains a proxy for entering permissible functions.
 function main() {
   case "$1" in
