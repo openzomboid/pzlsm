@@ -1,6 +1,7 @@
 # PZLSM Documentation
 
 * [Installation](installation.md)
+* [Config](config.md)
 * [Commands](commands/README.md)
     * [install](commands/install.md) [dependencies, folders, utils, prepare, server, fix]
     * [update](commands/update.md)
