@@ -54,7 +54,7 @@ COMMANDS:
                           file to search.
   sql [args]              Executes query 1 to the Project Zomboid database and displays result.
   players [args]          Manipulates with players database.
-  vehicles [args]         Manipulates with vehicles database..
+  vehicles [args]         Manipulates with vehicles database.
 
 PLUGINS:
   web                     Contains presets to web commands.
