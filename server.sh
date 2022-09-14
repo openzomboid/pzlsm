@@ -12,7 +12,7 @@
 
 # VERSION of Project Zomboid Linux Server Manager.
 # Follows semantic versioning, SEE: http://semver.org/.
-VERSION="0.22.20"
+VERSION="0.22.21"
 YEAR="2022"
 AUTHOR="Pavel Korotkiy (outdead)"
 
@@ -27,6 +27,7 @@ APP_ID=108600
 APP_DEDICATED_ID=380870
 
 BASEDIR=$(dirname "$(readlink -f "${BASH_SOURCE[@]}")")
+SCRIPT_LOCATION=${BASEDIR}
 
 # MEMORY_AVAILABLE is the amount of memory available on the server in MB.
 MEMORY_AVAILABLE=$(free | awk 'NR==2 { printf("%.0f", $2/1024); }')
@@ -96,6 +97,8 @@ BASENAME=$(basename "${BASEDIR}")
 
 [ -z "${STEAMCMD_USERNAME}" ] && STEAMCMD_USERNAME="anonymous"
 [ -z "${STEAMCMD_BETA}" ] && STEAMCMD_BETA="-beta none"
+
+[ -z "${PZLSM_SOURCE_LINK}" ] && PZLSM_SOURCE_LINK="https://raw.githubusercontent.com/openzomboid/pzlsm/master"
 
 ## Utils
 
@@ -1488,6 +1491,16 @@ function players_restore() {
   echo "${OK} players backup ${filename} restored successful"
 }
 
+# self_update downloads PZLSM updates from repository.
+# TODO: Add chose tags: version|latest|develop.
+function self_update() {
+  local update_dir="${DIR_STATE}/update"
+
+  mkdir -p "${update_dir}"
+
+  wget -O "${update_dir}/server.sh" "${PZLSM_SOURCE_LINK}/server.sh" && chmod +x "${update_dir}/server.sh" && mv "${update_dir}/server.sh" "${SCRIPT_LOCATION}/server.sh"
+}
+
 PLUGINS_COMMANDS_HELP=""
 
 IFS=';' read -ra ADDR <<< "${DIR_PLUGINS}"
@@ -2423,6 +2436,7 @@ function main() {
     --help)
       print_help;;
     --test)
+      self_update
       echo "test"
       ;;
   esac
