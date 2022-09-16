@@ -4,6 +4,7 @@
 * [Установка](installation.md)
 * [Конфигурация](configuration)
 * [Команды](commands)
+    * [self-update](commands/self-update.md)
     * [install](commands/install.md) [dependencies, folders, utils, prepare, server, fix]
     * [update](commands/update.md)
     * [config](commands/config.md) [pull]

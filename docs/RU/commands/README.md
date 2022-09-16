@@ -3,6 +3,7 @@
 ## Базовые команды
 | Имя команды                        | Аргументы       | Команда
 | ---------------------------------- | --------------- | --------------------------
+| [self-update](self-update.md)      |                 | `./server.sh self-update`
 | [install](install.md)              | Не обязательные | `./server.sh install`
 | [update](update.md)                | Не обязательные | `./server.sh update`
 | [config](config.md)                | Обязательные    | `./server.sh config pull`

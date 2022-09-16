@@ -12,7 +12,7 @@
 
 # VERSION of Project Zomboid Linux Server Manager.
 # Follows semantic versioning, SEE: http://semver.org/.
-VERSION="0.22.21"
+VERSION="0.22.22"
 YEAR="2022"
 AUTHOR="Pavel Korotkiy (outdead)"
 
@@ -1544,6 +1544,7 @@ function print_help() {
   echo "  --help                  Show help."
   echo
   echo "COMMANDS:"
+  echo "  self-update             Updates PZLSM."
   echo "  install [args]          Installs Project Zomboid dedicated server."
   echo "  update                  Updates Project Zomboid dedicated server."
   echo "  config [args]           Manipulates with server config."
@@ -2027,6 +2028,8 @@ function print_help_vehicles() {
 # main contains a proxy for entering permissible functions.
 function main() {
   case "$1" in
+    self-update)
+      self_update ;;
     install)
       if [ "$2" == "--help" ]; then
         print_help_install; return
@@ -2436,7 +2439,6 @@ function main() {
     --help)
       print_help;;
     --test)
-      self_update
       echo "test"
       ;;
   esac
@@ -2447,6 +2449,7 @@ if [ -z "$1" ]; then
   echo "........ --variables"
   echo "........ --version"
   echo "........ --help"
+  echo "........ self-update"
   echo "........ install command [arguments...] [options...]"
   echo "........ update"
   echo "........ config command"

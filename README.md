@@ -30,6 +30,7 @@ GLOBAL OPTIONS:
   --help                  Show help.
 
 COMMANDS:
+  self-update             Updates PZLSM. TODO: Update plugins.
   install [args]          Installs Project Zomboid dedicated server.
   update                  Updates Project Zomboid dedicated server.
   start [args]            Starts the server in a screen window. An error message will
