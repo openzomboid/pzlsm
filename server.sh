@@ -1496,9 +1496,25 @@ function players_restore() {
 function self_update() {
   local update_dir="${DIR_STATE}/update"
 
+  rm -rf "${update_dir}"
   mkdir -p "${update_dir}"
 
-  wget -O "${update_dir}/server.sh" "${PZLSM_SOURCE_LINK}/server.sh" && chmod +x "${update_dir}/server.sh" && mv "${update_dir}/server.sh" "${SCRIPT_LOCATION}/server.sh"
+  wget -q -O "${update_dir}/server.sh" "${PZLSM_SOURCE_LINK}/server.sh" && chmod +x "${update_dir}/server.sh"
+
+  local new_version; new_version=$(grep "^VERSION" "${update_dir}/server.sh" | awk -F'[="]' '{print $3}')
+
+  if [ -z "${new_version}" ]; then
+    echoerr "Failed to download PZLSM update"; return 1
+  fi
+
+  if [ "${VERSION}" \< "${new_version}" ]; then
+    mv "${update_dir}/server.sh" "${SCRIPT_LOCATION}/server.sh"
+    echo "${INFO} PZLSM successfully updated"
+  else
+    echo "${INFO} Nothing to update"
+  fi
+
+  rm -rf "${update_dir}"
 }
 
 PLUGINS_COMMANDS_HELP=""
