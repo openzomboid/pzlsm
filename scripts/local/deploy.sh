@@ -16,7 +16,7 @@ BASEDIR=$(dirname "$(readlink -f "$BASH_SOURCE")")
 if [ -n "$1" ]; then
     SERVER_TYPE="$1"
 
-    DIR_INCLUDE="${BASEDIR}/include"
+    DIR_INCLUDE="${BASEDIR}/../../build"
 
     FILE_DEPLOY_CONFIG="${DIR_INCLUDE}/config/deploy/${SERVER_TYPE}.sh"
 

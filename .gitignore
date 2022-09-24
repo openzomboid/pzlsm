@@ -5,5 +5,5 @@
 testdata/
 .env
 
-!include/config/deploy/default.sh
-include/config/deploy/*
+build/config/deploy/*
+!build/config/deploy/_dist.sh
