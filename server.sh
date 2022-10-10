@@ -12,7 +12,7 @@
 
 # VERSION of Project Zomboid Linux Server Manager.
 # Follows semantic versioning, SEE: http://semver.org/.
-VERSION="0.22.23"
+VERSION="0.22.24"
 YEAR="2022"
 AUTHOR="Pavel Korotkiy (outdead)"
 
@@ -2347,12 +2347,15 @@ function main() {
 
       shift
 
+      if [ "$1" == "-c" ] || [ "$1" == "--current" ]; then
+        current="true"
+        shift
+      fi
+
       while [[ -n "$1" ]]; do
         local double="false"
 
         case "$1" in
-          -c|--current)
-            current="true" ;;
           -a|--action)
             shift && action="$1" && double="true" ;;
           -l|--limit)
