@@ -12,7 +12,7 @@
 
 # VERSION of Project Zomboid Linux Server Manager.
 # Follows semantic versioning, SEE: http://semver.org/.
-VERSION="0.22.24"
+VERSION="0.22.25"
 YEAR="2022"
 AUTHOR="Pavel Korotkiy (outdead)"
 
@@ -87,10 +87,11 @@ BASENAME=$(basename "${BASEDIR}")
 [ -z "${UTIL_RCON_VERSION}" ] && UTIL_RCON_VERSION="0.10.2"
 [ -z "${SERVER_MEMORY_LIMIT}" ] && SERVER_MEMORY_LIMIT=2048
 [ -z "${SERVER_NAME}" ] && SERVER_NAME="servertest"
+[ -z "${ZOMBOID_HOME_DIR}" ] && ZOMBOID_HOME_DIR=".\/"
 [ -z "${SCREEN_ZOMBOID}" ] && SCREEN_ZOMBOID="${SERVER_NAME}"
 [ -z "${SERVER_LANG}" ] && SERVER_LANG="en"
 [ -z "${SERVER_DIR}" ] && SERVER_DIR="${BASEDIR}/projectzomboid"
-[ -z "${ZOMBOID_DIR}" ] && ZOMBOID_DIR="${SERVER_DIR}/Zomboid"
+[ -z "${ZOMBOID_DIR}" ] && ZOMBOID_DIR="${BASEDIR}/Zomboid"
 [ -z "${FIRST_RUN_ADMIN_PASSWORD}" ] && FIRST_RUN_ADMIN_PASSWORD="changeme"
 [ -z "${BACKUP_ON_STOP}" ] && BACKUP_ON_STOP="false"
 [ -z "${AUTO_RESTORE}" ] && AUTO_RESTORE="false"
@@ -487,7 +488,7 @@ function fix_args() {
   # Change GC type.
   sed -i -r "s/UseZGC/UseG1GC/g" "${SERVER_DIR}/ProjectZomboid64.json"
 
-  local set_home='"-Duser.home=.\/"'
+  local set_home="\"-Duser.home=${ZOMBOID_HOME_DIR}\""
   local set_encoding='"-Dfile.encoding=UTF-8"'
   local set_servername="\"-Dservername=${SERVER_NAME}\""
   local set_serverlang="\"-Duser.language=${SERVER_LANG}\""
