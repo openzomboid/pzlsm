@@ -315,7 +315,7 @@ function create_folders() {
   mkdir -p "${DIR_CONFIG}"
   mkdir -p "${DIR_PUBLIC}"
   mkdir -p "${DIR_UTILS}"
-  mkdir -p "${DIR_PLUGINS}"
+  mkdir -p "${DIR_PLUGINS}" # TODO: Spit into two variables.
   mkdir -p "${DIR_STATE}"
 
   # Config.
