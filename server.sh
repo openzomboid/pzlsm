@@ -12,7 +12,7 @@
 
 # VERSION of Project Zomboid Linux Server Manager.
 # Follows semantic versioning, SEE: http://semver.org/.
-VERSION="0.22.25"
+VERSION="0.22.26"
 YEAR="2022"
 AUTHOR="Pavel Korotkiy (outdead)"
 
@@ -2048,14 +2048,6 @@ function main() {
     self-update)
       self_update ;;
     install)
-      if [ "$2" == "--help" ]; then
-        print_help_install; return
-      fi
-
-      if [ "$(is_server_running)" == "true" ]; then
-        echo "${ER} cannot install on started server"; return 0
-      fi
-
       local branch="none"
       local fixes="true"
 
@@ -2088,6 +2080,10 @@ function main() {
             install_rcon
             return ;;
           server)
+            if [ "$(is_server_running)" == "true" ]; then
+              echo "${ER} cannot install on started server"; return 0
+            fi
+
             while [[ -n "$3" ]]; do
               case "$3" in
                 --branch|-b) branch="$4" ;;
@@ -2109,6 +2105,10 @@ function main() {
             print_help_install
             return ;;
           fix)
+            if [ "$(is_server_running)" == "true" ]; then
+              echo "${ER} cannot install on started server"; return 0
+            fi
+
             echo "${INFO} Apply fixes.."
             fix_options
             fix_args
@@ -2117,6 +2117,10 @@ function main() {
 
         shift
       done
+
+      if [ "$(is_server_running)" == "true" ]; then
+        echo "${ER} cannot install on started server"; return 0
+      fi
 
       echo "${INFO} Installing dependencies, additional utils, creating required folders and installs PZ server.."
       install_dependencies
