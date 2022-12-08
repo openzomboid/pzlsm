@@ -945,8 +945,8 @@ function map_regen() {
   local bot_x; bot_x=$(echo "${rectangle[2]}/10" |bc)
   local bot_y; bot_y=$(echo "${rectangle[3]}/10" |bc)
 
-  if [ "${top_x}" -ge "${bot_x}" ] || [ "${top_y}" -ge "${bot_y}" ]; then
-     echoerr "invalid points"; return 1
+  if [ "${top_x}" -gt "${bot_x}" ] || [ "${top_y}" -gt "${bot_y}" ]; then
+    echoerr "invalid points"; return 1
   fi
 
   local count=0
@@ -995,7 +995,7 @@ function map_copy() {
   local bot_x; bot_x=$(echo "${rectangle[2]}/10" |bc)
   local bot_y; bot_y=$(echo "${rectangle[3]}/10" |bc)
 
-  if [ "${top_x}" -ge "${bot_x}" ] || [ "${top_y}" -ge "${bot_y}" ]; then
+  if [ "${top_x}" -gt "${bot_x}" ] || [ "${top_y}" -gt "${bot_y}" ]; then
      echoerr "invalid points"; return 1
   fi
 
@@ -1062,7 +1062,7 @@ function map_copyto() {
   local bot_x; bot_x=$(echo "${rectangle[2]}/10" |bc)
   local bot_y; bot_y=$(echo "${rectangle[3]}/10" |bc)
 
-  if [ "${top_x}" -ge "${bot_x}" ] || [ "${top_y}" -ge "${bot_y}" ]; then
+  if [ "${top_x}" -gt "${bot_x}" ] || [ "${top_y}" -gt "${bot_y}" ]; then
      echoerr "invalid points"; return 1
   fi
 
@@ -1149,7 +1149,7 @@ function range() {
   local bot_x; bot_x=$(echo "${rectangle[2]}" |bc)
   local bot_y; bot_y=$(echo "${rectangle[3]}" |bc)
 
-  if [ "${top_x}" -ge "${bot_x}" ] || [ "${top_y}" -ge "${bot_y}" ]; then
+  if [ "${top_x}" -gt "${bot_x}" ] || [ "${top_y}" -gt "${bot_y}" ]; then
      echoerr "invalid points"; return 1
   fi
 
