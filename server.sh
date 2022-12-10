@@ -12,7 +12,7 @@
 
 # VERSION of Project Zomboid Linux Server Manager.
 # Follows semantic versioning, SEE: http://semver.org/.
-VERSION="0.22.27"
+VERSION="0.22.28"
 YEAR="2022"
 AUTHOR="Pavel Korotkiy (outdead)"
 
@@ -385,26 +385,6 @@ function install_rcon() {
   wget -P "${DIR_UTILS}" "${UTIL_RCON_LINK}"
   tar -zxvf "${DIR_UTILS}/rcon-${UTIL_RCON_VERSION}-amd64_linux.tar.gz" -C "${DIR_UTILS}"
   rm "${DIR_UTILS}/rcon-${UTIL_RCON_VERSION}-amd64_linux.tar.gz"
-}
-
-# is_updated checks the time of the last server update via steamcmd,
-# compare it with the saved one, return a response about the need to
-# restart if the time does not match and update the time in the repository
-#
-# TODO: Implement me.
-# Check Project Zomboid update date in Steam.
-# Check Project Zomboid mods update date in Steam.
-function is_updated() {
-  if [ ! -f "${ZOMBOID_MANIFEST}" ]; then
-    echoerr "server manifest file not found"
-    return 1
-  fi
-
-  # Get updated timestamp from manifest file.
-  local updated=""
-  updated=$(grep -oP "(?<=LastUpdated).*" "${ZOMBOID_MANIFEST}" | grep -o '[0-9]*')
-
-  echo "false"
 }
 
 # install_server installs Project Zomboid dedicated server.
