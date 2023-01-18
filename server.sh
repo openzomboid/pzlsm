@@ -201,6 +201,8 @@ function print_variables() {
   echo "${INFO} ZOMBOID_FILE_CONFIG_INI:     ${ZOMBOID_FILE_CONFIG_INI}"
   echo "${INFO} ZOMBOID_FILE_CONFIG_SANDBOX: ${ZOMBOID_FILE_CONFIG_SANDBOX}"
   echo "${INFO} ZOMBOID_FILE_DB:             ${ZOMBOID_FILE_DB}"
+  echo "${INFO}"
+  echo "${INFO} DIR_PLUGINS:                 ${DIR_PLUGINS}"
 }
 
 # save_config_example saves pzlsm config example.
