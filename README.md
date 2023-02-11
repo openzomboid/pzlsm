@@ -60,3 +60,7 @@ COMMANDS:
 PLUGINS:
   web                     Contains presets to web commands.
 ```
+
+## Documentation
+1. Every command has `--help` key. Add it to command and read description.  
+2. Russian documentation is hosted at [docs](docs/RU)  
