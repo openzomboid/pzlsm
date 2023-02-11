@@ -196,7 +196,11 @@ function print_variables() {
   echo "${INFO} ZOMBOID_DIR_LOGS:            ${ZOMBOID_DIR_LOGS}"
   echo "${INFO} ZOMBOID_DIR_SERVER:          ${ZOMBOID_DIR_SERVER}"
   echo "${INFO} ZOMBOID_DIR_DB:              ${ZOMBOID_DIR_DB}"
-  local exists=$(echo -e " (${RED}not exists${NC})"); [ -d "${ZOMBOID_DIR_MAP}" ] $$ exists=""
+  local exists
+  exists=$(echo -e "${RED} (not exists)${NC}")
+  if [ -d "${ZOMBOID_DIR_MAP}" ]; then
+    exists=""
+  fi
   echo "${INFO} ZOMBOID_DIR_MAP:             ${ZOMBOID_DIR_MAP}${exists}"
   echo "${INFO}"
   echo "${INFO} ZOMBOID_FILE_CONFIG_INI:     ${ZOMBOID_FILE_CONFIG_INI}"
