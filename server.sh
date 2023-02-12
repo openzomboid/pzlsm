@@ -12,7 +12,7 @@
 
 # VERSION of Project Zomboid Linux Server Manager.
 # Follows semantic versioning, SEE: http://semver.org/.
-VERSION="0.22.31"
+VERSION="0.22.32"
 YEAR="2023"
 AUTHOR="Pavel Korotkiy (outdead)"
 
@@ -54,6 +54,7 @@ test -f "${ENV_FILE}" && . "${ENV_FILE}"
 # Linux Server Manager directories definitions.
 DIR_BACKUPS="${BASEDIR}/backups"
 DIR_UTILS="${BASEDIR}/utils"
+DIR_PZLSD="${BASEDIR}/utils/pzlsd"
 DIR_PLUGINS="${BASEDIR}/utils/plugins"
 DIR_LOGS="${BASEDIR}/logs"
 DIR_CONFIG="${BASEDIR}/config"
@@ -62,6 +63,7 @@ DIR_STATE="${BASEDIR}/state"
 
 DIR_BACKUPS_DOWN="${DIR_BACKUPS}/down"
 DIR_BACKUPS_ZOMBOID="${DIR_BACKUPS}/zomboid"
+DIR_BACKUPS_PZLSD="${DIR_BACKUPS}/pzlsd"
 DIR_BACKUPS_COPY="${DIR_BACKUPS}/copy"
 DIR_BACKUPS_PLAYERS="${DIR_BACKUPS}/players"
 DIR_BACKUPS_TIME_MACHINE="${DIR_BACKUPS}/timemachine"
@@ -325,6 +327,7 @@ function create_folders() {
   mkdir -p "${DIR_CONFIG}"
   mkdir -p "${DIR_PUBLIC}"
   mkdir -p "${DIR_UTILS}"
+  mkdir -p "${DIR_PZLSD}"
   mkdir -p "${DIR_PLUGINS}" # TODO: Spit into two variables.
   mkdir -p "${DIR_STATE}"
 
@@ -334,6 +337,7 @@ function create_folders() {
   # Backups.
   mkdir -p "${DIR_BACKUPS_DOWN}"
   mkdir -p "${DIR_BACKUPS_ZOMBOID}"
+  mkdir -p "${DIR_BACKUPS_PZLSD}"
   mkdir -p "${DIR_BACKUPS_COPY}"
   mkdir -p "${DIR_BACKUPS_PLAYERS}"
   mkdir -p "${DIR_BACKUPS_TIME_MACHINE}"
@@ -576,6 +580,7 @@ function stop() {
 
   # Backups
   backup "world"
+  backup "pzlsd"
 }
 
 # restart stops the server and starts it after 10 seconds.
@@ -1179,6 +1184,10 @@ function backup() {
     zomboid_save "$NOW" && return 0 || return 1
   fi
 
+  if [ "${type}" == "pzlsd" ]; then
+    pzlsd_save "$NOW" && return 0 || return 1
+  fi
+
   echoerr "unknown backup \"${type}\" command"
 }
 
@@ -1378,6 +1387,45 @@ function zomboid_save() {
 
   echo "${OK} world save on ${NOW} completed"
   delete_old_zomboid "${CLEAR_BACKUPS_DAY}"
+}
+
+# pzlsd_save saves pzlsd folder file to backup folder.
+function pzlsd_save() {
+  [ -z "$1" ] && NOW=$(date "+%Y%m%d_%H%M%S") || NOW="$1"
+
+  echoerr_del() {
+    rm -rf "$1";
+    echoerr "pzlsd save on ${NOW} failed";
+  }
+
+  # delete_old_pzlsm deletes files ${SERVER_NAME}_pzlsm_*_*.tar.gz older than
+  # $1 days from backups/pzlsm directory.
+  # If you do not pass the number of days $1, or pass the value 0 then the
+  # default value will be taken from the variable CLEAR_BACKUPS_DAY.
+  delete_old_pzlsd() {
+    local days="$1"
+    [ -z "${days}" ] && days=${CLEAR_BACKUPS_DAY}
+
+    # Do nothing if turned off in the settings.
+    [ "${days}" -eq "0" ] && return 0
+
+    local count
+    (( days-- ))
+    count=$(find "${DIR_BACKUPS_PZLSD}" -name "${SERVER_NAME}_pzlsd_*_*.tar.gz" -mtime +${days} | wc -l)
+    find "${DIR_BACKUPS_PZLSD}" -name "${SERVER_NAME}_pzlsd_*_*.tar.gz" -mtime +${days} -delete
+    (( days++ ))
+    echo "${INFO} remove pzlsd backups older than ${days} days... ${count} backups"
+  }
+
+  echo "${INFO} pzlsd save on ${NOW}..."
+
+  local name="${SERVER_NAME}_pzlsd_${NOW}.tar.gz"
+  if ! tar -czf "${DIR_BACKUPS_PZLSD}/${name}" --warning=no-file-changed -C "${DIR_PZLSD}" .; then
+    echoerr_del "${DIR_BACKUPS_PZLSD}/${name}"; return 1
+  fi
+
+  echo "${OK} pzlsd save on ${NOW} completed"
+  delete_old_pzlsd "${CLEAR_BACKUPS_DAY}"
 }
 
 # log_search looks for string $1 in log files. Chat logs excluded from search.
@@ -1933,6 +1981,7 @@ function print_help_backup() {
   echo "  fast              Saves database files to backup folder."
   echo "  players           Saves players database file to backup folder."
   echo "  world             Saves Zomboid folder file to backup folder."
+  echo "  pzlsd             Saves pzlsd folder file to backup folder."
   echo
   echo "EXAMPLE:"
   echo "  $0 backup fast"
