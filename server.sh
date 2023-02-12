@@ -12,7 +12,7 @@
 
 # VERSION of Project Zomboid Linux Server Manager.
 # Follows semantic versioning, SEE: http://semver.org/.
-VERSION="0.22.30"
+VERSION="0.22.31"
 YEAR="2023"
 AUTHOR="Pavel Korotkiy (outdead)"
 
@@ -78,10 +78,10 @@ test -f "${FILE_PZLSM_CONFIG}" && . "${FILE_PZLSM_CONFIG}"
 BASENAME=$(basename "${BASEDIR}")
 
 ## Check config variables and set default values if not defined.
-[ -z "${CLEAR_MAP_DAY}" ] && CLEAR_MAP_DAY=21
-[ -z "${CLEAR_LOGS_DAY}" ] && CLEAR_LOGS_DAY=1000
-[ -z "${CLEAR_STACK_TRACE_DAY}" ] && CLEAR_STACK_TRACE_DAY=1000
-[ -z "${CLEAR_BACKUPS_DAY}" ] && CLEAR_BACKUPS_DAY=1000
+[ -z "${CLEAR_MAP_DAY}" ] && CLEAR_MAP_DAY=0
+[ -z "${CLEAR_LOGS_DAY}" ] && CLEAR_LOGS_DAY=0
+[ -z "${CLEAR_STACK_TRACE_DAY}" ] && CLEAR_STACK_TRACE_DAY=0
+[ -z "${CLEAR_BACKUPS_DAY}" ] && CLEAR_BACKUPS_DAY=7
 [ -z "${CLEAR_TIME_MACHINE_DAY}" ] && CLEAR_TIME_MACHINE_DAY=5
 [ -z "${UTIL_RANGE_VERSION}" ] && UTIL_RANGE_VERSION="1.0.1"
 [ -z "${UTIL_RCON_VERSION}" ] && UTIL_RCON_VERSION="0.10.2"
