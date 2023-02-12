@@ -12,7 +12,7 @@
 
 # VERSION of Project Zomboid Linux Server Manager.
 # Follows semantic versioning, SEE: http://semver.org/.
-VERSION="0.22.29"
+VERSION="0.22.30"
 YEAR="2023"
 AUTHOR="Pavel Korotkiy (outdead)"
 
@@ -924,6 +924,10 @@ function map_regen() {
      echoerr "lower left corner is not set"; return 1
   fi
 
+  if [ ! -d "${ZOMBOID_DIR_MAP}" ]; then
+     echoerr "saves dir \"${ZOMBOID_DIR_MAP}\" doesn't exist"; return 1
+  fi
+
   local rectangle=($(get_rectangle "${from}" "${to}"))
   if [ -n "${rectangle[4]}" ]; then
     echoerr "${rectangle[*]:4}"; return 1
@@ -972,6 +976,10 @@ function map_copy() {
   local to="$2"
   if [ -z "${to}" ]; then
      echoerr "lower left corner is not set"; return 1
+  fi
+
+  if [ ! -d "${ZOMBOID_DIR_MAP}" ]; then
+     echoerr "saves dir \"${ZOMBOID_DIR_MAP}\" doesn't exist"; return 1
   fi
 
   local rectangle=($(get_rectangle "${from}" "${to}"))
@@ -1039,6 +1047,10 @@ function map_copyto() {
   local to="$2"
   if [ -z "${to}" ]; then
      echoerr "lower left corner is not set"; return 1
+  fi
+
+  if [ ! -d "${ZOMBOID_DIR_MAP}" ]; then
+     echoerr "saves dir \"${ZOMBOID_DIR_MAP}\" doesn't exist"; return 1
   fi
 
   local rectangle=($(get_rectangle "${from}" "${to}"))
