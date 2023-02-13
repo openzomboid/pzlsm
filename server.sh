@@ -12,7 +12,7 @@
 
 # VERSION of Project Zomboid Linux Server Manager.
 # Follows semantic versioning, SEE: http://semver.org/.
-VERSION="0.22.32"
+VERSION="0.22.33"
 YEAR="2023"
 AUTHOR="Pavel Korotkiy (outdead)"
 
@@ -103,6 +103,8 @@ BASENAME=$(basename "${BASEDIR}")
 
 [ -z "${PZLSM_SOURCE_LINK}" ] && PZLSM_SOURCE_LINK="https://raw.githubusercontent.com/openzomboid/pzlsm/master"
 
+[ -z "${WRITE_PZLSM_LOGS}" ] && WRITE_PZLSM_LOGS="false"
+
 ## Utils
 
 # Numeric range regular expression builder written in bash.
@@ -146,13 +148,19 @@ fn_exists() { declare -F "$1" > /dev/null; }
 # echoerr prints red error message to stderr and FILE_PZLSM_LOG file.
 function echoerr() {
   echo "${ER} $1"
-  echo "[$(date "+%Y-%m-%d %H:%M:%S")] $0 - $1" >> "${FILE_PZLSM_LOG}"
+  if [ "${WRITE_PZLSM_LOGS}" == "true" ]; then
+    mkdir -p "${DIR_LOGS}"
+    echo "[$(date "+%Y-%m-%d %H:%M:%S")] $0 - $1" >> "${FILE_PZLSM_LOG}"
+  fi
 }
 
 # echowarn prints yellow error message to stderr and FILE_PZLSM_LOG file.
 function echowarn() {
   echo "${WARN} $1"
-  echo "[$(date "+%Y-%m-%d %H:%M:%S")] $0 - $1" >> "${FILE_PZLSM_LOG}"
+  if [ "${WRITE_PZLSM_LOGS}" == "true" ]; then
+    mkdir -p "${DIR_LOGS}"
+    echo "[$(date "+%Y-%m-%d %H:%M:%S")] $0 - $1" >> "${FILE_PZLSM_LOG}"
+  fi
 }
 
 # get_screen_pid prints server's pid.
@@ -263,6 +271,9 @@ GITHUB_CONFIG_REPO=\"${GITHUB_CONFIG_REPO}\"
 # GITHUB_ACCESS_TOKEN contains access token for download server configs from GitHub.
 # Leave it blank if you don't plan to use this.
 GITHUB_ACCESS_TOKEN=\"${GITHUB_ACCESS_TOKEN}\"
+
+# WRITE_PZLSM_LOGS turns on pzlsm logging.
+WRITE_PZLSM_LOGS=\"${WRITE_PZLSM_LOGS}\"
 
 DIR_PLUGINS=\"${DIR_PLUGINS}\"
 EOF"
