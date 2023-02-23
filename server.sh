@@ -12,7 +12,7 @@
 
 # VERSION of Project Zomboid Linux Server Manager.
 # Follows semantic versioning, SEE: http://semver.org/.
-VERSION="0.22.33"
+VERSION="0.22.34"
 YEAR="2023"
 AUTHOR="Pavel Korotkiy (outdead)"
 
@@ -579,7 +579,11 @@ function stop() {
     delete_mods_manifest
   fi
 
-  if [ "$1" == "now" ] || [ "$1" == "kill" ] || [ "${BACKUP_ON_STOP}" != "true" ]; then
+  if [ "${NO_TASKS_ON_STOP}" == "true" ]; then
+    echo "${INFO} no tasks enabled"; return 0
+  fi
+
+  if [ "$1" == "now" ] || [ "$1" == "kill" ]; then
     return 0
   fi
 
@@ -589,9 +593,11 @@ function stop() {
   delete_old_logs "${CLEAR_LOGS_DAY}"
   delete_old_java_stack_traces "${CLEAR_STACK_TRACE_DAY}"
 
-  # Backups
-  backup "world"
-  backup "pzlsd"
+  # Backups.
+  if [ "${BACKUP_ON_STOP}" == "true" ]; then
+      backup "world"
+      backup "pzlsd"
+  fi
 }
 
 # restart stops the server and starts it after 10 seconds.
@@ -1788,6 +1794,7 @@ function print_help_stop() {
   echo
   echo "OPTIONS:"
   echo "  --fixes|-f        Delete mods manifest file for force update mods."
+  echo "  --no-tasks|-n     Do not backups and other tasks. Poor stop."
   echo "  --help            Prints help."
   echo
   echo "EXAMPLE:"
@@ -1815,6 +1822,7 @@ function print_help_restart() {
   echo
   echo "OPTIONS:"
   echo "  --fixes|-f        Delete mods manifest file for force update mods."
+  echo "  --no-tasks|-n     Do not backups and other tasks. Poor restart."
   echo "  --help            Prints help."
   echo
   echo "EXAMPLE:"
@@ -2250,6 +2258,7 @@ function main() {
         case "$2" in
           now|kill) when="$2";;
           --fixes|-f|fix) fixes="fix";;
+          --no-tasks|-n) NO_TASKS_ON_STOP="true";;
           --help)
             print_help_stop
             return ;;
@@ -2267,6 +2276,7 @@ function main() {
         case "$2" in
           now|kill) when="$2";;
           --fixes|-f|fix) fixes="fix";;
+          --no-tasks|-n) NO_TASKS_ON_STOP="true";;
           --help)
             print_help_restart
             return ;;
