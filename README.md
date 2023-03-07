@@ -59,6 +59,7 @@ COMMANDS:
 
 PLUGINS:
   web                     Contains presets to web commands.
+  logsfind                Contains presets to find in logs.
 ```
 
 ## Documentation
