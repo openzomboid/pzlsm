@@ -25,7 +25,9 @@ function find_steams() {
 
   result="$(echo "${result}" | grep -oE "[0-9]{17}" | sort -u)"
 
-  echo "${result}"
+  if [ -n "${result}" ]; then
+    echo "${result}"
+  fi
 }
 
 # find_ips prints user's IPs.
@@ -48,7 +50,9 @@ function find_ips() {
 
   result="$(echo "${result}" | grep -Eo "[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+" | sort -u)"
 
-  echo "${result}"
+  if [ -n "${result}" ]; then
+    echo "${result}"
+  fi
 }
 
 # find_users_by_ip prints all usernames, connected with ip.
@@ -71,7 +75,9 @@ function find_users_by_ip() {
 
   result="$(echo "${result}" | grep -Eo "username=\".*\" " | sed 's/username=\"//g' | sed 's/\" //g' | grep -v "null" | sort -u)"
 
-  echo "${result}"
+  if [ -n "${result}" ]; then
+    echo "${result}"
+  fi
 }
 
 # find_kicks prints user's kick records from current logs.
@@ -101,7 +107,9 @@ function find_kicks() {
 
   result="$(echo "${result}" | grep -Eo "\[[0-9]+-[0-9]+-[0-9]+ [0-9]+:[0-9]+:[0-9]+.[0-9]+\] > ConnectionManager: \[kick\] .*")"
 
-  echo "${result}"
+  if [ -n "${result}" ]; then
+    echo "${result}"
+  fi
 }
 
 read -r -d '' PLUGINS_COMMANDS_HELP << EOM
@@ -302,12 +310,10 @@ function load() {
             shift
           done
 
-          local result; result="$(find_kicks "${username}" "${dt}" "${current}")"
-
           if [ "${count}" == "true" ]; then
-            echo "${result}" | wc -l
+            find_kicks "${username}" "${dt}" "${current}" | wc -l
           else
-            echo "${result}"
+            find_kicks "${username}" "${dt}" "${current}"
           fi;;
       esac;;
   esac
