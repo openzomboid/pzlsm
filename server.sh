@@ -12,7 +12,7 @@
 
 # VERSION of Project Zomboid Linux Server Manager.
 # Follows semantic versioning, SEE: http://semver.org/.
-VERSION="0.22.34"
+VERSION="0.22.35"
 YEAR="2023"
 AUTHOR="Pavel Korotkiy (outdead)"
 
@@ -1765,7 +1765,7 @@ function print_help_start() {
   echo "  Starts Project Zomboid dedicated server."
   echo
   echo "USAGE:"
-  echo "  $0 start command [arguments...] [options...]"
+  echo "  $0 start [arguments...] [options...]"
   echo
   echo "OPTIONS:"
   echo "  --no-screen|-n    Runs server without screen session."

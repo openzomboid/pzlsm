@@ -24,3 +24,4 @@
     * [vehicles](commands/vehicles.md) [list, sql]
 * [Плагины](plugins)
   * [web](plugins/web.md) [install, enable, disable]
+  * [logsfind](plugins/logsfind.md) [steams, ips, ipusers, kicks]

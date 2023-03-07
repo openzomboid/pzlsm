@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Statistics plugin for Project Zomboid Linux Server Manager.
+# Web plugin for Project Zomboid Linux Server Manager.
 #
 # Copyright (c) 2022 Pavel Korotkiy (outdead).
 # Use of this source code is governed by the MIT license.
