@@ -211,6 +211,7 @@ function web_disable() {
   systemctl restart nginx
 }
 
+# Add help to PLUGINS_COMMANDS_HELP.
 read -r -d '' PLUGINS_COMMANDS_HELP << EOM
   ${PLUGINS_COMMANDS_HELP}
   web                     Contains presets to web commands.
