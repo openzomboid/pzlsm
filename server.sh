@@ -184,6 +184,7 @@ function is_admin_exists() {
 }
 
 # print_variables prints pzlsm variables.
+# TODO: Add all variables.
 function print_variables() {
   check_dir() {
     [ ! -d "$1" ] && echo -e "${RED} (not exists)${NC}"
