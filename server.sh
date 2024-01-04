@@ -872,6 +872,7 @@ function delete_old_logs() {
 # server, it can create more problems than it solves.
 # But it can help the game restart the threads responsible for the zombies,
 # if they freeze.
+# TODO: Find a way to real zombies delete.
 function delete_zombies() {
   local count
   count=$(find "${ZOMBOID_DIR_MAP}" -name "zpop_*_*.bin" | wc -l)
