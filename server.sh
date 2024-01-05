@@ -880,6 +880,15 @@ function delete_zombies() {
   rm -rf "${ZOMBOID_DIR_MAP}/zpop_*_*.bin"
 }
 
+# delete_gos_files deletes gos_*.bin files from Zomboid/Saves directory.
+function delete_gos_files() {
+  rm -rf "${ZOMBOID_DIR_MAP}/gos_campfire.bin"
+  rm -rf "${ZOMBOID_DIR_MAP}/gos_farming.bin"
+  rm -rf "${ZOMBOID_DIR_MAP}/gos_metaldrum.bin"
+  rm -rf "${ZOMBOID_DIR_MAP}/gos_rainbarrel.bin"
+  rm -rf "${ZOMBOID_DIR_MAP}/gos_trap.bin"
+}
+
 # delete_old_chunks deletes files map_*_*.bin older than $1 days from
 # Zomboid/Saves directory.
 # If you do not pass the number of days $1, or pass the value 0 then the
