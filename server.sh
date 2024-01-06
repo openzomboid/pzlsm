@@ -12,8 +12,8 @@
 
 # VERSION of Project Zomboid Linux Server Manager.
 # Follows semantic versioning, SEE: http://semver.org/.
-VERSION="0.22.35"
-YEAR="2023"
+VERSION="0.23.0"
+YEAR="2024"
 AUTHOR="Pavel Korotkiy (outdead)"
 
 # Color variables. Used when displaying messages in stdout.
@@ -2366,6 +2366,12 @@ function main() {
             return ;;
           zombies)
             delete_zombies
+            return ;;
+          gos)
+            delete_gos_files
+            return ;;
+          isoregiondata)
+            delete_isoregiondata
             return ;;
           map)
             map_regen "$3" "$4"
