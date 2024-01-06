@@ -883,13 +883,11 @@ function delete_zombies() {
 
 # delete_gos_files deletes gos_*.bin files from Zomboid/Saves directory.
 function delete_gos_files() {
-  echo "${INFO} remove gos_*.bin files... 5 files"
+  local count
+  count=$(find "${ZOMBOID_DIR_MAP}" -name "gos_*.bin" | wc -l)
+  echo "${INFO} remove gos_*.bin files... ${count} files"
 
-  rm -rf "${ZOMBOID_DIR_MAP}/gos_campfire.bin"
-  rm -rf "${ZOMBOID_DIR_MAP}/gos_farming.bin"
-  rm -rf "${ZOMBOID_DIR_MAP}/gos_metaldrum.bin"
-  rm -rf "${ZOMBOID_DIR_MAP}/gos_rainbarrel.bin"
-  rm -rf "${ZOMBOID_DIR_MAP}/gos_trap.bin"
+  rm -rf "${ZOMBOID_DIR_MAP}/gos_*.bin"
 }
 
 # delete_isoregiondata deletes isoregiondata folder from Zomboid/Saves directory.
