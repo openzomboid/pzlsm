@@ -12,7 +12,7 @@
 
 # VERSION of Project Zomboid Linux Server Manager.
 # Follows semantic versioning, SEE: http://semver.org/.
-VERSION="0.23.0"
+VERSION="0.23.1"
 YEAR="2024"
 AUTHOR="Pavel Korotkiy (outdead)"
 
@@ -877,11 +877,14 @@ function delete_zombies() {
   local count
   count=$(find "${ZOMBOID_DIR_MAP}" -name "zpop_*_*.bin" | wc -l)
   echo "${INFO} remove zpop_*_*.bin files... ${count} files"
+
   rm -rf "${ZOMBOID_DIR_MAP}/zpop_*_*.bin"
 }
 
 # delete_gos_files deletes gos_*.bin files from Zomboid/Saves directory.
 function delete_gos_files() {
+  echo "${INFO} remove gos_*.bin files... 5 files"
+
   rm -rf "${ZOMBOID_DIR_MAP}/gos_campfire.bin"
   rm -rf "${ZOMBOID_DIR_MAP}/gos_farming.bin"
   rm -rf "${ZOMBOID_DIR_MAP}/gos_metaldrum.bin"
@@ -891,6 +894,10 @@ function delete_gos_files() {
 
 # delete_isoregiondata deletes isoregiondata folder from Zomboid/Saves directory.
 function delete_isoregiondata() {
+  local count
+  count=$(find "${ZOMBOID_DIR_MAP}/isoregiondata" -name "*.*" | wc -l)
+  echo "${INFO} remove isoregiondata folder... ${count} files"
+
   rm -rf "${ZOMBOID_DIR_MAP}/isoregiondata"
 }
 
