@@ -889,6 +889,11 @@ function delete_gos_files() {
   rm -rf "${ZOMBOID_DIR_MAP}/gos_trap.bin"
 }
 
+# delete_isoregiondata deletes isoregiondata folder from Zomboid/Saves directory.
+function delete_isoregiondata() {
+  rm -rf "${ZOMBOID_DIR_MAP}/isoregiondata"
+}
+
 # delete_old_chunks deletes files map_*_*.bin older than $1 days from
 # Zomboid/Saves directory.
 # If you do not pass the number of days $1, or pass the value 0 then the
