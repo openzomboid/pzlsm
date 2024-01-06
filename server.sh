@@ -12,7 +12,7 @@
 
 # VERSION of Project Zomboid Linux Server Manager.
 # Follows semantic versioning, SEE: http://semver.org/.
-VERSION="0.23.1"
+VERSION="0.23.2"
 YEAR="2024"
 AUTHOR="Pavel Korotkiy (outdead)"
 
