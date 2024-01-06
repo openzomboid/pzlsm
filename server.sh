@@ -1925,6 +1925,14 @@ function print_help_delfile() {
   echo "  EXAMPLE:"
   echo "    $0 delfile zombies"
   echo
+  echo "  gos               Deletes gos_*.bin files from Zomboid/Saves directory."
+  echo "  EXAMPLE:"
+  echo "    $0 delfile gos"
+  echo
+  echo "  isoregiondata     Deletes isoregiondata folder from Zomboid/Saves directory."
+  echo "  EXAMPLE:"
+  echo "    $0 delfile isoregiondata"
+  echo
   echo "  map {top} {bottom}  Deletes map_*_*.bin files from Zomboid/Saves directory."
   echo "                      Takes the coordinates of the upper right and lower left points"
   echo "                      and builds a rectangular area of chunks from them and deletes them."
