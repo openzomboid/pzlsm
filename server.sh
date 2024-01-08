@@ -183,6 +183,21 @@ function is_admin_exists() {
   [ "$(sqlite3 "${ZOMBOID_FILE_DB}" "SELECT count(*) FROM whitelist WHERE username='admin'" 2> /dev/null)" == "1" ] && echo "true" || echo "false"
 }
 
+# is_dir_exist returns true if directory is exist.
+function is_dir_exist() {
+  [ -d "$1" ] && echo "true" || echo "false"
+}
+
+# is_file_exist returns true if file is exist.
+function is_file_exist() {
+  [ -f "$1" ] && echo "true" || echo "false"
+}
+
+# is_symlink returns true if file is symlink.
+function is_symlink() {
+  [ -L "$1" ] && echo "true" || echo "false"
+}
+
 # print_variables prints pzlsm variables.
 # TODO: Add all variables.
 function print_variables() {
@@ -2571,6 +2586,9 @@ function main() {
       print_help;;
     --test)
       echo "test"
+      echo "Zomboid/Logs id dir - $(is_dir_exist "$ZOMBOID_DIR/Logs")"
+      echo "Zomboid/Logs id file - $(is_file_exist "$ZOMBOID_DIR/Logs")"
+      echo "Zomboid/Logs id symlink - $(is_symlink "$ZOMBOID_DIR/Logs")"
       ;;
   esac
 }
