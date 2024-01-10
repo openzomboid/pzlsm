@@ -237,13 +237,13 @@ function print_variables() {
   echo "${INFO} ZOMBOID_FILE_DB:             ${ZOMBOID_FILE_DB}$(check_file "${ZOMBOID_FILE_DB}")"
   echo "${INFO}"
   echo "${INFO} DIR_BACKUPS:                 ${DIR_BACKUPS}"
-  echo "${INFO} DIR_UTILS:                 ${DIR_UTILS}"
-  echo "${INFO} DIR_PZLSD:                 ${DIR_PZLSD}"
+  echo "${INFO} DIR_UTILS:                   ${DIR_UTILS}"
+  echo "${INFO} DIR_PZLSD:                   ${DIR_PZLSD}"
   echo "${INFO} DIR_PLUGINS:                 ${DIR_PLUGINS}"
-  echo "${INFO} DIR_LOGS:                 ${DIR_LOGS}"
-  echo "${INFO} DIR_CONFIG:                 ${DIR_CONFIG}"
-  echo "${INFO} DIR_PUBLIC:                 ${DIR_PUBLIC}"
-  echo "${INFO} DIR_STATE:                 ${DIR_STATE}"
+  echo "${INFO} DIR_LOGS:                    ${DIR_LOGS}"
+  echo "${INFO} DIR_CONFIG:                  ${DIR_CONFIG}"
+  echo "${INFO} DIR_PUBLIC:                  ${DIR_PUBLIC}"
+  echo "${INFO} DIR_STATE:                   ${DIR_STATE}"
 }
 
 # save_config_example saves pzlsm config example.
