@@ -726,6 +726,13 @@ function stats() {
     echoerr "server is not running"; return 1
   fi
 
+  local pid_zomboid_count; pid_zomboid_count="$(echo "${pid_zomboid}" | wc -l)"
+  if [ "${pid_zomboid_count}" -gt "1" ]; then
+    pid_zomboid="${pid_zomboid//$'\n'/ }"
+    echoerr "multiple server processes are running with pids: ${pid_zomboid}"
+    return 1
+  fi
+
   local cpu; cpu=$(strclear "$(ps S -p "${pid_zomboid}" -o pcpu=)")
 
   local mem1; mem1=$(ps S -p "${pid_zomboid}" -o pmem=)
