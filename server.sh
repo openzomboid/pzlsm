@@ -12,7 +12,7 @@
 
 # VERSION of Project Zomboid Linux Server Manager.
 # Follows semantic versioning, SEE: http://semver.org/.
-VERSION="0.23.2"
+VERSION="0.24.0"
 YEAR="2024"
 AUTHOR="Pavel Korotkiy (outdead)"
 
@@ -139,7 +139,7 @@ ZOMBOID_MANIFEST="${SERVER_DIR}/steamapps/appmanifest_${APP_DEDICATED_ID}.acf"
 ZOMBOID_MODS_MANIFEST="${SERVER_DIR}/steamapps/workshop/appworkshop_${APP_ID}.acf"
 
 if [ -f "${ZOMBOID_DIR}/server-console.txt" ]; then
-  PZ_VERSION=$(grep -roE "versionNumber=[0-9]+.[0-9]+" "${ZOMBOID_DIR}/server-console.txt" | grep -Eo "[0-9]+.[0-9]+")
+  PZ_VERSION=$(grep -roE "Startup version [0-9]+.[0-9]+.[0-9]+" "${ZOMBOID_DIR}/server-console.txt" | grep -Eo "[0-9]+.[0-9]+.[0-9]+")
 fi
 [ -z "${PZ_VERSION}" ] && PZ_VERSION="$(echo -e "${RED}undefined${NC}")"
 
@@ -315,6 +315,52 @@ function print_version() {
 function strclear() {
   local str=${1//\"/}; str=${str// /}; str=${str//$'\t'/}
   echo "${str}"
+}
+
+# replace_logs_path_to_symlink moves Zomboid/Logs folder to logs/Logs and
+# replaces original folder to symlink.
+function replace_logs_path_to_symlink() {
+  if [ "$(is_symlink "${ZOMBOID_DIR_LOGS}")" == "true" ]; then
+    echo "${ER} ZOMBOID_DIR_LOGS is already symlink to $(realpath "${ZOMBOID_DIR_LOGS}")"; return 0
+  fi
+
+  if [ "$(is_server_running)" == "true" ]; then
+    echo "${ER} cannot replace logs to symlink on started server"; return 0
+  fi
+
+  if [ "$(is_dir_exist "${DIR_LOGS}/Logs")" == "true" ]; then
+    echo "${ER} ${DIR_LOGS}/Logs already exists"; return 0
+  fi
+
+  mv "${ZOMBOID_DIR_LOGS}" "${DIR_LOGS}"
+  if [ ! $? -eq 0 ]; then
+      echo "${ER} can't move logs folder to new path ${DIR_LOGS}"; return 0
+  fi
+
+  ln -s "${DIR_LOGS}/Logs" "${ZOMBOID_DIR}/Logs"
+  ZOMBOID_DIR_LOGS="${DIR_LOGS}/Logs"
+
+  echo "${INFO} replace logs path form symlink completed"
+}
+
+# rollback_logs_path_from_symlink removes Zomboid/Logs symlink and restores
+# original logs folder from logs/Logs.
+function rollback_logs_path_from_symlink() {
+  if [ "$(is_symlink "${ZOMBOID_DIR_LOGS}")" != "true" ]; then
+    echo "${ER} ZOMBOID_DIR_LOGS is not a symlink"; return 0
+  fi
+
+  if [ "$(is_server_running)" == "true" ]; then
+    echo "${ER} cannot rollback logs path form symlink on started server"; return 0
+  fi
+
+  local symlink_server_logs; symlink_server_logs="$(realpath "${ZOMBOID_DIR_LOGS}")"
+
+  rm -f "${ZOMBOID_DIR_LOGS}"
+  mv "${symlink_server_logs}" "${ZOMBOID_DIR}"
+  ZOMBOID_DIR_LOGS="${ZOMBOID_DIR}/Logs"
+
+  echo "${INFO} rollback logs path form symlink completed"
 }
 
 # install_dependencies installs the necessary dependencies to the server.
@@ -2585,6 +2631,12 @@ function main() {
       done
 
       print_help_vehicles ;;
+    call)
+      local call_func; call_func="$2"
+
+      echo "${INFO} calling function ${call_func}..."
+
+      $call_func ;;
     --variables|--vars)
       print_variables;;
     --version)
@@ -2593,12 +2645,17 @@ function main() {
       print_help;;
     --test)
       echo "test"
-      echo "Zomboid/Logs id dir - $(is_dir_exist "$ZOMBOID_DIR/Logs")"
-      echo "Zomboid/Logs id file - $(is_file_exist "$ZOMBOID_DIR/Logs")"
-      echo "Zomboid/Logs id symlink - $(is_symlink "$ZOMBOID_DIR/Logs")"
+      echo "Zomboid/Logs is dir - $(is_dir_exist "$ZOMBOID_DIR/Logs")"
+      echo "Zomboid/Logs is file - $(is_file_exist "$ZOMBOID_DIR/Logs")"
+      echo "Zomboid/Logs is symlink - $(is_symlink "$ZOMBOID_DIR/Logs")"
       ;;
   esac
 }
+
+# Replace ZOMBOID_DIR_LOGS value to real logs path if it is symlink.
+if [ "$(is_symlink "${ZOMBOID_DIR_LOGS}")" == "true" ]; then
+  ZOMBOID_DIR_LOGS=$(realpath "${ZOMBOID_DIR_LOGS}")
+fi
 
 if [ -z "$1" ]; then
   echo "${INFO} Permissible commands:"
