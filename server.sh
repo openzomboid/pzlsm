@@ -744,10 +744,12 @@ function stats() {
   local jvm2; jvm2=$(echo "${jvmres}" | awk 'NR>1 { printf("%.2f", $8/1024); }')
   local jvm3; jvm3=$(echo "${jvmres}" | awk 'NR>1 { printf("%.2f", $7/1024); }')
 
-  local mem_used_percent=$((100*"${MEMORY_USED}"/"${MEMORY_AVAILABLE}"))
+  #local mem_used_percent=$((100*"${MEMORY_USED}"/"${MEMORY_AVAILABLE}"))
+  local mem_used_percent=$(bc <<< "scale=1; (100*${MEMORY_USED}/${MEMORY_AVAILABLE})")
 
   local uptime; uptime=$(ps -p "${pid_zomboid}" -o etime | grep -v "ELAPSED" | xargs)
 
+  [ "${#cpu}" == "3" ] && cpu=" ${cpu}"
   echo "${INFO} cpu srv:  ${cpu}%"
   echo "${INFO} mem host: ${mem_used_percent}% (${MEMORY_USED} MB from ${MEMORY_AVAILABLE})"
   echo "${INFO} mem srv:  ${mem1}% (${mem2} MB)"
