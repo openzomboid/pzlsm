@@ -579,6 +579,7 @@ function fix_args() {
 
 # start starts the server in a screen window.
 # An error message will be displayed if server has been started earlier.
+# TODO: Add wait arg.
 function start() {
   echo "${INFO} starting the server..."
 
