@@ -724,13 +724,13 @@ function stats() {
   local pid_zomboid=""
   pid_zomboid=$(get_server_pid)
   if [ -z "${pid_zomboid}" ]; then
-    echoerr "server is not running"; return 1
+    echoerr "stats: server is not running"; return 1
   fi
 
   local pid_zomboid_count; pid_zomboid_count="$(echo "${pid_zomboid}" | wc -l)"
   if [ "${pid_zomboid_count}" -gt "1" ]; then
     pid_zomboid="${pid_zomboid//$'\n'/ }"
-    echoerr "multiple server processes are running with pids: ${pid_zomboid}"
+    echoerr "stats: multiple server processes are running with pids: ${pid_zomboid}"
     return 1
   fi
 
