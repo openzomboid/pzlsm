@@ -1642,20 +1642,20 @@ function fn_vehicles() {
 function players_restore() {
   local filename="$1"
   if [ -z "${filename}" ]; then
-     echoerr "backup filename param is not set"; return 1
+     echoerr "players_restore: backup filename param is not set"; return 1
   fi
 
   local path="${DIR_BACKUPS_PLAYERS}/${filename}"
   if [ ! -f "${path}" ]; then
-    echoerr "players backup ${filename} does not exist"; return 1
+    echoerr "players_restore: players backup ${filename} does not exist"; return 1
   fi
 
   if [ "$(is_server_running)" == "true" ]; then
-    echoerr "cannot be executed on a running server"; return 1
+    echoerr "players_restore: cannot be executed on a running server"; return 1
   fi
 
   if ! cp "${path}" "${ZOMBOID_DIR_MAP}/players.db"; then
-    echoerr "players backup ${filename} was not restored"; return 1
+    echoerr "players_restore: players backup ${filename} was not restored"; return 1
   fi
 
   echo "${OK} players backup ${filename} restored successful"
@@ -1674,7 +1674,7 @@ function self_update() {
   local new_version; new_version=$(grep "^VERSION" "${update_dir}/server.sh" | awk -F'[="]' '{print $3}')
 
   if [ -z "${new_version}" ]; then
-    echoerr "Failed to download PZLSM update"; return 1
+    echoerr "self_update: failed to download PZLSM update"; return 1
   fi
 
   if [ "${VERSION}" \< "${new_version}" ]; then
