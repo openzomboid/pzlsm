@@ -595,11 +595,11 @@ function start() {
 
   if [ "$no_screen" == "true" ]; then
     if ! "${SERVER_DIR}/start-server.sh" -servername "${SERVER_NAME}"; then
-      echoerr "server is not started"; return 1
+      echoerr "start: failed to start the server"; return 1
     fi
   else
     if ! env LANG=ru_RU.utf8 screen -U -mdS "${SCREEN_ZOMBOID}" "${SERVER_DIR}/start-server.sh" -servername "${SERVER_NAME}"; then
-      echoerr "server is not started"; return 1
+      echoerr "start: failed to start the server"; return 1
     fi
   fi
 
@@ -618,7 +618,7 @@ function stop() {
   rm -f "${DIR_STATE}/started"
 
   if [ "$(is_server_running)" == "false" ]; then
-    echoerr "server already stopped"; return 0
+    echo "${INFO} server already stopped"; return 0
   fi
 
   # kickusers is used for fix a game bug.
@@ -630,7 +630,7 @@ function stop() {
   sleep 1s
 
   if ! screencmd 'quit'; then
-    echoerr "server is not stopped correctly"
+    echoerr "stop: server is not stopped correctly"
   fi
 
   # If after a regular shutdown server remains running, we must forcibly stop it.
@@ -771,7 +771,7 @@ function stats_top() {
 # function.
 function shutdown_wrapper() {
   if [ "$(is_server_running)" == "false" ]; then
-    echoerr "server already stopped"
+    echo "${INFO} server already stopped"
     return 0
   fi
 
@@ -814,7 +814,7 @@ function shutdown_wrapper() {
       restart "$2" "$3"
       ;;
     *)
-      echoerr "wrong shutdown command: $1"
+      echoerr "shutdown_wrapper: wrong shutdown command: $1"
       return 1
       ;;
   esac
@@ -823,7 +823,8 @@ function shutdown_wrapper() {
 # console connects to screen session.
 function console() {
   if [ "$(is_server_running)" == "false" ]; then
-    echoerr "server is not running"; return 0
+    echo "${INFO} server is not running"
+    return 0
   fi
 
   screen -r "${SERVER_NAME}"
@@ -834,11 +835,12 @@ function console() {
 # to the request. Therefore, it should be used when the answer is not needed.
 function screencmd() {
   if [ "$(is_server_running)" == "false" ]; then
-    echoerr "server is not running"; return 0
+    echo "${INFO} server is not running"
+    return 0
   fi
 
   local command="$1"
-  [ -z "${command}" ] && { echoerr "command is not set"; return 1; }
+  [ -z "${command}" ] && { echoerr "screencmd: command is not set"; return 1; }
 
   screen -S "${SCREEN_ZOMBOID}" -X stuff "${command}\r"
 }
@@ -847,11 +849,12 @@ function screencmd() {
 # The port and authorization parameters takes from the Project Zomboid config.
 function rconcmd() {
   if [ "$(is_server_running)" == "false" ]; then
-    echoerr "server is not running"; return 0
+    echo "${INFO} server is not running"
+    return 0
   fi
 
   local command="$1"
-  [ -z "${command}" ] && { echoerr "command is not set"; return 1; }
+  [ -z "${command}" ] && { echoerr "rconcmd: command is not set"; return 1; }
 
   local timeout="$2"
   [ -z "${timeout}" ] && timeout=3s
@@ -1037,21 +1040,21 @@ function get_rectangle() {
 function map_regen() {
   local from="$1"
   if [ -z "${from}" ]; then
-     echoerr "upper right corner is not set"; return 1
+     echoerr "map_regen: upper right corner is not set"; return 1
   fi
 
   local to="$2"
   if [ -z "${to}" ]; then
-     echoerr "lower left corner is not set"; return 1
+     echoerr "map_regen: lower left corner is not set"; return 1
   fi
 
   if [ ! -d "${ZOMBOID_DIR_MAP}" ]; then
-     echoerr "saves dir \"${ZOMBOID_DIR_MAP}\" doesn't exist"; return 1
+     echoerr "map_regen: saves dir \"${ZOMBOID_DIR_MAP}\" doesn't exist"; return 1
   fi
 
   local rectangle=($(get_rectangle "${from}" "${to}"))
   if [ -n "${rectangle[4]}" ]; then
-    echoerr "${rectangle[*]:4}"; return 1
+    echoerr "map_regen: ${rectangle[*]:4}"; return 1
   fi
 
   # Delete last digit to convert to chunk name.
@@ -1061,7 +1064,7 @@ function map_regen() {
   local bot_y; bot_y=$(echo "${rectangle[3]}/10" |bc)
 
   if [ "${top_x}" -gt "${bot_x}" ] || [ "${top_y}" -gt "${bot_y}" ]; then
-    echoerr "invalid points"; return 1
+    echoerr "map_regen: invalid points"; return 1
   fi
 
   local count=0
@@ -1091,21 +1094,21 @@ function map_regen() {
 function map_copy() {
   local from="$1"
   if [ -z "${from}" ]; then
-     echoerr "upper right corner is not set"; return 1
+     echoerr "map_copy: upper right corner is not set"; return 1
   fi
 
   local to="$2"
   if [ -z "${to}" ]; then
-     echoerr "lower left corner is not set"; return 1
+     echoerr "map_copy: lower left corner is not set"; return 1
   fi
 
   if [ ! -d "${ZOMBOID_DIR_MAP}" ]; then
-     echoerr "saves dir \"${ZOMBOID_DIR_MAP}\" doesn't exist"; return 1
+     echoerr "map_copy: saves dir \"${ZOMBOID_DIR_MAP}\" doesn't exist"; return 1
   fi
 
   local rectangle=($(get_rectangle "${from}" "${to}"))
   if [ -n "${rectangle[4]}" ]; then
-    echoerr "${rectangle[*]:4}"; return 1
+    echoerr "map_copy: ${rectangle[*]:4}"; return 1
   fi
 
   # Delete last digit to convert to chunk name.
@@ -1115,7 +1118,7 @@ function map_copy() {
   local bot_y; bot_y=$(echo "${rectangle[3]}/10" |bc)
 
   if [ "${top_x}" -gt "${bot_x}" ] || [ "${top_y}" -gt "${bot_y}" ]; then
-     echoerr "invalid points"; return 1
+     echoerr "map_copy: invalid points"; return 1
   fi
 
   local copy_path="${DIR_BACKUPS_COPY}"
@@ -1127,7 +1130,7 @@ function map_copy() {
 
   mkdir -p "${copy_path}" #> /dev/null 2>&1
   if [ ! $? -eq 0 ]; then
-    echoerr "can not create directory ${copy_path} to copy"; return 1
+    echoerr "map_copy: can not create directory ${copy_path} to copy"; return 1
   fi
 
   local count=0
@@ -1142,7 +1145,7 @@ function map_copy() {
         if [ $? -eq 0 ]; then
           (( count_success++ ))
         else
-          echoerr "can not copy chunk ${name}"
+          echoerr "map_copy: can not copy chunk ${name}"
         fi
       fi
     done
@@ -1162,21 +1165,21 @@ function map_copy() {
 function map_copyto() {
   local from="$1"
   if [ -z "${from}" ]; then
-     echoerr "upper right corner is not set"; return 1
+     echoerr "map_copyto: upper right corner is not set"; return 1
   fi
 
   local to="$2"
   if [ -z "${to}" ]; then
-     echoerr "lower left corner is not set"; return 1
+     echoerr "map_copyto: lower left corner is not set"; return 1
   fi
 
   if [ ! -d "${ZOMBOID_DIR_MAP}" ]; then
-     echoerr "saves dir \"${ZOMBOID_DIR_MAP}\" doesn't exist"; return 1
+     echoerr "map_copyto: saves dir \"${ZOMBOID_DIR_MAP}\" doesn't exist"; return 1
   fi
 
   local rectangle=($(get_rectangle "${from}" "${to}"))
   if [ -n "${rectangle[4]}" ]; then
-    echoerr "${rectangle[*]:4}"; return 1
+    echoerr "map_copyto: ${rectangle[*]:4}"; return 1
   fi
 
   # Delete last digit to convert to chunk name.
@@ -1186,7 +1189,7 @@ function map_copyto() {
   local bot_y; bot_y=$(echo "${rectangle[3]}/10" |bc)
 
   if [ "${top_x}" -gt "${bot_x}" ] || [ "${top_y}" -gt "${bot_y}" ]; then
-     echoerr "invalid points"; return 1
+     echoerr "map_copyto: invalid points"; return 1
   fi
 
   local from_new="$3"
@@ -1197,7 +1200,7 @@ function map_copyto() {
   local top_y_new; top_y_new=$(echo "${point_top[1]}/10" |bc)
 
   if ! [[ ${top_x_new} =~ $regexp ]] || ! [[ ${top_y_new} =~ $regexp ]]; then
-     echoerr "upper new point is invalid"; return 1
+     echoerr "map_copyto: upper new point is invalid"; return 1
   fi
 
   local copy_path="${DIR_BACKUPS_COPY}"
@@ -1209,7 +1212,7 @@ function map_copyto() {
 
   mkdir -p "${copy_path}" #> /dev/null 2>&1
   if [[ ! $? -eq 0 ]]; then
-    echoerr "can not create directory ${copy_path} to copy"; return 1
+    echoerr "map_copyto: can not create directory ${copy_path} to copy"; return 1
   fi
 
   local x_new="${top_x_new}"
@@ -1229,7 +1232,7 @@ function map_copyto() {
       if [[ $? -eq 0 ]]; then
         (( count_success++ ))
       else
-        echoerr "can not copy chunk ${name}"
+        echoerr "map_copyto: can not copy chunk ${name}"
       fi
 
       (( y_new++ ))
@@ -1249,22 +1252,22 @@ function map_copyto() {
 # > (425[1-9]|426[0-9]|4270),(5869|587[0-9]|588[0-4])
 function range() {
   if [ ! -f "${UTIL_RANGE_FILE}" ]; then
-     echoerr "util range.sh is not found"; return 1
+     echoerr "range: util range.sh is not found"; return 1
   fi
 
   local from="$1"
   if [ -z "${from}" ]; then
-     echoerr "upper right corner is not set"; return 1
+     echoerr "range: upper right corner is not set"; return 1
   fi
 
   local to="$2"
   if [ -z "${to}" ]; then
-     echoerr "lower left corner is not set"; return 1
+     echoerr "range: lower left corner is not set"; return 1
   fi
 
   local rectangle=($(get_rectangle "${from}" "${to}"))
   if [ -n "${rectangle[4]}" ]; then
-    echoerr "${rectangle[*]:4}"; return 1
+    echoerr "range: ${rectangle[*]:4}"; return 1
   fi
 
   local top_x; top_x=$(echo "${rectangle[0]}" |bc)
@@ -1273,7 +1276,7 @@ function range() {
   local bot_y; bot_y=$(echo "${rectangle[3]}" |bc)
 
   if [ "${top_x}" -gt "${bot_x}" ] || [ "${top_y}" -gt "${bot_y}" ]; then
-     echoerr "invalid points"; return 1
+     echoerr "range: invalid points"; return 1
   fi
 
   local range_x; range_x=$(${UTIL_RANGE_FILE} "${top_x}" "${bot_x}")
@@ -1304,37 +1307,37 @@ function backup() {
     pzlsd_save "$NOW" && return 0 || return 1
   fi
 
-  echoerr "unknown backup \"${type}\" command"
+  echoerr "backup: unknown backup \"${type}\" command"
 }
 
 # config_pull downloads Project Zomboid config files from github repo.
 function config_pull() {
   if [ -z "${GITHUB_ACCESS_TOKEN}" ] || [ -z "${GITHUB_CONFIG_REPO}" ]; then
-    echoerr "github repo or token is not set"; return 1
+    echoerr "config_pull: github repo or token is not set"; return 1
   fi
 
   local cfg_ini=""
   cfg_ini=$(curl -H "Authorization: token ${GITHUB_ACCESS_TOKEN}" -s -L "${GITHUB_CONFIG_REPO}/${SERVER_NAME}/${SERVER_NAME}.ini")
   if [ "$(echo "${cfg_ini}" | wc -l)" -lt "100" ]; then
-    echoerr "downloaded invalid ${SERVER_NAME}.ini";  return 1
+    echoerr "config_pull: downloaded invalid ${SERVER_NAME}.ini";  return 1
   fi;
 
   local cfg_sand=""
   cfg_sand=$(curl -H "Authorization: token ${GITHUB_ACCESS_TOKEN}" -s -L "${GITHUB_CONFIG_REPO}/${SERVER_NAME}/${SERVER_NAME}_SandboxVars.lua")
   if [ "$(echo "${cfg_sand}" | wc -l)" -lt "100" ]; then
-    echoerr "downloaded invalid ${SERVER_NAME}_SandboxVars.lua";  return 1
+    echoerr "config_pull: downloaded invalid ${SERVER_NAME}_SandboxVars.lua";  return 1
   fi;
 
   local cfg_points=""
   cfg_points=$(curl -H "Authorization: token ${GITHUB_ACCESS_TOKEN}" -s -L "${GITHUB_CONFIG_REPO}/${SERVER_NAME}/${SERVER_NAME}_spawnpoints.lua")
   if [ "$(echo "${cfg_points}" | wc -l)" -lt "7" ]; then
-    echoerr "downloaded invalid ${SERVER_NAME}_spawnpoints.lua";  return 1
+    echoerr "config_pull: downloaded invalid ${SERVER_NAME}_spawnpoints.lua";  return 1
   fi;
 
   local cfg_regions=""
   cfg_regions=$(curl -H "Authorization: token ${GITHUB_ACCESS_TOKEN}" -s -L "${GITHUB_CONFIG_REPO}/${SERVER_NAME}/${SERVER_NAME}_spawnregions.lua")
   if [ "$(echo "${cfg_regions}" | wc -l)" -lt "10" ]; then
-    echoerr "downloaded invalid ${SERVER_NAME}_spawnregions.lua";  return 1
+    echoerr "config_pull: downloaded invalid ${SERVER_NAME}_spawnregions.lua";  return 1
   fi;
 
   echo "${cfg_ini}" > "${ZOMBOID_FILE_CONFIG_INI}"
@@ -1351,7 +1354,7 @@ function time_machine_save() {
 
   echoerr_del() {
     rm -rf "$1";
-    echoerr "fast world save on ${NOW} failed";
+    echoerr "time_machine_save: fast world save on ${NOW} failed";
   }
 
   # delete_old_time_machines deletes files servername_date_time.tar.gz older
@@ -1379,7 +1382,7 @@ function time_machine_save() {
   local machine_path="${DIR_BACKUPS_TIME_MACHINE}/${machine_name}"
 
   if ! mkdir -p "${machine_path}"; then
-    echoerr "fast world save on ${NOW} failed"; return 1
+    echoerr "time_machine_save: fast world save on ${NOW} failed"; return 1
   fi
 
   echo "${INFO} backup players.db..."
@@ -1433,7 +1436,7 @@ function players_save() {
 
   echoerr_del() {
     rm -rf "$1";
-    echoerr "players database save on ${NOW} failed";
+    echoerr "players_save: players database save on ${NOW} failed";
   }
 
   # delete_old_players deletes files players_*_*.db older than $1 days from
@@ -1472,7 +1475,7 @@ function zomboid_save() {
 
   echoerr_del() {
     rm -rf "$1";
-    echoerr "world save on ${NOW} failed";
+    echoerr "zomboid_save: world save on ${NOW} failed";
   }
 
   # delete_old_zomboid deletes files ${SERVER_NAME}_*_*.tar.gz older than
@@ -1511,7 +1514,7 @@ function pzlsd_save() {
 
   echoerr_del() {
     rm -rf "$1";
-    echoerr "pzlsd save on ${NOW} failed";
+    echoerr "pzlsd_save: pzlsd save on ${NOW} failed";
   }
 
   # delete_old_pzlsm deletes files ${SERVER_NAME}_pzlsm_*_*.tar.gz older than
@@ -1553,7 +1556,7 @@ function pzlsd_save() {
 # Example: log_search outdead user connected
 function log_search() {
   if [ -z "$1" ]; then
-     echoerr "search param is not set"; return 1
+     echoerr "log_search: search param is not set"; return 1
   fi
 
   local filename="$2"
@@ -1586,7 +1589,7 @@ function log_search() {
 # Example: log_search outdead user connected
 function clog_search() {
   if [ -z "$1" ]; then
-     echoerr "search param is not set"; return 1
+     echoerr "clog_search: search param is not set"; return 1
   fi
 
   local filename="$2"
@@ -1615,7 +1618,7 @@ function clog_search() {
 function fn_sqlite() {
   local query="$2"
   if [ -z "${query}" ]; then
-     echoerr "query param is not set"; return 1
+     echoerr "fn_sqlite: query param is not set"; return 1
   fi
 
   case "$1" in
@@ -1626,7 +1629,7 @@ function fn_sqlite() {
     vehicles)
       sqlite3 "${ZOMBOID_FILE_VEHICLES_DB}" "${query}" ;;
     *)
-      echoerr "unknown db param \"$1\""; return 1 ;;
+      echoerr "fn_sqlite: unknown db param \"$1\""; return 1 ;;
   esac
 }
 
