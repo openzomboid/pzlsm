@@ -12,7 +12,7 @@
 
 # VERSION of Project Zomboid Linux Server Manager.
 # Follows semantic versioning, SEE: http://semver.org/.
-VERSION="0.24.2"
+VERSION="0.24.3"
 YEAR="2024"
 AUTHOR="Pavel Korotkiy (outdead)"
 
@@ -174,6 +174,7 @@ function get_server_pid() {
 }
 
 # is_server_running prints true if server is running, or false if is not.
+# TODO: Check state file.
 function is_server_running() {
   [ -n "$(get_screen_pid)" ] && echo "true" || echo "false"
 }
@@ -584,6 +585,7 @@ function start() {
   echo "${INFO} starting the server..."
 
   local no_screen="$1"
+  local wait="$2"
 
   if [ "$(is_server_running)" == "true" ]; then
     echo "${INFO} server already started"; return 0
@@ -604,11 +606,23 @@ function start() {
   fi
 
   if [ "$(is_admin_exists)" == "false" ] && [ -n "${FIRST_RUN_ADMIN_PASSWORD}" ]; then
-    sleep 1s && screencmd "${FIRST_RUN_ADMIN_PASSWORD}"
-    sleep 1s && screencmd "${FIRST_RUN_ADMIN_PASSWORD}"
+    sleep 1s && screencmd "${FIRST_RUN_ADMIN_PASSWORD}" # Create password.
+    sleep 1s && screencmd "${FIRST_RUN_ADMIN_PASSWORD}" # Confirm password.
   fi
 
   mkdir -p "${DIR_STATE}" && echo "${NOW}" > "${DIR_STATE}/started"
+
+  if [ "$wait" == "true" ]; then
+    while [ "$wait" == "true" ]; do
+      sleep 10s
+
+      local started=""; started=$(clog_search "SERVER STARTED" "DebugLog-server" | wc -l)
+      if [ "$started" == "1" ]; then
+        wait="false"
+        echo "${OK} SERVER STARTED"
+      fi
+    done
+  fi
 }
 
 # stop stops the server.
@@ -676,7 +690,7 @@ function restart() {
 
   stop "$1" "$2"
   sleep 10s
-  start
+  start "false" "$3"
 }
 
 # autorestart restarts server if it stuck.
@@ -811,7 +825,7 @@ function shutdown_wrapper() {
       ;;
     restart)
       ticker "Restarting the server in" "$2"
-      restart "$2" "$3"
+      restart "$2" "$3" "$4"
       ;;
     *)
       echoerr "shutdown_wrapper: wrong shutdown command: $1"
@@ -1871,6 +1885,7 @@ function print_help_start() {
   echo
   echo "OPTIONS:"
   echo "  --no-screen|-n    Runs server without screen session."
+  echo "  --wait|-w         Wait until the server starts."
   echo "  --help            Prints help."
   echo
   echo "EXAMPLE:"
@@ -1925,6 +1940,7 @@ function print_help_restart() {
   echo "OPTIONS:"
   echo "  --fixes|-f        Delete mods manifest file for force update mods."
   echo "  --no-tasks|-n     Do not backups and other tasks. Poor restart."
+  echo "  --wait|-w         Wait until the server starts."
   echo "  --help            Prints help."
   echo
   echo "EXAMPLE:"
@@ -2347,10 +2363,12 @@ function main() {
       esac ;;
     start)
       local no_screen="false"
+      local wait="false"
 
       while [[ -n "$2" ]]; do
         case "$2" in
           --no-screen|-n) no_screen="true";;
+          --wait|-w) wait="true";;
           --help)
             print_help_start
             return ;;
@@ -2359,7 +2377,7 @@ function main() {
         shift
       done
 
-      start "${no_screen}";;
+      start "${no_screen}" "${wait}";;
     stop)
       local when
       local fixes
@@ -2381,12 +2399,14 @@ function main() {
     restart)
       local when
       local fixes
+      local wait="false"
 
       while [[ -n "$2" ]]; do
         case "$2" in
           now|kill) when="$2";;
           --fixes|-f|fix) fixes="fix";;
           --no-tasks|-n) NO_TASKS_ON_STOP="true";;
+          --wait|-w) wait="true";;
           --help)
             print_help_restart
             return ;;
@@ -2395,7 +2415,7 @@ function main() {
         shift
       done
 
-      shutdown_wrapper "restart" "${when}" "${fixes}";;
+      shutdown_wrapper "restart" "${when}" "${fixes}" "${wait}";;
     autorestart)
       autorestart ;;
     stats)

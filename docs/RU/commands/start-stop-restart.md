@@ -17,6 +17,11 @@ PZLSM предоставляет простой способ для запуск
       ./server.sh start --no-screen
       ./server.sh start -n
 
+* `--wait|-w` - Дождаться запуска сервера. С этим параметром в терминал будет выведен ответ `SERVER STARTED`.
+
+      ./server.sh start --wait
+      ./server.sh start -w
+
 * `--help` - Выводит помощь по команде запуска сервера.
 
       ./server.sh start --help
@@ -71,7 +76,12 @@ PZLSM предоставляет простой способ для запуск
       ./server.sh stop --no-tasks
       ./server.sh stop -n
 
-* `--help` - Выводит помощь по команде перазпуска сервера.
+* `--wait|-w` - Дождаться запуска сервера. С этим параметром в терминал будет выведен ответ `SERVER STARTED`.
+
+      ./server.sh restart --wait
+      ./server.sh restart -w
+
+* `--help` - Выводит помощь по команде перезапуска сервера.
 
       ./server.sh restart --help
 
