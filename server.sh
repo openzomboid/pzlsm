@@ -12,7 +12,7 @@
 
 # VERSION of Project Zomboid Linux Server Manager.
 # Follows semantic versioning, SEE: http://semver.org/.
-VERSION="0.24.3"
+VERSION="0.25.0"
 YEAR="2024"
 AUTHOR="Pavel Korotkiy (outdead)"
 
@@ -51,97 +51,7 @@ ENV_FILE="${BASEDIR}/.env"
 # shellcheck source=.env
 test -f "${ENV_FILE}" && . "${ENV_FILE}"
 
-# Linux Server Manager directories definitions.
-DIR_BACKUPS="${BASEDIR}/backups"
-DIR_UTILS="${BASEDIR}/utils"
-DIR_PZLSD="${BASEDIR}/utils/pzlsd"
-DIR_PLUGINS="${BASEDIR}/utils/plugins"
-DIR_LOGS="${BASEDIR}/logs"
-DIR_CONFIG="${BASEDIR}/config"
-DIR_PUBLIC="${BASEDIR}/public"
-DIR_STATE="${BASEDIR}/state"
-
-DIR_BACKUPS_DOWN="${DIR_BACKUPS}/down"
-DIR_BACKUPS_ZOMBOID="${DIR_BACKUPS}/zomboid"
-DIR_BACKUPS_PZLSD="${DIR_BACKUPS}/pzlsd"
-DIR_BACKUPS_COPY="${DIR_BACKUPS}/copy"
-DIR_BACKUPS_PLAYERS="${DIR_BACKUPS}/players"
-DIR_BACKUPS_TIME_MACHINE="${DIR_BACKUPS}/timemachine"
-
-# Linux Server Manager files definitions.
-FILE_PZLSM_LOG="${DIR_LOGS}/pzlsm.log"
-FILE_PZLSM_CONFIG="${DIR_CONFIG}/pzlsm.cfg"
-FILE_PZLSM_STATE="${DIR_STATE}/pzlsm.json"
-
-# Import config file if exists.
-# shellcheck source=config/pzlsm.cfg
-test -f "${FILE_PZLSM_CONFIG}" && . "${FILE_PZLSM_CONFIG}"
-
-BASENAME=$(basename "${BASEDIR}")
-
-## Check config variables and set default values if not defined.
-[ -z "${CLEAR_MAP_DAY}" ] && CLEAR_MAP_DAY=0
-[ -z "${CLEAR_LOGS_DAY}" ] && CLEAR_LOGS_DAY=0
-[ -z "${CLEAR_STACK_TRACE_DAY}" ] && CLEAR_STACK_TRACE_DAY=0
-[ -z "${CLEAR_BACKUPS_DAY}" ] && CLEAR_BACKUPS_DAY=7
-[ -z "${CLEAR_TIME_MACHINE_DAY}" ] && CLEAR_TIME_MACHINE_DAY=5
-[ -z "${UTIL_RANGE_VERSION}" ] && UTIL_RANGE_VERSION="1.0.1"
-[ -z "${UTIL_RCON_VERSION}" ] && UTIL_RCON_VERSION="0.10.2"
-[ -z "${SERVER_MEMORY_LIMIT}" ] && SERVER_MEMORY_LIMIT=2048
-[ -z "${SERVER_NAME}" ] && SERVER_NAME="servertest"
-[ -z "${ZOMBOID_HOME_DIR}" ] && ZOMBOID_HOME_DIR=".\/"
-[ -z "${SCREEN_ZOMBOID}" ] && SCREEN_ZOMBOID="${SERVER_NAME}"
-[ -z "${SERVER_LANG}" ] && SERVER_LANG="en"
-[ -z "${SERVER_DIR}" ] && SERVER_DIR="${BASEDIR}/projectzomboid"
-[ -z "${ZOMBOID_DIR}" ] && ZOMBOID_DIR="${BASEDIR}/Zomboid"
-[ -z "${FIRST_RUN_ADMIN_PASSWORD}" ] && FIRST_RUN_ADMIN_PASSWORD="changeme"
-[ -z "${BACKUP_ON_STOP}" ] && BACKUP_ON_STOP="false"
-[ -z "${AUTO_RESTORE}" ] && AUTO_RESTORE="false"
-
-[ -z "${STEAMCMD_USERNAME}" ] && STEAMCMD_USERNAME="anonymous"
-[ -z "${STEAMCMD_BETA}" ] && STEAMCMD_BETA="-beta none"
-
-[ -z "${PZLSM_SOURCE_LINK}" ] && PZLSM_SOURCE_LINK="https://raw.githubusercontent.com/openzomboid/pzlsm/master"
-
-[ -z "${WRITE_PZLSM_LOGS}" ] && WRITE_PZLSM_LOGS="false"
-
-## Utils
-
-# Numeric range regular expression builder written in bash.
-# https://github.com/outdead/regex-range-builder.
-UTIL_RANGE_LINK="https://github.com/outdead/regex-range-builder/archive/v${UTIL_RANGE_VERSION}.tar.gz"
-UTIL_RANGE_DIR="${DIR_UTILS}/regex-range-builder-${UTIL_RANGE_VERSION}"
-UTIL_RANGE_FILE="${UTIL_RANGE_DIR}/range.sh"
-
-# Rcon client for executing queries on game server.
-# https://github.com/gorcon/rcon-cli.
-UTIL_RCON_LINK="https://github.com/gorcon/rcon-cli/releases/download/v${UTIL_RCON_VERSION}/rcon-${UTIL_RCON_VERSION}-amd64_linux.tar.gz"
-UTIL_RCON_DIR="${DIR_UTILS}/rcon-${UTIL_RCON_VERSION}-amd64_linux"
-UTIL_RCON_FILE="${UTIL_RCON_DIR}/rcon"
-
-## Directories in Zomboid folder.
-
-ZOMBOID_DIR_SAVES="${ZOMBOID_DIR}/Saves"
-ZOMBOID_DIR_LOGS="${ZOMBOID_DIR}/Logs"
-ZOMBOID_DIR_SERVER="${ZOMBOID_DIR}/Server"
-ZOMBOID_DIR_DB="${ZOMBOID_DIR}/db"
-ZOMBOID_DIR_MAP="${ZOMBOID_DIR_SAVES}/Multiplayer/${SERVER_NAME}"
-
-ZOMBOID_FILE_CONFIG_INI="${ZOMBOID_DIR_SERVER}/${SERVER_NAME}.ini"
-ZOMBOID_FILE_CONFIG_SANDBOX="${ZOMBOID_DIR_SERVER}/${SERVER_NAME}_SandboxVars.lua"
-ZOMBOID_FILE_CONFIG_SPAWNPOINTS="${ZOMBOID_DIR_SERVER}/${SERVER_NAME}_spawnpoints.lua"
-ZOMBOID_FILE_CONFIG_SPAWNREGIONS="${ZOMBOID_DIR_SERVER}/${SERVER_NAME}_spawnregions.lua"
-ZOMBOID_FILE_DB="${ZOMBOID_DIR_DB}/${SERVER_NAME}.db"
-ZOMBOID_FILE_VEHICLES_DB="${ZOMBOID_DIR_MAP}/vehicles.db"
-ZOMBOID_FILE_PLAYERS_DB="${ZOMBOID_DIR_MAP}/players.db"
-
-ZOMBOID_MANIFEST="${SERVER_DIR}/steamapps/appmanifest_${APP_DEDICATED_ID}.acf"
-ZOMBOID_MODS_MANIFEST="${SERVER_DIR}/steamapps/workshop/appworkshop_${APP_ID}.acf"
-
-if [ -f "${ZOMBOID_DIR}/server-console.txt" ]; then
-  PZ_VERSION=$(grep -roE "Startup version [0-9]+.[0-9]+.[0-9]+" "${ZOMBOID_DIR}/server-console.txt" | grep -Eo "[0-9]+.[0-9]+.[0-9]+")
-fi
-[ -z "${PZ_VERSION}" ] && PZ_VERSION="$(echo -e "${RED}undefined${NC}")"
+# OLD INIT VARIABLES WAS HERE. See function `init_variables`.
 
 fn_exists() { declare -F "$1" > /dev/null; }
 
@@ -199,6 +109,101 @@ function is_symlink() {
   [ -L "$1" ] && echo "true" || echo "false"
 }
 
+# init_variables creates pzlsm variables.
+function init_variables() {
+  # Linux Server Manager directories definitions.
+  DIR_BACKUPS="${BASEDIR}/backups"
+  DIR_UTILS="${BASEDIR}/utils"
+  DIR_PZLSD="${BASEDIR}/utils/pzlsd"
+  DIR_PLUGINS="${BASEDIR}/utils/plugins"
+  DIR_LOGS="${BASEDIR}/logs"
+  DIR_CONFIG="${BASEDIR}/config"
+  DIR_PUBLIC="${BASEDIR}/public"
+  DIR_STATE="${BASEDIR}/state"
+
+  DIR_BACKUPS_DOWN="${DIR_BACKUPS}/down"
+  DIR_BACKUPS_ZOMBOID="${DIR_BACKUPS}/zomboid"
+  DIR_BACKUPS_PZLSD="${DIR_BACKUPS}/pzlsd"
+  DIR_BACKUPS_COPY="${DIR_BACKUPS}/copy"
+  DIR_BACKUPS_PLAYERS="${DIR_BACKUPS}/players"
+  DIR_BACKUPS_TIME_MACHINE="${DIR_BACKUPS}/timemachine"
+
+  # Linux Server Manager files definitions.
+  FILE_PZLSM_LOG="${DIR_LOGS}/pzlsm.log"
+  FILE_PZLSM_CONFIG="${DIR_CONFIG}/pzlsm.cfg"
+  # FILE_PZLSM_STATE="${DIR_STATE}/pzlsm.json"
+
+  # Import config file if exists.
+  # shellcheck source=config/pzlsm.cfg
+  test -f "${FILE_PZLSM_CONFIG}" && . "${FILE_PZLSM_CONFIG}"
+
+  # BASENAME=$(basename "${BASEDIR}")
+
+  ## Check config variables and set default values if not defined.
+  [ -z "${CLEAR_MAP_DAY}" ] && CLEAR_MAP_DAY=0
+  [ -z "${CLEAR_LOGS_DAY}" ] && CLEAR_LOGS_DAY=0
+  [ -z "${CLEAR_STACK_TRACE_DAY}" ] && CLEAR_STACK_TRACE_DAY=0
+  [ -z "${CLEAR_BACKUPS_DAY}" ] && CLEAR_BACKUPS_DAY=7
+  [ -z "${CLEAR_TIME_MACHINE_DAY}" ] && CLEAR_TIME_MACHINE_DAY=5
+  [ -z "${UTIL_RANGE_VERSION}" ] && UTIL_RANGE_VERSION="1.0.1"
+  [ -z "${UTIL_RCON_VERSION}" ] && UTIL_RCON_VERSION="0.10.2"
+  [ -z "${SERVER_MEMORY_LIMIT}" ] && SERVER_MEMORY_LIMIT=2048
+  [ -z "${SERVER_NAME}" ] && SERVER_NAME="servertest"
+  [ -z "${ZOMBOID_HOME_DIR}" ] && ZOMBOID_HOME_DIR=".\/"
+  [ -z "${SCREEN_ZOMBOID}" ] && SCREEN_ZOMBOID="${SERVER_NAME}"
+  [ -z "${SERVER_LANG}" ] && SERVER_LANG="en"
+  [ -z "${SERVER_DIR}" ] && SERVER_DIR="${BASEDIR}/projectzomboid"
+  [ -z "${ZOMBOID_DIR}" ] && ZOMBOID_DIR="${BASEDIR}/Zomboid"
+  [ -z "${FIRST_RUN_ADMIN_PASSWORD}" ] && FIRST_RUN_ADMIN_PASSWORD="changeme"
+  [ -z "${BACKUP_ON_STOP}" ] && BACKUP_ON_STOP="false"
+  [ -z "${AUTO_RESTORE}" ] && AUTO_RESTORE="false"
+
+  [ -z "${STEAMCMD_USERNAME}" ] && STEAMCMD_USERNAME="anonymous"
+  [ -z "${STEAMCMD_BETA}" ] && STEAMCMD_BETA="-beta none"
+
+  [ -z "${PZLSM_SOURCE_LINK}" ] && PZLSM_SOURCE_LINK="https://raw.githubusercontent.com/openzomboid/pzlsm/master"
+
+  [ -z "${WRITE_PZLSM_LOGS}" ] && WRITE_PZLSM_LOGS="false"
+
+  ## Utils
+
+  # Numeric range regular expression builder written in bash.
+  # https://github.com/outdead/regex-range-builder.
+  UTIL_RANGE_LINK="https://github.com/outdead/regex-range-builder/archive/v${UTIL_RANGE_VERSION}.tar.gz"
+  UTIL_RANGE_DIR="${DIR_UTILS}/regex-range-builder-${UTIL_RANGE_VERSION}"
+  UTIL_RANGE_FILE="${UTIL_RANGE_DIR}/range.sh"
+
+  # Rcon client for executing queries on game server.
+  # https://github.com/gorcon/rcon-cli.
+  UTIL_RCON_LINK="https://github.com/gorcon/rcon-cli/releases/download/v${UTIL_RCON_VERSION}/rcon-${UTIL_RCON_VERSION}-amd64_linux.tar.gz"
+  UTIL_RCON_DIR="${DIR_UTILS}/rcon-${UTIL_RCON_VERSION}-amd64_linux"
+  UTIL_RCON_FILE="${UTIL_RCON_DIR}/rcon"
+
+  ## Directories in Zomboid folder.
+
+  ZOMBOID_DIR_SAVES="${ZOMBOID_DIR}/Saves"
+  ZOMBOID_DIR_LOGS="${ZOMBOID_DIR}/Logs"
+  ZOMBOID_DIR_SERVER="${ZOMBOID_DIR}/Server"
+  ZOMBOID_DIR_DB="${ZOMBOID_DIR}/db"
+  ZOMBOID_DIR_MAP="${ZOMBOID_DIR_SAVES}/Multiplayer/${SERVER_NAME}"
+
+  ZOMBOID_FILE_CONFIG_INI="${ZOMBOID_DIR_SERVER}/${SERVER_NAME}.ini"
+  ZOMBOID_FILE_CONFIG_SANDBOX="${ZOMBOID_DIR_SERVER}/${SERVER_NAME}_SandboxVars.lua"
+  ZOMBOID_FILE_CONFIG_SPAWNPOINTS="${ZOMBOID_DIR_SERVER}/${SERVER_NAME}_spawnpoints.lua"
+  ZOMBOID_FILE_CONFIG_SPAWNREGIONS="${ZOMBOID_DIR_SERVER}/${SERVER_NAME}_spawnregions.lua"
+  ZOMBOID_FILE_DB="${ZOMBOID_DIR_DB}/${SERVER_NAME}.db"
+  ZOMBOID_FILE_VEHICLES_DB="${ZOMBOID_DIR_MAP}/vehicles.db"
+  ZOMBOID_FILE_PLAYERS_DB="${ZOMBOID_DIR_MAP}/players.db"
+
+  # ZOMBOID_MANIFEST="${SERVER_DIR}/steamapps/appmanifest_${APP_DEDICATED_ID}.acf"
+  ZOMBOID_MODS_MANIFEST="${SERVER_DIR}/steamapps/workshop/appworkshop_${APP_ID}.acf"
+
+  if [ -f "${ZOMBOID_DIR}/server-console.txt" ]; then
+    PZ_VERSION=$(grep -roE "Startup version [0-9]+.[0-9]+.[0-9]+" "${ZOMBOID_DIR}/server-console.txt" | grep -Eo "[0-9]+.[0-9]+.[0-9]+")
+  fi
+  [ -z "${PZ_VERSION}" ] && PZ_VERSION="$(echo -e "${RED}undefined${NC}")"
+}
+
 # print_variables prints pzlsm variables.
 # TODO: Add all variables.
 function print_variables() {
@@ -237,14 +242,14 @@ function print_variables() {
   echo "${INFO} ZOMBOID_FILE_CONFIG_SANDBOX: ${ZOMBOID_FILE_CONFIG_SANDBOX}$(check_file "${ZOMBOID_FILE_CONFIG_SANDBOX}")"
   echo "${INFO} ZOMBOID_FILE_DB:             ${ZOMBOID_FILE_DB}$(check_file "${ZOMBOID_FILE_DB}")"
   echo "${INFO}"
-  echo "${INFO} DIR_BACKUPS:                 ${DIR_BACKUPS}"
-  echo "${INFO} DIR_UTILS:                   ${DIR_UTILS}"
-  echo "${INFO} DIR_PZLSD:                   ${DIR_PZLSD}"
-  echo "${INFO} DIR_PLUGINS:                 ${DIR_PLUGINS}"
-  echo "${INFO} DIR_LOGS:                    ${DIR_LOGS}"
-  echo "${INFO} DIR_CONFIG:                  ${DIR_CONFIG}"
-  echo "${INFO} DIR_PUBLIC:                  ${DIR_PUBLIC}"
-  echo "${INFO} DIR_STATE:                   ${DIR_STATE}"
+  echo "${INFO} DIR_BACKUPS:                 ${DIR_BACKUPS}$(check_dir "${DIR_BACKUPS}")"
+  echo "${INFO} DIR_UTILS:                   ${DIR_UTILS}$(check_dir "${DIR_UTILS}")"
+  echo "${INFO} DIR_PZLSD:                   ${DIR_PZLSD}$(check_dir "${DIR_PZLSD}")"
+  echo "${INFO} DIR_PLUGINS:                 ${DIR_PLUGINS}$(check_dir "${DIR_PLUGINS}")"
+  echo "${INFO} DIR_LOGS:                    ${DIR_LOGS}$(check_dir "${DIR_LOGS}")"
+  echo "${INFO} DIR_CONFIG:                  ${DIR_CONFIG}$(check_dir "${DIR_CONFIG}")"
+  echo "${INFO} DIR_PUBLIC:                  ${DIR_PUBLIC}$(check_dir "${DIR_PUBLIC}")"
+  echo "${INFO} DIR_STATE:                   ${DIR_STATE}$(check_dir "${DIR_STATE}")"
 }
 
 # save_config_example saves pzlsm config example.
@@ -1703,27 +1708,30 @@ function self_update() {
 
 PLUGINS_COMMANDS_HELP=""
 
-IFS=';' read -ra ADDR <<< "${DIR_PLUGINS}"
-for i in "${ADDR[@]}"; do
-  for f in "${i}"/*.sh ; do
-    test -f "${f}" && {
-      if grep -E '^[[:space:]]*([[:alnum:]_]+[[:space:]]*\(\)|function[[:space:]]+[[:alnum:]_]+)' "${f}" | grep -w main > /dev/null; then
-        echoerr "broken plugin $(basename "${f}")"; exit 1
-      fi
+# load_plugins loads plugins from DIR_PLUGINS variable.
+function load_plugins() {
+    IFS=';' read -ra ADDR <<< "${DIR_PLUGINS}"
+    for i in "${ADDR[@]}"; do
+      for f in "${i}"/*.sh ; do
+        test -f "${f}" && {
+          if grep -E '^[[:space:]]*([[:alnum:]_]+[[:space:]]*\(\)|function[[:space:]]+[[:alnum:]_]+)' "${f}" | grep -w main > /dev/null; then
+            echoerr "broken plugin $(basename "${f}")"; exit 1
+          fi
 
-      if grep -E '^[[:space:]]*([[:alnum:]_]+[[:space:]]*\(\)|function[[:space:]]+[[:alnum:]_]+)' "${f}" | grep -w load > /dev/null; then
-        . "${f}";
+          if grep -E '^[[:space:]]*([[:alnum:]_]+[[:space:]]*\(\)|function[[:space:]]+[[:alnum:]_]+)' "${f}" | grep -w load > /dev/null; then
+            . "${f}";
 
-        if [ -n "$CMD" ]; then
-          IFS=' ' read -ra args <<< "${CMD}"
-          load "${args[@]}"
-        else
-          load "$@"
-        fi
-      fi
-    }
-  done
-done
+            if [ -n "$CMD" ]; then
+              IFS=' ' read -ra args <<< "${CMD}"
+              load "${args[@]}"
+            else
+              load "$@"
+            fi
+          fi
+        }
+      done
+    done
+}
 
 function print_help() {
   echo "NAME:"
@@ -1741,6 +1749,7 @@ function print_help() {
   echo "GLOBAL OPTIONS:"
   echo "  --variables, --vars     Print variables."
   echo "  --version               Print the version."
+  echo "  -s [args]               Use selected server."
   echo "  --help                  Show help."
   echo
   echo "COMMANDS:"
@@ -2240,6 +2249,18 @@ function print_help_vehicles() {
 
 # main contains a proxy for entering permissible functions.
 function main() {
+  case "$1" in
+    -s)
+      BASEDIR="${BASEDIR}/gameservers/$2"
+
+      shift
+      shift
+      ;;
+  esac
+
+  init_variables
+  load_plugins "$@"
+
   case "$1" in
     self-update)
       self_update ;;

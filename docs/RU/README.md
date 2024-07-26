@@ -3,6 +3,7 @@
 * [Вступление](introduction.md)
 * [Установка](installation.md)
 * [Конфигурация](configuration)
+* [Глобальные опции](options.md)
 * [Команды](commands)
     * [self-update](commands/self-update.md)
     * [install](commands/install.md) [dependencies, folders, utils, prepare, server, fix]
