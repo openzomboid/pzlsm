@@ -27,6 +27,7 @@ USAGE:
 GLOBAL OPTIONS:
   --variables, --vars     Print variables.
   --version               Print the version.
+  -s [args]               Use selected server.
   --help                  Show help.
 
 COMMANDS:
