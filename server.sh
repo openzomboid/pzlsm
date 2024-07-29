@@ -12,7 +12,7 @@
 
 # VERSION of Project Zomboid Linux Server Manager.
 # Follows semantic versioning, SEE: http://semver.org/.
-VERSION="0.25.0"
+VERSION="0.25.1"
 YEAR="2024"
 AUTHOR="Pavel Korotkiy (outdead)"
 
@@ -608,6 +608,12 @@ function start() {
     if ! env LANG=ru_RU.utf8 screen -U -mdS "${SCREEN_ZOMBOID}" "${SERVER_DIR}/start-server.sh" -servername "${SERVER_NAME}"; then
       echoerr "start: failed to start the server"; return 1
     fi
+  fi
+
+  sleep 1s
+
+  if [ "$(is_server_running)" == "false" ]; then
+    echoerr "start: failed to start the server"; return 1
   fi
 
   if [ "$(is_admin_exists)" == "false" ] && [ -n "${FIRST_RUN_ADMIN_PASSWORD}" ]; then
@@ -2261,6 +2267,11 @@ function main() {
   init_variables
   load_plugins "$@"
 
+  # Replace ZOMBOID_DIR_LOGS value to real logs path if it is symlink.
+  if [ "$(is_symlink "${ZOMBOID_DIR_LOGS}")" == "true" ]; then
+    ZOMBOID_DIR_LOGS=$(realpath "${ZOMBOID_DIR_LOGS}")
+  fi
+
   case "$1" in
     self-update)
       self_update ;;
@@ -2705,11 +2716,6 @@ function main() {
       ;;
   esac
 }
-
-# Replace ZOMBOID_DIR_LOGS value to real logs path if it is symlink.
-if [ "$(is_symlink "${ZOMBOID_DIR_LOGS}")" == "true" ]; then
-  ZOMBOID_DIR_LOGS=$(realpath "${ZOMBOID_DIR_LOGS}")
-fi
 
 if [ -z "$1" ]; then
   echo "${INFO} Permissible commands:"
