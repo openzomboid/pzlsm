@@ -12,7 +12,7 @@
 
 # VERSION of Project Zomboid Linux Server Manager.
 # Follows semantic versioning, SEE: http://semver.org/.
-VERSION="0.25.1"
+VERSION="0.25.2"
 YEAR="2024"
 AUTHOR="Pavel Korotkiy (outdead)"
 
@@ -159,7 +159,7 @@ function init_variables() {
   [ -z "${AUTO_RESTORE}" ] && AUTO_RESTORE="false"
 
   [ -z "${STEAMCMD_USERNAME}" ] && STEAMCMD_USERNAME="anonymous"
-  [ -z "${STEAMCMD_BETA}" ] && STEAMCMD_BETA="-beta none"
+  #[ -z "${STEAMCMD_BETA}" ] && STEAMCMD_BETA="-beta none" -- TODO: 2024 WTF PZ Breaking change.
 
   [ -z "${PZLSM_SOURCE_LINK}" ] && PZLSM_SOURCE_LINK="https://raw.githubusercontent.com/openzomboid/pzlsm/master"
 
@@ -523,7 +523,7 @@ function install_server() {
   fi
 
   # Install Project Zomboid Server.
-  ./steamcmd.sh +login "${STEAMCMD_USERNAME}" +force_install_dir "${SERVER_DIR}" +app_update ${APP_DEDICATED_ID} ${beta} validate +exit
+  ./steamcmd.sh +force_install_dir "${SERVER_DIR}" +login "${STEAMCMD_USERNAME}" +app_update ${APP_DEDICATED_ID} ${beta} validate +exit
 
   # Return to the script directory.
   cd "${BASEDIR}" || return
@@ -540,7 +540,7 @@ function update_server() {
   cd "${HOME}/steamcmd" || return
 
   # Update Project Zomboid Server.
-  ./steamcmd.sh +login "${STEAMCMD_USERNAME}" +force_install_dir "${SERVER_DIR}" +app_update ${APP_DEDICATED_ID} validate +exit
+  ./steamcmd.sh +force_install_dir "${SERVER_DIR}" +login "${STEAMCMD_USERNAME}" +app_update ${APP_DEDICATED_ID} validate +exit
 
   # Return to the script directory.
   cd "${BASEDIR}" || return
