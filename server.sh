@@ -926,9 +926,9 @@ function kickusers() {
 function delete_mods_manifest() {
   [ ! -f "${ZOMBOID_MODS_MANIFEST}" ] && return 0
 
-  echo "${INFO} removed mods appworkshop_${APP_ID}.acf"
+  echo "${OK} removed mods appworkshop_${APP_ID}.acf"
   rm "${ZOMBOID_MODS_MANIFEST}"
-  echo "${INFO} removed mods content"
+  echo "${OK} removed mods content"
   rm -r ${ZOMBOID_MODS_CONTENT}/*
 }
 
