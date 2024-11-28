@@ -12,7 +12,7 @@
 
 # VERSION of Project Zomboid Linux Server Manager.
 # Follows semantic versioning, SEE: http://semver.org/.
-VERSION="0.25.2"
+VERSION="0.25.3"
 YEAR="2024"
 AUTHOR="Pavel Korotkiy (outdead)"
 
@@ -197,6 +197,7 @@ function init_variables() {
 
   # ZOMBOID_MANIFEST="${SERVER_DIR}/steamapps/appmanifest_${APP_DEDICATED_ID}.acf"
   ZOMBOID_MODS_MANIFEST="${SERVER_DIR}/steamapps/workshop/appworkshop_${APP_ID}.acf"
+  ZOMBOID_MODS_CONTENT="${SERVER_DIR}/steamapps/workshop/content/${APP_ID}"
 
   if [ -f "${ZOMBOID_DIR}/server-console.txt" ]; then
     PZ_VERSION=$(grep -roE "Startup version [0-9]+.[0-9]+.[0-9]+" "${ZOMBOID_DIR}/server-console.txt" | grep -Eo "[0-9]+.[0-9]+.[0-9]+")
@@ -927,6 +928,7 @@ function delete_mods_manifest() {
 
   echo "${INFO} remove appworkshop_${APP_ID}.acf"
   rm "${ZOMBOID_MODS_MANIFEST}"
+  rm -r ${ZOMBOID_MODS_CONTENT}/*
 }
 
 # delete_old_java_stack_traces deletes hs_err_pid*.log files that are older
