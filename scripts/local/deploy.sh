@@ -14,7 +14,7 @@ OK="[ ${GREEN} OK ${NC} ]"; ER="[ ${RED} ER ${NC} ]"; INFO="[ ${BLUE}INFO${NC} ]
 BASEDIR=$(dirname "$(readlink -f "$BASH_SOURCE")")
 
 # Import config file if exists.
-if [ -n "$1" ]; then
+[ -n "$1" ] && {
     SERVER_TYPE="$1"
 
     DIR_CONFIG="./build/config"
@@ -22,7 +22,7 @@ if [ -n "$1" ]; then
     FILE_DEPLOY_CONFIG="${DIR_CONFIG}/deploy/${SERVER_TYPE}.sh"
 
     test -f "${FILE_DEPLOY_CONFIG}" && . ${FILE_DEPLOY_CONFIG}
-fi
+}
 
 # Or get variables from env if exists.
 SERVER_IP=${SERVER_IP}
