@@ -2197,6 +2197,7 @@ function print_help_sql() {
   echo "EXAMPLE:"
   echo "  $0 sql \"SELECT * FROM bannedid ORDER BY steamid;\""
   echo "  $0 sql \"SELECT steamid, count(username) AS c, group_concat(username) FROM whitelist WHERE steamid != '' GROUP BY steamid HAVING c > 2 ORDER BY c DESC;\""
+  echo "  $0 sql --db whitelist \"PRAGMA table_info(whitelist);\""
   echo "  $0 sql --db whitelist \"SELECT count(*) FROM whitelist;\""
   echo "  $0 sql --db players \"SELECT count(*) FROM networkPlayers;\""
   echo "  $0 sql --db vehicles \"SELECT count(*) FROM vehicles;\""

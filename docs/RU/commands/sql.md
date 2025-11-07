@@ -13,6 +13,7 @@
 ## Команды
 
     ./server.sh sql "SELECT * FROM bannedid ORDER BY steamid;"
+    ./server.sh sql --db whitelist "PRAGMA table_info(whitelist);"
     ./server.sh sql --db whitelist "SELECT count(*) FROM whitelist;"
     ./server.sh sql --db players "SELECT count(*) FROM networkPlayers;"
     ./server.sh sql --db vehicles "SELECT count(*) FROM vehicles;"
