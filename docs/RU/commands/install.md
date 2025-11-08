@@ -9,7 +9,7 @@ PZLSM позволяет легко устанавливать сервер в P
 * Скачивание игры и установка сервера Project Zomboid.
 * Применение необходимых фиксов чтобы игра корректно работала.
 
-Команда `istall` принимает следующие команды и аргументы:
+Команда `install` принимает следующие команды и аргументы:
 
 ## Аргументы
 
@@ -20,36 +20,36 @@ PZLSM позволяет легко устанавливать сервер в P
 ## Команды
 Если не указывать никаких подкоманд, то PZLSM выполнит все команды установки. Аргументы `--branch` и `--no-fixes` в таком случае принимаются без указания команды `server`.
 
-    ./server.sh istall
-    ./server.sh istall -b none -n
-    ./server.sh istall -b unstable -n
+    ./server.sh install
+    ./server.sh install -b none -n
+    ./server.sh install -b unstable -n
 
 * `dependencies|dep` - Устанавливает только зависимости в операционную систему. Для запуска установки с этим аргументом нужно обладать привилегией sudo. Установщик запросит пароль и автоматически установит всё необходимое.
     
-      ./server.sh istall dependencies
+      ./server.sh install dependencies
 
 * `folders` - Создает нужные папки и ничего не устанавливает.
 
-      ./server.sh istall folders
+      ./server.sh install folders
 
 * `utils` - Устанавливает дополнительные утилиты, такие как RCON клиент и генератор регулярных выражений.
 
-      ./server.sh istall utils
+      ./server.sh install utils
 
 * `prepare` - Включает в себя все необходимые подготовки перед установкой сервера из предыдущих команд. Сам сервер не устанавливается. Аргумент может быть нужен, если сервер уже устанавливался раньше, но в новых версиях PZLSM появились новые зависимости.
 
-      ./server.sh istall prepare
+      ./server.sh install prepare
 
 * `server` - Устанавливает только игровой сервер Project Zomboid.
   * `--branch|-b branchname` - Указывает имя ветки, из которой необходимо установить игру. Может принимать предустановленные значения (`none`, `iwbums`, `unstable`) или любое другое из списка существующих веток.
   * `--no-fixes|-n` - Не выполнять фиксы файлов игры после установки. В фиксы входит переключение игры на английский язык и установка флагов запуска игры в файле ProjectZomboid64.json.
 
   ```bash
-  ./server.sh istall server
-  ./server.sh istall server -b none -n
-  ./server.sh istall server -b unstable -n
+  ./server.sh install server
+  ./server.sh install server -b none -n
+  ./server.sh install server -b unstable -n
   ```
 
 * `fix` - Только выполнить фиксы на уже установленном сервере.
 
-      ./server.sh istall fix
+      ./server.sh install fix
