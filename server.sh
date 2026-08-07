@@ -419,7 +419,7 @@ function create_folders() {
   mkdir -p "${DIR_PUBLIC}"
   mkdir -p "${DIR_UTILS}"
   mkdir -p "${DIR_PZLSD}"
-  mkdir -p "${DIR_PLUGINS}" # TODO: Spit into two variables.
+  mkdir -p "${DIR_PLUGINS}" # TODO: Split into two variables.
   mkdir -p "${DIR_STATE}"
 
   # Config.
