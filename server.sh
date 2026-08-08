@@ -259,7 +259,7 @@ function save_config_example() {
 #!/usr/bin/env bash
 
 # STEAMCMD_BETA contains branch name for Project Zomboid installation.
-STEAMCMD_BETA=${STEAMCMD_BETA}
+STEAMCMD_BETA=\"${STEAMCMD_BETA}\"
 
 # SERVER_MEMORY_LIMIT contains memory Limit for JVM in MB.
 SERVER_MEMORY_LIMIT=${SERVER_MEMORY_LIMIT}
