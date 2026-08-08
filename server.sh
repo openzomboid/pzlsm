@@ -258,6 +258,9 @@ function save_config_example() {
   bash -c "cat <<'EOF' > ${DIR_CONFIG}/pzlsm.example.cfg
 #!/usr/bin/env bash
 
+# STEAMCMD_BETA contains branch name for Project Zomboid installation.
+STEAMCMD_BETA=${STEAMCMD_BETA}
+
 # SERVER_MEMORY_LIMIT contains memory Limit for JVM in MB.
 SERVER_MEMORY_LIMIT=${SERVER_MEMORY_LIMIT}
 
