@@ -122,6 +122,7 @@ function init_variables() {
   DIR_STATE="${BASEDIR}/state"
 
   DIR_BACKUPS_DOWN="${DIR_BACKUPS}/down"
+  DIR_BACKUPS_JAVA="${DIR_BACKUPS}/java"
   DIR_BACKUPS_ZOMBOID="${DIR_BACKUPS}/zomboid"
   DIR_BACKUPS_PZLSD="${DIR_BACKUPS}/pzlsd"
   DIR_BACKUPS_COPY="${DIR_BACKUPS}/copy"
@@ -430,6 +431,7 @@ function create_folders() {
 
   # Backups.
   mkdir -p "${DIR_BACKUPS_DOWN}"
+  mkdir -p "${DIR_BACKUPS_JAVA}"
   mkdir -p "${DIR_BACKUPS_ZOMBOID}"
   mkdir -p "${DIR_BACKUPS_PZLSD}"
   mkdir -p "${DIR_BACKUPS_COPY}"
