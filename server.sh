@@ -12,8 +12,8 @@
 
 # VERSION of Project Zomboid Linux Server Manager.
 # Follows semantic versioning, SEE: http://semver.org/.
-VERSION="0.26.0"
-YEAR="2024"
+VERSION="0.26.1"
+YEAR="2026"
 AUTHOR="Pavel Korotkiy (outdead)"
 
 # Color variables. Used when displaying messages in stdout.
@@ -196,7 +196,7 @@ function init_variables() {
   ZOMBOID_FILE_VEHICLES_DB="${ZOMBOID_DIR_MAP}/vehicles.db"
   ZOMBOID_FILE_PLAYERS_DB="${ZOMBOID_DIR_MAP}/players.db"
 
-  # ZOMBOID_MANIFEST="${SERVER_DIR}/steamapps/appmanifest_${APP_DEDICATED_ID}.acf"
+  ZOMBOID_MANIFEST="${SERVER_DIR}/steamapps/appmanifest_${APP_DEDICATED_ID}.acf"
   ZOMBOID_MODS_MANIFEST="${SERVER_DIR}/steamapps/workshop/appworkshop_${APP_ID}.acf"
   ZOMBOID_MODS_CONTENT="${SERVER_DIR}/steamapps/workshop/content/${APP_ID}"
 
@@ -928,6 +928,15 @@ function kickusers() {
   fi
 
   echo "${OK} kicked ${i} users"
+}
+
+# delete_zomboid_manifest deletes appworkshop_108600.acf file. It sometimes need to
+# update gameserver correctly.
+function delete_zomboid_manifest() {
+  [ ! -f "${ZOMBOID_MANIFEST}" ] && return 0
+
+  echo "${OK} removed mods {ZOMBOID_MANIFEST}"
+  rm "${ZOMBOID_MANIFEST}"
 }
 
 # delete_mods_manifest deletes appworkshop_108600.acf file. It need to
@@ -2522,6 +2531,7 @@ function main() {
         case "$2" in
           manifest)
             delete_mods_manifest
+            delete_zomboid_manifest
             return ;;
           zombies)
             delete_zombies
