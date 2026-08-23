@@ -723,6 +723,8 @@ function autorestart() {
   local pid_zomboid=""
   pid_zomboid=$(get_server_pid)
   if [ -z "${pid_zomboid}" ] && [ -f "${DIR_STATE}/started" ]; then
+    echoerr "autorestart: server is not running, restarting..."
+
     NOW=$(date "+%Y%m%d_%H%M%S")
 
     local down="${DIR_BACKUPS_DOWN}/${NOW}"
@@ -740,16 +742,29 @@ function autorestart() {
   local result
   result=$(rconcmd players 5s 2>&1 >/dev/null | grep ': i/o timeout')
   if [ -n "${result}" ]; then
-    NOW=$(date "+%Y%m%d_%H%M%S")
+    echoerr "autorestart: server is not responding on first attempt"
+    sleep 5s
 
-    local down="${DIR_BACKUPS_DOWN}/${NOW}"
-    mkdir "${down}"
+    result=$(rconcmd players 5s 2>&1 >/dev/null | grep ': i/o timeout')
+    if [ -n "${result}" ]; then
+      echoerr "autorestart: server is not responding on second attempt"
+      sleep 5s
 
-    find "${ZOMBOID_DIR_LOGS}" -maxdepth 1 -name \*.txt -exec cp {} "${down}" \;
-    cp "${ZOMBOID_DIR}/server-console.txt" "${down}"
-    cp "${DIR_LOGS}/gc/gc.out" "${down}"
+      result=$(rconcmd players 5s 2>&1 >/dev/null | grep ': i/o timeout')
+      if [ -n "${result}" ]; then
+        echoerr "autorestart: server is not responding on third attempt, restarting..."
+        NOW=$(date "+%Y%m%d_%H%M%S")
 
-    restart kill
+        local down="${DIR_BACKUPS_DOWN}/${NOW}"
+        mkdir "${down}"
+
+        find "${ZOMBOID_DIR_LOGS}" -maxdepth 1 -name \*.txt -exec cp {} "${down}" \;
+        cp "${ZOMBOID_DIR}/server-console.txt" "${down}"
+        cp "${DIR_LOGS}/gc/gc.out" "${down}"
+
+        restart kill
+      fi
+    fi
   fi
 }
 
