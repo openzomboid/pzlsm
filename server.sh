@@ -393,7 +393,7 @@ function install_dependencies() {
   sudo apt-get install -y libc6 libc6-dev libc6-dbg linux-libc-dev gcc
 
   # Install Java-SDK. It is required to run the Project Zomboid game server.
-  sudo apt-get install -y openjdk-17-jdk
+  sudo apt-get install -y openjdk-25-jdk
 
   # Install screen to run Project Zomboid in the background.
   sudo apt-get install -y screen
