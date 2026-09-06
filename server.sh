@@ -1110,28 +1110,28 @@ function get_rectangle() {
   echo "${top_x} ${top_y} ${bot_x} ${bot_y}"
 }
 
-# map_regen takes the coordinates of the upper right and lower left points
+# map_delete takes the coordinates of the upper right and lower left points
 # and builds a rectangular area of chunks from them and deletes them.
 #
-# Example: map_regen 10626x10600 10679x10661
-function map_regen() {
+# Example: map_delete 10626x10600 10679x10661
+function map_delete() {
   local from="$1"
   if [ -z "${from}" ]; then
-     echoerr "map_regen: upper right corner is not set"; return 1
+     echoerr "map_delete: upper right corner is not set"; return 1
   fi
 
   local to="$2"
   if [ -z "${to}" ]; then
-     echoerr "map_regen: lower left corner is not set"; return 1
+     echoerr "map_delete: lower left corner is not set"; return 1
   fi
 
   if [ ! -d "${ZOMBOID_DIR_MAP}" ]; then
-     echoerr "map_regen: saves dir \"${ZOMBOID_DIR_MAP}\" doesn't exist"; return 1
+     echoerr "map_delete: saves dir \"${ZOMBOID_DIR_MAP}\" doesn't exist"; return 1
   fi
 
   local rectangle=($(get_rectangle "${from}" "${to}"))
   if [ -n "${rectangle[4]}" ]; then
-    echoerr "map_regen: ${rectangle[*]:4}"; return 1
+    echoerr "map_delete: ${rectangle[*]:4}"; return 1
   fi
 
   local top_x; top_x=$(echo "${rectangle[0]}/8" |bc)
@@ -1140,7 +1140,7 @@ function map_regen() {
   local bot_y; bot_y=$(echo "${rectangle[3]}/8" |bc)
 
   if [ "${top_x}" -gt "${bot_x}" ] || [ "${top_y}" -gt "${bot_y}" ]; then
-    echoerr "map_regen: invalid points"; return 1
+    echoerr "map_delete: invalid points"; return 1
   fi
 
   echoinfo "deleting chunks from $1 to $2"
@@ -2580,7 +2580,7 @@ function main() {
             delete_isoregiondata
             return ;;
           map)
-            map_regen "$3" "$4"
+            map_delete "$3" "$4"
             return ;;
           --help|*)
             print_help_delfile
@@ -2595,7 +2595,7 @@ function main() {
       while [[ -n "$2" ]]; do
         case "$2" in
           delete)
-            map_regen "$3" "$4"
+            map_delete "$3" "$4"
             return ;;
           copy)
             local top="$3"
