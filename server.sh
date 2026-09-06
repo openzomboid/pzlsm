@@ -55,30 +55,39 @@ test -f "${ENV_FILE}" && . "${ENV_FILE}"
 
 fn_exists() { declare -F "$1" > /dev/null; }
 
-# echoerr prints red error message to stderr and FILE_PZLSM_LOG file.
+# echoerr prints red ERROR message to stderr and FILE_PZLSM_LOG file.
 function echoerr() {
   echo "${ER} $1"
   if [ "${WRITE_PZLSM_LOGS}" == "true" ]; then
     mkdir -p "${DIR_LOGS}"
-    echo "[$(date "+%Y-%m-%d %H:%M:%S")] $0 - $1" >> "${FILE_PZLSM_LOG}"
+    echo "[$(date "+%Y-%m-%d %H:%M:%S")] ER - $1" >> "${FILE_PZLSM_LOG}"
   fi
 }
 
-# echowarn prints yellow error message to stderr and FILE_PZLSM_LOG file.
+# echowarn prints yellow WARN message to stderr and FILE_PZLSM_LOG file.
 function echowarn() {
   echo "${WARN} $1"
   if [ "${WRITE_PZLSM_LOGS}" == "true" ]; then
     mkdir -p "${DIR_LOGS}"
-    echo "[$(date "+%Y-%m-%d %H:%M:%S")] $0 - $1" >> "${FILE_PZLSM_LOG}"
+    echo "[$(date "+%Y-%m-%d %H:%M:%S")] WARN - $1" >> "${FILE_PZLSM_LOG}"
   fi
 }
 
-# echowarn prints yellow error message to stdout and FILE_PZLSM_LOG file.
+# echoinfo prints blue INFO message to stdout and FILE_PZLSM_LOG file.
 function echoinfo() {
   echo "${INFO} $1"
   if [ "${WRITE_PZLSM_LOGS}" == "true" ]; then
     mkdir -p "${DIR_LOGS}"
-    echo "[$(date "+%Y-%m-%d %H:%M:%S")] $0 - $1" >> "${FILE_PZLSM_LOG}"
+    echo "[$(date "+%Y-%m-%d %H:%M:%S")] INFO - $1" >> "${FILE_PZLSM_LOG}"
+  fi
+}
+
+# echook prints green OK message to stdout and FILE_PZLSM_LOG file.
+function echook() {
+  echo "${OK} $1"
+  if [ "${WRITE_PZLSM_LOGS}" == "true" ]; then
+    mkdir -p "${DIR_LOGS}"
+    echo "[$(date "+%Y-%m-%d %H:%M:%S")] OK - $1" >> "${FILE_PZLSM_LOG}"
   fi
 }
 
