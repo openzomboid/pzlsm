@@ -12,7 +12,7 @@
 
 # VERSION of Project Zomboid Linux Server Manager.
 # Follows semantic versioning, SEE: http://semver.org/.
-VERSION="0.26.2"
+VERSION="0.26.3"
 YEAR="2026"
 AUTHOR="Pavel Korotkiy (outdead)"
 
@@ -67,6 +67,15 @@ function echoerr() {
 # echowarn prints yellow error message to stderr and FILE_PZLSM_LOG file.
 function echowarn() {
   echo "${WARN} $1"
+  if [ "${WRITE_PZLSM_LOGS}" == "true" ]; then
+    mkdir -p "${DIR_LOGS}"
+    echo "[$(date "+%Y-%m-%d %H:%M:%S")] $0 - $1" >> "${FILE_PZLSM_LOG}"
+  fi
+}
+
+# echowarn prints yellow error message to stdout and FILE_PZLSM_LOG file.
+function echoinfo() {
+  echo "${INFO} $1"
   if [ "${WRITE_PZLSM_LOGS}" == "true" ]; then
     mkdir -p "${DIR_LOGS}"
     echo "[$(date "+%Y-%m-%d %H:%M:%S")] $0 - $1" >> "${FILE_PZLSM_LOG}"
@@ -505,7 +514,7 @@ function install_rcon() {
 # IWBUMS branch. Only the latest stable and IWBUMS branches are supported.
 function install_server() {
   if [ "$(is_server_running)" == "true" ]; then
-    echo "${ER} cannot install on started server"; return 0
+    echoerr "install_server: cannot install on started server"; return 0
   fi
 
   local beta="${STEAMCMD_BETA}"
@@ -535,7 +544,7 @@ function install_server() {
 # update_server updates Project Zomboid dedicated server.
 function update_server() {
   if [ "$(is_server_running)" == "true" ]; then
-    echo "${ER} cannot update on started server"; return 0
+    echoerr "update_server: cannot update on started server"; return 0
   fi
 
   local beta="${STEAMCMD_BETA}"
@@ -598,13 +607,13 @@ function fix_args() {
 # An error message will be displayed if server has been started earlier.
 # TODO: Add wait arg.
 function start() {
-  echo "${INFO} starting the server..."
+  echoinfo "starting the server..."
 
   local no_screen="$1"
   local wait="$2"
 
   if [ "$(is_server_running)" == "true" ]; then
-    echo "${INFO} server already started"; return 0
+    echoinfo "start: server already started"; return 0
   fi
 
   rm -f "${DIR_STATE}/started"
@@ -649,12 +658,12 @@ function start() {
 
 # stop stops the server.
 function stop() {
-  echo "${INFO} stopping the server..."
+  echoinfo "stopping the server..."
 
   rm -f "${DIR_STATE}/started"
 
   if [ "$(is_server_running)" == "false" ]; then
-    echo "${INFO} server already stopped"; return 0
+    echoinfo "stop: server already stopped"; return 0
   fi
 
   # kickusers is used for fix a game bug.
@@ -675,7 +684,7 @@ function stop() {
   local pid_screen
   pid_screen=$(get_screen_pid)
   if [ -n "${pid_screen}" ]; then
-    echo "${INFO} kill screen process ${pid_screen}"
+    echoinfo "stop: kill screen process ${pid_screen}"
     kill "${pid_screen}" > /dev/null 2>&1; sleep 1s
   fi
 
@@ -686,7 +695,7 @@ function stop() {
   fi
 
   if [ "${NO_TASKS_ON_STOP}" == "true" ]; then
-    echo "${INFO} no tasks enabled"; return 0
+    echoinfo "stop: no tasks enabled"; return 0
   fi
 
   if [ "$1" == "now" ] || [ "$1" == "kill" ]; then
@@ -708,7 +717,7 @@ function stop() {
 
 # restart stops the server and starts it after 10 seconds.
 function restart() {
-  echo "${INFO} restarting the server..."
+  echoinfo "restarting the server..."
 
   stop "$1" "$2"
   sleep 10s
@@ -822,7 +831,7 @@ function stats_top() {
 # function.
 function shutdown_wrapper() {
   if [ "$(is_server_running)" == "false" ]; then
-    echo "${INFO} server already stopped"
+    echoinfo "shutdown_wrapper: server already stopped"
     return 0
   fi
 
@@ -830,19 +839,19 @@ function shutdown_wrapper() {
     local msg=$1
 
     if [ "$2" != "now" ] && [ "$2" != "kill" ]; then
-      echo "${INFO} ${msg} 5 minutes"
+      echoinfo "${msg} 5 minutes"
       screencmd "servermsg \"${msg} 5 minutes\""
 
       sleep 240s
 
-      echo "${INFO} ${msg} 1 minute";
+      echoinfo "${msg} 1 minute";
       screencmd "servermsg \"${msg} 1 minute\""
 
       sleep 50s
     fi
 
     if [ "$2" != "kill" ]; then
-      echo "${INFO} ${msg} 10 seconds";
+      echoinfo "${msg} 10 seconds";
       screencmd "servermsg \"${msg} 10 seconds\""
 
       sleep 5s
@@ -874,7 +883,7 @@ function shutdown_wrapper() {
 # console connects to screen session.
 function console() {
   if [ "$(is_server_running)" == "false" ]; then
-    echo "${INFO} server is not running"
+    echoinfo "console: server is not running"
     return 0
   fi
 
@@ -886,7 +895,7 @@ function console() {
 # to the request. Therefore, it should be used when the answer is not needed.
 function screencmd() {
   if [ "$(is_server_running)" == "false" ]; then
-    echo "${INFO} server is not running"
+    echoinfo "screencmd: server is not running"
     return 0
   fi
 
@@ -900,7 +909,7 @@ function screencmd() {
 # The port and authorization parameters takes from the Project Zomboid config.
 function rconcmd() {
   if [ "$(is_server_running)" == "false" ]; then
-    echo "${INFO} server is not running"
+    echoinfo "rconcmd: server is not running"
     return 0
   fi
 
@@ -983,7 +992,7 @@ function delete_old_java_stack_traces() {
   count=$(find "${SERVER_DIR}" -name "hs_err_pid*.log" -mtime +${days} | wc -l)
   find "${SERVER_DIR}" -name "hs_err_pid*.log" -mtime +${days} -delete
   (( days++ ))
-  echo "${INFO} remove hs_err_pid*.log files older than ${days} days... ${count} files"
+  echoinfo "remove hs_err_pid*.log files older than ${days} days... ${count} files"
 }
 
 # delete_old_logs deletes log files that are older than $1 days from
@@ -1003,7 +1012,7 @@ function delete_old_logs() {
   count=$(find "${ZOMBOID_DIR_LOGS}" -name "*.txt" -mtime +${days} | wc -l)
   find "${ZOMBOID_DIR_LOGS}" -name "*.txt" -mtime +${days} -delete
   (( days++ ))
-  echo "${INFO} remove logs files older than ${days} days... ${count} files"
+  echoinfo "remove logs files older than ${days} days... ${count} files"
 
   # Remove empty logs folders.
   find "${ZOMBOID_DIR_LOGS}" -empty -type d -delete
@@ -1019,7 +1028,7 @@ function delete_old_logs() {
 function delete_zombies() {
   local count
   count=$(find "${ZOMBOID_DIR_MAP}/zpop" -name "zpop_*_*.bin" | wc -l)
-  echo "${INFO} remove zpop_*_*.bin files... ${count} files"
+  echoinfo "remove zpop_*_*.bin files... ${count} files"
 
   rm -rf "${ZOMBOID_DIR_MAP}/zpop"
 }
@@ -1028,7 +1037,7 @@ function delete_zombies() {
 function delete_gos_files() {
   local count
   count=$(find "${ZOMBOID_DIR_MAP}" -name "gos_*.bin" | wc -l)
-  echo "${INFO} remove gos_*.bin files... ${count} files"
+  echoinfo "remove gos_*.bin files... ${count} files"
 
   rm -rf "${ZOMBOID_DIR_MAP}/gos_*.bin"
 }
@@ -1037,7 +1046,7 @@ function delete_gos_files() {
 function delete_isoregiondata() {
   local count
   count=$(find "${ZOMBOID_DIR_MAP}/isoregiondata" -name "*.*" | wc -l)
-  echo "${INFO} remove isoregiondata folder... ${count} files"
+  echoinfo "remove isoregiondata folder... ${count} files"
 
   rm -rf "${ZOMBOID_DIR_MAP}/isoregiondata"
 }
@@ -1053,16 +1062,22 @@ function delete_old_chunks() {
   # Do nothing if turned off in the settings.
   [ "${days}" -eq "0" ] && return 0
 
-  local count
+  local count_chunks
+  local count_folder
+
   (( days-- ))
-  count=$(find "${ZOMBOID_DIR_MAP}/map" -name "*.bin" -mtime +${days} | wc -l)
+  count_chunks=$(find "${ZOMBOID_DIR_MAP}/map" -name "*.bin" -mtime +${days} | wc -l)
   find "${ZOMBOID_DIR_MAP}/map" -name "*.bin" -mtime +${days} -delete
   (( days++ ))
-  echo "${INFO} remove chunks older than ${days} days... ${count} chunks"
+
+  count_folder=$(find "${ZOMBOID_DIR_MAP}/map" -mindepth 1 -type d -empty | wc -l)
+  find "${ZOMBOID_DIR_MAP}/map" -mindepth 1 -type d -empty -delete
+
+  echoinfo "remove chunks older than ${days} days... ${count_chunks} chunks, ${count_folder} empty chunk folders"
 }
 
 # get_rectangle takes the coordinates of the upper right and lower left points
-# and builds a rectangular area of chunks from them.
+# and builds a rectangular area of coordinates from them.
 function get_rectangle() {
   local from="$1"
   if [ -z "${from}" ]; then
@@ -1119,23 +1134,29 @@ function map_regen() {
     echoerr "map_regen: ${rectangle[*]:4}"; return 1
   fi
 
-  # Delete last digit to convert to chunk name.
-  local top_x; top_x=$(echo "${rectangle[0]}/10" |bc)
-  local top_y; top_y=$(echo "${rectangle[1]}/10" |bc)
-  local bot_x; bot_x=$(echo "${rectangle[2]}/10" |bc)
-  local bot_y; bot_y=$(echo "${rectangle[3]}/10" |bc)
+  local top_x; top_x=$(echo "${rectangle[0]}/8" |bc)
+  local top_y; top_y=$(echo "${rectangle[1]}/8" |bc)
+  local bot_x; bot_x=$(echo "${rectangle[2]}/8" |bc)
+  local bot_y; bot_y=$(echo "${rectangle[3]}/8" |bc)
 
   if [ "${top_x}" -gt "${bot_x}" ] || [ "${top_y}" -gt "${bot_y}" ]; then
     echoerr "map_regen: invalid points"; return 1
   fi
 
+  echoinfo "deleting chunks from $1 to $2"
+
   local count=0
   local count_success=0
+
   for (( x=top_x; x <= bot_x; x++ )) do
     for (( y=top_y; y <= bot_y; y++ )) do
       (( count++ ))
-      local name="map_${x}_${y}.bin"
-      rm "${ZOMBOID_DIR_MAP}/${name}" > /dev/null 2>&1
+      local name="${y}.bin"
+      local chunk="${ZOMBOID_DIR_MAP}/map/$x/${name}"
+
+      # echoinfo "${chunk}"
+
+      rm "${chunk}" > /dev/null 2>&1
       if [ $? -eq 0 ]; then
         (( count_success++ ))
       fi
@@ -2740,7 +2761,7 @@ function main() {
 
       echo "${INFO} calling function ${call_func}..."
 
-      $call_func ;;
+      $call_func "$3" "$4" ;;
     --variables|--vars)
       print_variables;;
     --version)
