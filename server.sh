@@ -12,7 +12,7 @@
 
 # VERSION of Project Zomboid Linux Server Manager.
 # Follows semantic versioning, SEE: http://semver.org/.
-VERSION="0.26.1"
+VERSION="0.26.2"
 YEAR="2026"
 AUTHOR="Pavel Korotkiy (outdead)"
 
@@ -255,6 +255,7 @@ function print_variables() {
 }
 
 # save_config_example saves pzlsm config example.
+# TODO: Print all variables.
 function save_config_example() {
   bash -c "cat <<'EOF' > ${DIR_CONFIG}/pzlsm.example.cfg
 #!/usr/bin/env bash
@@ -1017,10 +1018,10 @@ function delete_old_logs() {
 # TODO: Find a way to real zombies delete.
 function delete_zombies() {
   local count
-  count=$(find "${ZOMBOID_DIR_MAP}" -name "zpop_*_*.bin" | wc -l)
+  count=$(find "${ZOMBOID_DIR_MAP}/zpop" -name "zpop_*_*.bin" | wc -l)
   echo "${INFO} remove zpop_*_*.bin files... ${count} files"
 
-  rm -rf "${ZOMBOID_DIR_MAP}/zpop_*_*.bin"
+  rm -rf "${ZOMBOID_DIR_MAP}/zpop"
 }
 
 # delete_gos_files deletes gos_*.bin files from Zomboid/Saves directory.
@@ -1054,8 +1055,8 @@ function delete_old_chunks() {
 
   local count
   (( days-- ))
-  count=$(find "${ZOMBOID_DIR_MAP}" -name "map_*_*.bin" -mtime +${days} | wc -l)
-  find "${ZOMBOID_DIR_MAP}" -name "map_*_*.bin" -mtime +${days} -delete
+  count=$(find "${ZOMBOID_DIR_MAP}/map" -name "*.bin" -mtime +${days} | wc -l)
+  find "${ZOMBOID_DIR_MAP}/map" -name "*.bin" -mtime +${days} -delete
   (( days++ ))
   echo "${INFO} remove chunks older than ${days} days... ${count} chunks"
 }
