@@ -12,7 +12,7 @@
 
 # VERSION of Project Zomboid Linux Server Manager.
 # Follows semantic versioning, SEE: http://semver.org/.
-VERSION="0.26.3"
+VERSION="0.26.4"
 YEAR="2026"
 AUTHOR="Pavel Korotkiy (outdead)"
 
@@ -205,6 +205,7 @@ function init_variables() {
   ZOMBOID_DIR_SERVER="${ZOMBOID_DIR}/Server"
   ZOMBOID_DIR_DB="${ZOMBOID_DIR}/db"
   ZOMBOID_DIR_MAP="${ZOMBOID_DIR_SAVES}/Multiplayer/${SERVER_NAME}"
+  ZOMBOID_DIR_LUA="${ZOMBOID_DIR}/Lua"
 
   ZOMBOID_FILE_CONFIG_INI="${ZOMBOID_DIR_SERVER}/${SERVER_NAME}.ini"
   ZOMBOID_FILE_CONFIG_SANDBOX="${ZOMBOID_DIR_SERVER}/${SERVER_NAME}_SandboxVars.lua"
@@ -257,6 +258,7 @@ function print_variables() {
   echo "${INFO} ZOMBOID_DIR_SERVER:          ${ZOMBOID_DIR_SERVER}$(check_dir "${ZOMBOID_DIR_SERVER}")"
   echo "${INFO} ZOMBOID_DIR_DB:              ${ZOMBOID_DIR_DB}$(check_dir "${ZOMBOID_DIR_DB}")"
   echo "${INFO} ZOMBOID_DIR_MAP:             ${ZOMBOID_DIR_MAP}$(check_dir "${ZOMBOID_DIR_MAP}")"
+  echo "${INFO} ZOMBOID_DIR_LUA:             ${ZOMBOID_DIR_LUA}$(check_dir "${ZOMBOID_DIR_LUA}")"
   echo "${INFO}"
   echo "${INFO} ZOMBOID_FILE_CONFIG_INI:     ${ZOMBOID_FILE_CONFIG_INI}$(check_file "${ZOMBOID_FILE_CONFIG_INI}")"
   echo "${INFO} ZOMBOID_FILE_CONFIG_SANDBOX: ${ZOMBOID_FILE_CONFIG_SANDBOX}$(check_file "${ZOMBOID_FILE_CONFIG_SANDBOX}")"
@@ -479,7 +481,6 @@ function create_folders() {
   ln -sf "${ZOMBOID_DIR_MAP}/global_mod_data.bin" "${DIR_PUBLIC}/saves/global_mod_data.bin"
   ln -sf "${ZOMBOID_DIR_MAP}/gos_campfire.bin" "${DIR_PUBLIC}/saves/gos_campfire.bin"
   ln -sf "${ZOMBOID_DIR_MAP}/gos_farming.bin" "${DIR_PUBLIC}/saves/gos_farming.bin"
-  ln -sf "${ZOMBOID_DIR_MAP}/gos_metaldrum.bin" "${DIR_PUBLIC}/saves/gos_metaldrum.bin"
   ln -sf "${ZOMBOID_DIR_MAP}/gos_rainbarrel.bin" "${DIR_PUBLIC}/saves/gos_rainbarrel.bin"
   ln -sf "${ZOMBOID_DIR_MAP}/gos_trap.bin" "${DIR_PUBLIC}/saves/gos_trap.bin"
   ln -sf "${ZOMBOID_DIR_MAP}/map_meta.bin" "${DIR_PUBLIC}/saves/map_meta.bin"
@@ -490,7 +491,10 @@ function create_folders() {
   ln -sf "${ZOMBOID_DIR_MAP}/recorded_media.bin" "${DIR_PUBLIC}/saves/recorded_media.bin"
   ln -sf "${ZOMBOID_DIR_MAP}/vehicles.db" "${DIR_PUBLIC}/saves/vehicles.db"
   ln -sf "${ZOMBOID_DIR_MAP}/z_outfits.bin" "${DIR_PUBLIC}/saves/z_outfits.bin"
-  ln -sf "${ZOMBOID_DIR_MAP}/zpop_virtual.bin" "${DIR_PUBLIC}/saves/zpop_virtual.bin"
+
+  ln -sf "${ZOMBOID_DIR_LUA}/safehouses.json" "${DIR_PUBLIC}/saves/safehouses.json"
+  ln -sf "${ZOMBOID_DIR_LUA}/factions.json" "${DIR_PUBLIC}/saves/factions.json"
+  ln -sf "${ZOMBOID_DIR_LUA}/moonshine-recipes.json" "${DIR_PUBLIC}/saves/moonshine-recipes.json"
 
   ln -sf "${ZOMBOID_FILE_DB}" "${DIR_PUBLIC}/saves/${SERVER_NAME}.db"
 
