@@ -15,7 +15,7 @@
     * [console](commands/console.md)
     * [cmd](commands/cmd.md)
     * [kickusers](commands/kickusers.md)
-    * [delfile](commands/delfile.md) [manifest, zombies, map]
+    * [delfile](commands/delfile.md) [pzmanifest, modmanifest, zombies, map]
     * [map](commands/map.md) [delete, copy]
     * [range](commands/range.md)
     * [backup](commands/backup.md) [fast, players, world]

@@ -12,7 +12,7 @@
 
 # VERSION of Project Zomboid Linux Server Manager.
 # Follows semantic versioning, SEE: http://semver.org/.
-VERSION="0.26.4"
+VERSION="0.26.5"
 YEAR="2026"
 AUTHOR="Pavel Korotkiy (outdead)"
 
@@ -245,6 +245,8 @@ function print_variables() {
   echo "${INFO} NOW:                         ${NOW}"
   echo "${INFO} TIMESTAMP:                   ${TIMESTAMP}"
   echo "${INFO} BASEDIR:                     ${BASEDIR}"
+  echo "${INFO}"
+  echo "${INFO} ZOMBOID_HOME_DIR:            ${ZOMBOID_HOME_DIR}"
   echo "${INFO}"
   echo "${INFO} FILE_PZLSM_LOG:              ${FILE_PZLSM_LOG}$(check_file "${FILE_PZLSM_LOG}")"
   echo "${INFO} FILE_PZLSM_CONFIG:           ${FILE_PZLSM_CONFIG}$(check_file "${FILE_PZLSM_CONFIG}")"
@@ -2101,10 +2103,15 @@ function print_help_delfile() {
   echo "  --help            Prints help."
   echo
   echo "COMMANDS:"
-  echo "  manifest          Deletes appworkshop_108600.acf file. It need to"
-  echo "                    update mods correctly."
+  echo "  pzmanifest        Deletes projectzomboid/steamapps/appmanifest_380870.acf file."
+  echo "                    It sometimes need to update game server correctly."
   echo "  EXAMPLE:"
-  echo "    $0 delfile manifest"
+  echo "    $0 delfile pzmanifest"
+  echo
+  echo "  modmanifest       Deletes projectzomboid/steamapps/workshop/appworkshop_108600.acf file."
+  echo "                    It need to update mods correctly."
+  echo "  EXAMPLE:"
+  echo "    $0 delfile modmanifest"
   echo
   echo "  zombies           Deletes all zpop_*_*.bin files from Zomboid/Saves directory."
   echo "                    These files are responsible for placing zombies on the world."
@@ -2579,9 +2586,11 @@ function main() {
     delfile)
       while [[ -n "$2" ]]; do
         case "$2" in
-          manifest)
-            delete_mods_manifest
+          pzmanifest)
             delete_zomboid_manifest
+            return ;;
+          modmanifest)
+            delete_mods_manifest
             return ;;
           zombies)
             delete_zombies
