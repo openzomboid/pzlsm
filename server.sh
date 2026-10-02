@@ -1167,7 +1167,7 @@ function map_delete() {
     for (( y=top_y; y <= bot_y; y++ )) do
       (( count++ ))
       local name="${y}.bin"
-      local chunk="${ZOMBOID_DIR_MAP}/map/$x/${name}"
+      local chunk="${ZOMBOID_DIR_MAP}/map/${x}/${name}"
 
       # echoinfo "${chunk}"
 
@@ -1210,10 +1210,10 @@ function map_copy() {
   fi
 
   # Delete last digit to convert to chunk name.
-  local top_x; top_x=$(echo "${rectangle[0]}/10" |bc)
-  local top_y; top_y=$(echo "${rectangle[1]}/10" |bc)
-  local bot_x; bot_x=$(echo "${rectangle[2]}/10" |bc)
-  local bot_y; bot_y=$(echo "${rectangle[3]}/10" |bc)
+  local top_x; top_x=$(echo "${rectangle[0]}/8" |bc)
+  local top_y; top_y=$(echo "${rectangle[1]}/8" |bc)
+  local bot_x; bot_x=$(echo "${rectangle[2]}/8" |bc)
+  local bot_y; bot_y=$(echo "${rectangle[3]}/8" |bc)
 
   if [ "${top_x}" -gt "${bot_x}" ] || [ "${top_y}" -gt "${bot_y}" ]; then
      echoerr "map_copy: invalid points"; return 1
@@ -1234,12 +1234,14 @@ function map_copy() {
   local count=0
   local count_success=0
   for (( x=top_x; x <= bot_x; x++ )) do
+    mkdir -p "${copy_path}/${x}" #> /dev/null 2>&1
+
     for (( y=top_y; y <= bot_y; y++ )) do
       (( count++ ))
-      local name="map_${x}_${y}.bin"
+      local name="map/${x}/${y}.bin"
 
       if [ -f "${ZOMBOID_DIR_MAP}/${name}" ]; then
-        cp "${ZOMBOID_DIR_MAP}/${name}" "${copy_path}" > /dev/null 2>&1
+        cp "${ZOMBOID_DIR_MAP}/${name}" "${copy_path}/${x}" > /dev/null 2>&1
         if [ $? -eq 0 ]; then
           (( count_success++ ))
         else
