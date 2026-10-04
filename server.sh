@@ -1283,10 +1283,10 @@ function map_copyto() {
   fi
 
   # Delete last digit to convert to chunk name.
-  local top_x; top_x=$(echo "${rectangle[0]}/10" |bc)
-  local top_y; top_y=$(echo "${rectangle[1]}/10" |bc)
-  local bot_x; bot_x=$(echo "${rectangle[2]}/10" |bc)
-  local bot_y; bot_y=$(echo "${rectangle[3]}/10" |bc)
+  local top_x; top_x=$(echo "${rectangle[0]}/8" |bc)
+  local top_y; top_y=$(echo "${rectangle[1]}/8" |bc)
+  local bot_x; bot_x=$(echo "${rectangle[2]}/8" |bc)
+  local bot_y; bot_y=$(echo "${rectangle[3]}/8" |bc)
 
   if [ "${top_x}" -gt "${bot_x}" ] || [ "${top_y}" -gt "${bot_y}" ]; then
      echoerr "map_copyto: invalid points"; return 1
@@ -1296,8 +1296,8 @@ function map_copyto() {
   local regexp='^[0-9]+$'
 
   IFS='x' read -ra point_top <<< "${from_new}"
-  local top_x_new; top_x_new=$(echo "${point_top[0]}/10" |bc)
-  local top_y_new; top_y_new=$(echo "${point_top[1]}/10" |bc)
+  local top_x_new; top_x_new=$(echo "${point_top[0]}/8" |bc)
+  local top_y_new; top_y_new=$(echo "${point_top[1]}/8" |bc)
 
   if ! [[ ${top_x_new} =~ $regexp ]] || ! [[ ${top_y_new} =~ $regexp ]]; then
      echoerr "map_copyto: upper new point is invalid"; return 1
